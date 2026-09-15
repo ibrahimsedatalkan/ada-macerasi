@@ -26,6 +26,8 @@ function ac() {
     anaKazanc = ctx.createGain();
     anaKazanc.gain.value = 0.5;
     anaKazanc.connect(ctx.destination);
+    // his.js müzik kısma (ducking) için bu düğüme erişir
+    window.__adaMuzikKazanc = anaKazanc;
   }
   if (ctx.state === 'suspended') { ctx.resume().catch(() => {}); }
   return ctx;

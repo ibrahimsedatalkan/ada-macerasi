@@ -8,6 +8,7 @@ import { makeMultiplyQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech, getSpeechRate } from '../audio.js';
 import { muzikYogunluk } from '../music.js';
+import { titretKombo } from '../his.js';
 import {
   pickAdaptiveTables, adaptiveMaxB, pushRecent, difficultyTier,
   initMissed, pushMissed, takeDueMissed, shouldReask
@@ -156,6 +157,7 @@ export function createMultiplyGame({ root, level, api }) {
       elemandanPatlama(btn, { adet: 14 + Math.min(14, state.streak * 3) });
       // Seri arttıkça müzik coşar (konsol oyunlarında müzik skora göre yükselir)
       muzikYogunluk(state.streak >= 6 ? 3 : state.streak >= 3 ? 2 : 1);
+      if (state.streak >= 3) titretKombo(state.streak);   // haptik: seri güçlendi
       if (state.streak === 3) komboYazisi("3'LÜ KOMBO!");
       else if (state.streak === 5) komboYazisi("5'Lİ KOMBO!");
       else if (state.streak === 8) komboYazisi("8'Lİ KOMBO! MUHTEŞEM!", '#58cf6a');

@@ -11,6 +11,7 @@ import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascot
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import { muzikBaslat, muzikModu, muzikYogunluk, muzikDurdur, muzikCaliyor, zaferFanfari, odulParlitisi } from './music.js';
+import { titretDogru, titretYanlis, titretKombo, titretTrofe, titretDokun, konusmaDurumu, ortamBaslat, ortamDurdur } from './his.js';
 import * as C from './collect.js';
 import { createSidesGame } from './games/sides.js';
 import { createShapeHuntGame } from './games/shapehunt.js';
@@ -200,6 +201,8 @@ const api = {
     // KARAKTER TEPKİSİ — konsol oyunlarında karakter her olaya cevap verir
     const hud = document.getElementById('hud-avatar');
     if (hud) { if (a.correct) avatarSevin(hud, 1); else avatarUzul(hud); }
+    // HAPTİK — mobilde titreşim (PS5 DualSense'in karşılığı)
+    if (a.correct) titretDogru(); else titretYanlis();
     // GÜNLÜK GÖREV yalnız DOĞRU cevaplarla ilerler
     if (profile && a.correct) {
       const odul = S.gorevIlerlet(profile, 1);
@@ -467,6 +470,7 @@ function renderMap() {
   });
 
   root.append(head, treasureStrip, grid);
+  try { ortamDurdur(); } catch (e) {}          // ada atmosferi bitti
   if (muzikCaliyor()) muzikModu('menu'); else muzikBaslat('menu');
   muzikYogunluk(1);
 
@@ -533,6 +537,7 @@ function checkStickers({ sessiz = false } = {}) {
     const tier = ilk.tier || 'bronze';
     const meta = C.TROPHY_META[tier];
     sfx('trophy');
+    titretTrofe();                 // haptik: konsollardaki ödül hissi
     confetti({ count: 80 });
     // Konsol tarzı: önce sağ üstten kayan trofe bildirimi
     yeni.forEach((st, k) => setTimeout(() => trophyPopup(st), k * 1100));
@@ -972,6 +977,9 @@ function startLevel(world, level) {
   muzikYogunluk(1);
   // Bölüm öncesi geri sayım — konsol oyunlarındaki "hazırlan" anı.
   // Beklenti yaratır; çocuk soru gelmeden ekrana kilitlenir.
+  // Ortam sesi — adanın kendi atmosferi (kuş, su damlası, rüzgâr, dalga, yıldız)
+  if (settings.sound) { try { ortamBaslat(world.id, 1); } catch (e) {} }
+
   // Önce hikâye sahnesi, sonra geri sayım, sonra oyun
   sahneOynat(world, level, () => {
     geriSayim(stage, () => {

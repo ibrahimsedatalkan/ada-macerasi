@@ -101,6 +101,8 @@ export function sfx(name) {
   if (fn) { try { fn(); } catch (e) { /* sessiz geç */ } }
 }
 
+import { konusmaDurumu } from './his.js';
+
 /* ---------------- Türkçe sesli anlatım ----------------
    TASARIM KARARI: 7 yaş çocuk için en önemli iki şey
      1) YAVAŞ konuşma (rate 0.62)
@@ -323,6 +325,7 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
   const token = key || t;
   if (!t || (token === lastSpoken && !force)) return;
   lastSpoken = token;
+  konusmaKis();                 // müzik kısılsın (diyalog net duyulsun)
 
   // 1) Önceden üretilmiş doğal ses dosyası var mı?
   if (sesManifestHazir && sesManifest && audio.voice) {
@@ -335,6 +338,20 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
 
   // 2) Yoksa tarayıcı sesi (yedek)
   tarayiciSpeak(t, hiz, token, onDone);
+}
+
+/* Müzik kısma (ducking): konuşma başlarken kıs, son konuşmadan 1.4 sn
+   sonra geri aç. Böylece cümle sıraları arasında müzik zıplamaz —
+   tüm konuşma yollarını (MP3, tarayıcı TTS, karşılama dizisi) kapsar. */
+let kisZaman = null;
+function konusmaKis() {
+  konusmaDurumu(true);
+  if (kisZaman) clearTimeout(kisZaman);
+  kisZaman = setTimeout(() => { konusmaDurumu(false); kisZaman = null; }, 1400);
+}
+export function konusmaKisTemizle() {
+  if (kisZaman) { clearTimeout(kisZaman); kisZaman = null; }
+  konusmaDurumu(false);
 }
 
 /** Tarayıcının kendi ses motoruyla oku (yedek yol) */
