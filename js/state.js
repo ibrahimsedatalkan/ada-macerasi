@@ -140,6 +140,7 @@ export function migrate(p) {
   p.stats.recent = p.stats.recent || [];      // adaptif zorluk için son cevaplar
   p.missed = p.missed || [];                  // aralıklı tekrar kuyruğu
   p.lessonsSeen = p.lessonsSeen || [];        // görülen dersler (ders ekranı)
+  p.gunluk = p.gunluk || null;                // günlük görev durumu
   return p;
 }
 
@@ -345,4 +346,46 @@ export function pushBoard(profile) {
 }
 export function clearBoard() {
   write(BOARD_KEY, []);
+}
+
+
+/* ============================================================
+   GÜNLÜK GÖREV — okuldan gelince dönme sebebi
+   Her gün küçük, ulaşılabilir bir hedef. Alışkanlık yaratır.
+   ============================================================ */
+const GOREV_HEDEFLERI = [10, 12, 15, 18, 20];
+
+/** Bugünün tarihi (yerel) — YYYY-MM-DD */
+export function bugun() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Günlük görevi hazırla/oku — gün değiştiyse sıfırla, hedefi kademeli büyüt */
+export function gunlukGorev(profile) {
+  const t = bugun();
+  if (!profile.gunluk || profile.gunluk.tarih !== t) {
+    const oncekiHedef = profile.gunluk?.hedef || GOREV_HEDEFLERI[0];
+    const basariyla = (profile.gunluk?.yapilan || 0) >= oncekiHedef && oncekiHedef > 0;
+    // Dün tamamladıysa hedef biraz büyür (kademeli zorluk)
+    const idx = GOREV_HEDEFLERI.indexOf(oncekiHedef);
+    const yeniHedef = basariyla && idx >= 0 && idx < GOREV_HEDEFLERI.length - 1
+      ? GOREV_HEDEFLERI[idx + 1] : GOREV_HEDEFLERI[0];
+    profile.gunluk = { tarih: t, hedef: yeniHedef, yapilan: 0, odulAlindi: false };
+  }
+  return profile.gunluk;
+}
+
+/** Doğru cevap sonrası günlük görevi ilerlet. Tamamlandıysa ödül döner. */
+export function gorevIlerlet(profile, adet = 1) {
+  const g = gunlukGorev(profile);
+  if (g.odulAlindi) return null;
+  g.yapilan += adet;
+  if (g.yapilan >= g.hedef) {
+    g.odulAlindi = true;
+    const odul = 30 + g.hedef * 5;         // 80-130 jeton
+    profile.coins = (profile.coins || 0) + odul;
+    return { hedef: g.hedef, odul, jeton: profile.coins };
+  }
+  return null;
 }

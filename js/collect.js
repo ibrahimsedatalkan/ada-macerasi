@@ -170,6 +170,8 @@ export const STICKERS = [
   { id: 'st_t10',      name: 'Onlar Bitti',     desc: "10'lar tablosunu bitir",        test: (p) => tableMastered(p, '10'),    art: badgeSticker('10', '#ffd23d') , tier: 'gold' },
   { id: 'st_alltables', name: 'Tüm Tablolar',   desc: "1'den 10'a tüm tablolarda ustalaş", test: (p) => allTablesMastered(p),  art: starSticker('#ffd23d', '#f5b40b') , tier: 'platinum' },
   { id: 'st_world6',   name: 'Yıldız Fatihi',   desc: 'Yıldız Adası’nı tamamla',       test: (p) => worldDone(p, 'w6'),        art: badgeSticker('★', '#ffe27a') , tier: 'gold' },
+  { id: 'st_gunluk',   name: 'Her Gün Burada',   desc: '3 gün üst üste oyna',          test: (p) => (p.streak?.count || 0) >= 3, art: starSticker('#58cf6a', '#ffd23d'), tier: 'silver' },
+  { id: 'st_gorev3',   name: 'Görev Adamı',      desc: '3 günlük görevi tamamla',      test: (p) => (p.gorevTamam || 0) >= 3,    art: starSticker('#ffd23d', '#ff9a3d'), tier: 'gold' },
   { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') , tier: 'gold' },
   /* --- Toplama/Çıkarma (2. sınıf çekirdek kazanımı) --- */
   { id: 'st_world7',   name: 'Deniz Fatihi',    desc: 'Sayı Denizi’ni tamamla',        test: (p) => worldDone(p, 'w7'),        art: badgeSticker('+', '#3dbdff') , tier: 'gold' },

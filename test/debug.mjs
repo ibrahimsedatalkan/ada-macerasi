@@ -17,6 +17,7 @@ await errs('login');
 await c.clickSelector('.world-card');
 await c.clickSelector('.level-node');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await errs('level-start');
 
 for (let i = 0; i < 9; i++) {
@@ -48,6 +49,7 @@ console.log('DUEL SCREEN:', await c.evaluate('document.querySelector(".screen.ac
 console.log('DUEL BTNS:', await c.evaluate(`[...document.querySelectorAll('[data-screen="duel"] button')].map(b=>b.textContent.trim().slice(0,20)).join(' | ')`));
 await errs('duel-setup');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(600);
 console.log('DUEL SONRASI:', (await c.evaluate('document.body.textContent') || '').slice(0, 300).replace(/\s+/g, ' '));
 await errs('duel-start');

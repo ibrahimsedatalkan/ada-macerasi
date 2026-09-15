@@ -71,6 +71,7 @@ await c.clickByText('Maceraya başla');
 await c.clickSelector('.world-card');
 await c.clickSelector('.level-node');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(500);
 
 let s = await readJourney();
@@ -130,6 +131,7 @@ await c.evaluate('document.querySelectorAll(".world-card")[3].click()');
 await c.sleep(350);
 await c.evaluate('document.querySelectorAll(".level-node")[0].click()');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(700);
 s = await readJourney();
 check('çizim bölümünün hedefi köprü', s.hedefTip === 'kopru', s.hedefTip);

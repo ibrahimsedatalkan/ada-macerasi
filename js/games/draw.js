@@ -469,7 +469,7 @@ export function createDrawGame({ root, level, api }) {
   function finish(completed) {
     if (state.done) return;
     state.done = true;
-    api.finish({ correct: state.correct, wrong: state.wrong, completed, total: cfg.shapes.length });
+    api.finish({ correct: state.correct, wrong: state.wrong, completed, rounds: cfg.shapes.length, hintsUsed: state.hintsUsed || 0, total: cfg.shapes.length });
   }
 
   canvas.addEventListener('pointerdown', onDown);

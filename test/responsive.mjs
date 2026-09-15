@@ -57,6 +57,7 @@ for (const s of sizes) {
   await c.screenshot(path.join(SHOTS, `m-${s.name}-3-levels.png`));
   await c.clickSelector('.level-node');
   await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
   await c.sleep(500);
   await overflowReport('çarpım');
   const gridCols = await c.evaluate(`getComputedStyle(document.querySelector('.answers')).gridTemplateColumns`);
@@ -77,6 +78,7 @@ for (const s of sizes) {
   await c.sleep(300);
   await c.evaluate('document.querySelectorAll(".level-node")[0].click()');
   await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
   await c.sleep(700);
   await overflowReport('çizim');
   const canvasBox = await c.evaluate(`JSON.stringify((() => { const r = document.querySelector('.draw-stage').getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height) }; })())`);
@@ -89,6 +91,7 @@ for (const s of sizes) {
   await c.sleep(300);
   await c.evaluate('document.querySelectorAll(".level-node")[0].click()');
   await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
   await c.sleep(500);
   await overflowReport('kenar-köşe');
   await c.screenshot(path.join(SHOTS, `m-${s.name}-6-sides.png`));
@@ -99,6 +102,7 @@ for (const s of sizes) {
   await c.sleep(300);
   await c.evaluate('document.querySelectorAll(".level-node")[2].click()');
   await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
   await c.sleep(700);
   await overflowReport('şekil-avı');
   await c.screenshot(path.join(SHOTS, `m-${s.name}-7-shapehunt.png`));

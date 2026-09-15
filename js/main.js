@@ -10,6 +10,7 @@ import * as S from './state.js';
 import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
+import { muzikBaslat, muzikModu, muzikYogunluk, muzikDurdur, muzikCaliyor, zaferFanfari, odulParlitisi } from './music.js';
 import * as C from './collect.js';
 import { createSidesGame } from './games/sides.js';
 import { createShapeHuntGame } from './games/shapehunt.js';
@@ -132,6 +133,18 @@ const api = {
   toast: (m) => toast(m),
   recordAnswer: (a) => {
     if (profile) S.recordAnswer(profile, a);
+    // GÜNLÜK GÖREV yalnız DOĞRU cevaplarla ilerler
+    if (profile && a.correct) {
+      const odul = S.gorevIlerlet(profile, 1);
+      if (odul) {
+        setTimeout(() => {                 // görev tamamlandı — konsol hissi
+          confetti({ count: 80 });
+          try { odulParlitisi(); } catch (e) {}
+          toast(`🎯 Günlük görev tamam! +${odul.odul} jeton`);
+          updateHud();
+        }, 650);
+      }
+    }
     if (!journey) return;
     if (currentLevel?.level?.type === 'draw') return;   // çizimde ilerleme kapsama oranına bağlı
     if (a.correct) { journey.advance(); sfx('step'); } else { journey.stumble(); }
@@ -230,6 +243,7 @@ function renderMap() {
     el('div', { class: 'grow', style: { flex: '1' } }),
     streakChip(),
     trophyChip(),
+    gorevChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
@@ -275,6 +289,8 @@ function renderMap() {
   });
 
   root.append(head, treasureStrip, grid);
+  if (muzikCaliyor()) muzikModu('menu'); else muzikBaslat('menu');
+  muzikYogunluk(1);
 
   // Kişisel karşılama — dosyalar hazırsa Google sesiyle, değilse tarayıcı sesiyle
   if (!selamlandi && profile?.nick) {
@@ -467,6 +483,22 @@ function trophyPopup(sticker) {
 }
 
 /** Haritadaki trofe rozeti — kazanılan/toplam */
+/**
+ * Günlük görev rozeti — "bugün şunu yap" hedefi.
+ * Okuldan gelince dönme sebebi: ulaşılabilir, somut, her gün taze.
+ */
+function gorevChip() {
+  const g = S.gunlukGorev(profile);
+  const tamam = g.yapilan >= g.hedef;
+  return el('div', {
+    class: 'hint-pill gorev-chip' + (tamam ? ' tamam' : ''),
+    title: tamam ? 'Bugünün görevi tamamlandı!' : `Bugünün görevi: ${g.hedef} soru`
+  },
+    el('span', { class: 'gc-ikon', text: tamam ? '✓' : '🎯' }),
+    el('span', { text: tamam ? 'Görev tamam!' : `${g.yapilan}/${g.hedef}` })
+  );
+}
+
 function trophyChip() {
   const kazanilan = C.evaluateStickers(profile).length;
   const hepsi = C.STICKERS.length;
@@ -645,6 +677,28 @@ function openLevelIntro(world, level) {
 }
 
 /* ---------------- 3) OYUN ---------------- */
+/**
+ * Bölüm öncesi geri sayım — konsol oyunlarındaki "hazırlan" anı.
+ * Beklenti yaratır ve çocuğu ekrana kilitler.
+ */
+function geriSayim(container, bitti) {
+  const kat = el('div', { class: 'countdown' });
+  container.append(kat);
+  let n = 3;
+  const goster = (metin, buyuk) => {
+    kat.innerHTML = '';
+    kat.append(el('div', { class: 'cd-sayi' + (buyuk ? ' buyuk' : ''), text: metin }));
+  };
+  sfx('tap');
+  goster('3');
+  const t = setInterval(() => {
+    n--;
+    if (n >= 1) { goster(String(n)); sfx('tap'); }
+    else if (n === 0) { goster('BAŞLA!', true); sfx('unlock'); }
+    else { clearInterval(t); kat.remove(); bitti(); }
+  }, 700);
+}
+
 function startLevel(world, level) {
   if (currentEngine?.destroy) currentEngine.destroy();
   currentEngine = null;
@@ -673,8 +727,14 @@ function startLevel(world, level) {
 
   const factory = ENGINE_BY_TYPE[level.type];
   if (!factory) { toast('Bu bölüm tipi henüz yok'); renderMap(); return; }
-  currentEngine = factory({ root: stage, level: withTimeMode(level), api });
-  currentEngine.start();
+  muzikModu('play');               // oyun müziği (tempolu)
+  muzikYogunluk(1);
+  // Bölüm öncesi geri sayım — konsol oyunlarındaki "hazırlan" anı.
+  // Beklenti yaratır; çocuk soru gelmeden ekrana kilitlenir.
+  geriSayim(stage, () => {
+    currentEngine = factory({ root: stage, level: withTimeMode(level), api });
+    currentEngine.start();
+  });
   api._stage = stage;
 }
 
@@ -690,14 +750,51 @@ async function quitLevel() {
 }
 
 /* ---------------- 4) SONUÇ ---------------- */
-function computeStars({ completed, correct, wrong }) {
-  const total = correct + wrong;
-  const acc = total ? correct / total : 0;
+/**
+ * Yıldız hesabı — SADECE doğruluk değil.
+ * Önce: %95 → 3★, %78 → 2★ (ipucu spamlayan çocuk da 3★ alıyordu)
+ * Şimdi: ipucu kullanımı puanı düşürür, seri bonus verir.
+ *   3★ = gerçekten öğrenmiş (yüksek doğruluk + az ipucu)
+ *   2★ = iyi ama desteğe ihtiyaç duymuş
+ *   1★ = bitirdi, tekrar çalışmalı
+ */
+function computeStars({ completed, correct, wrong, hintsUsed = 0, best = 0, rounds = 1 }) {
   if (!completed) return 0;
-  if (acc >= 0.95) return 3;
-  if (acc >= 0.78) return 2;
+  const toplam = correct + wrong;
+  const dogruluk = toplam ? correct / toplam : 0;
+
+  // Puan: doğruluk temeli, ipucu cezası, seri ödülü
+  let puan = dogruluk * 100;
+  const ipucuOrani = Math.min(1, hintsUsed / Math.max(1, toplam));
+  puan -= ipucuOrani * 40;                                  // her %10 ipucu → 4 puan
+  puan += Math.min(8, (best / Math.max(1, rounds)) * 12);    // seri bonusu (en fazla +8)
+
+  if (puan >= 90) return 3;
+  if (puan >= 68) return 2;
   return 1;
 }
+
+/**
+ * RÜTBE — konsol oyunlarındaki gibi (S en iyi)
+ * Yıldız + ipucsuzluk + seri birlikte değerlendirilir.
+ */
+function computeRank({ stars, correct, wrong, hintsUsed = 0, best = 0, rounds = 1 }) {
+  const toplam = correct + wrong;
+  const dogruluk = toplam ? correct / toplam : 0;
+  if (stars >= 3 && hintsUsed === 0 && dogruluk >= 0.98) return 'S';
+  if (stars >= 3) return 'A';
+  if (stars === 2) return 'B';
+  if (stars === 1) return 'C';
+  return 'D';
+}
+
+export const RANK_META = {
+  S: { ad: 'MÜKEMMEL',  renk: '#ffd23d', renk2: '#ff9a3d', aciklama: 'Hiç ipucu almadan, kusursuz!' },
+  A: { ad: 'HARİKA',    renk: '#58cf6a', renk2: '#1c93d8', aciklama: 'Çok iyi iş çıkardın!' },
+  B: { ad: 'İYİ',       renk: '#4aa8ff', renk2: '#2a6fd8', aciklama: 'Güzel, biraz daha çalış.' },
+  C: { ad: 'GEÇTİN',    renk: '#ffb03d', renk2: '#d97a00', aciklama: 'Bitirdin! Tekrar dene.' },
+  D: { ad: 'TEKRAR DENE', renk: '#b9c6d8', renk2: '#8d99a8', aciklama: 'Bu bölümü bir daha oyna.' }
+};
 
 function finishLevel(result) {
   const { world, level } = currentLevel || {};
@@ -707,6 +804,7 @@ function finishLevel(result) {
   stopSpeaking();
 
   const stars = computeStars(result);
+  const rank = computeRank({ stars, ...result });
   const score = (result.correct || 0) * 100 + (result.streak || 0) * 50 + (result.dragonDefeated ? 300 : 0);
   const before = S.getResult(profile, level.id);
   const saved = S.saveLevelResult(profile, level, { stars, score });
@@ -740,16 +838,26 @@ function finishLevel(result) {
   if (unlockedNew) setTimeout(() => { sfx('unlock'); toast('🔓 Yeni bölüm açıldı!'); }, 900);
 
   updateHud();
-  renderResult({ world, level, result, stars, score, coins, improved: stars > before.stars, unlockedNew, nextLevel, seri, yeniHazine, yeniCikartma });
+  zaferFanfari('menu');            // coşkulu zafer fanfarı
+  renderResult({ world, level, result, stars, rank, score, coins, improved: stars > before.stars, unlockedNew, nextLevel, seri, yeniHazine, yeniCikartma });
 }
 
-function renderResult({ world, level, result, stars, score, coins, improved, unlockedNew, nextLevel, seri = null, yeniHazine = [], yeniCikartma = [] }) {
+function renderResult({ world, level, result, stars, rank, score, coins, improved, unlockedNew, nextLevel, seri = null, yeniHazine = [], yeniCikartma = [] }) {
   const root = showScreen('result');
   const mood = stars === 3 ? 'cheer' : stars === 2 ? 'happy' : stars === 1 ? 'think' : 'sad';
   const total = (result.correct || 0) + (result.wrong || 0);
   const acc = total ? Math.round(((result.correct || 0) / total) * 100) : 0;
   const msg = stars === 3 ? 'Muhteşem! Her şeyi doğru yaptın!' : stars === 2 ? 'Çok iyi! Neredeyse hepsi doğru.' : stars === 1 ? 'Güzel! Bir daha denersen daha iyi olacak.' : 'Olsun! Tekrar denemek en güzel öğrenme yoludur.';
 
+  // RÜTBE — konsol oyunlarındaki gibi büyük harf notu
+  const rm = RANK_META[rank] || RANK_META.C;
+  const rankBox = el('div', { class: 'rank-box rank-' + (rank || 'C') },
+    el('div', { class: 'rank-letter', text: rank || 'C' }),
+    el('div', { class: 'rank-info' },
+      el('div', { class: 'rank-ad', text: rm.ad }),
+      el('div', { class: 'rank-aciklama', text: rm.aciklama })
+    )
+  );
   const starLine = el('div', { class: 'result-stars' });
   for (let i = 0; i < 3; i++) {
     const s = el('span', { class: 's' + (i < stars ? ' on' : ''), text: '★' });
@@ -763,6 +871,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
       el('h1', { text: stars > 0 ? 'Bölüm tamam!' : 'Tekrar deneyelim' }),
       el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,
+      rankBox,
       el('h2', { text: msg }),
       el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '8px' } },
         el('span', { class: 'hint-pill', text: `✅ ${result.correct || 0} doğru` }),

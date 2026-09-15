@@ -185,7 +185,7 @@ export function createShapeHuntGame({ root, level, api }) {
   function finishLevel(completed) {
     if (state.done) return;
     state.done = true;
-    api.finish({ correct: state.correct, wrong: state.wrong, completed, total: state.correct + state.wrong });
+    api.finish({ correct: state.correct, wrong: state.wrong, completed, rounds: cfg.rounds || 1, hintsUsed: state.hintsUsed || 0, total: state.correct + state.wrong });
   }
 
   return {

@@ -3,10 +3,11 @@
    Dokunmatik dostu; ipucu olarak nokta dizisi gösterir.
    ============================================================ */
 
-import { el, clear, starsEl, shake } from '../ui.js';
+import { el, clear, starsEl, shake, elemandanPatlama, ekranSars, hitStop, komboYazisi } from '../ui.js';
 import { makeMultiplyQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech, getSpeechRate } from '../audio.js';
+import { muzikYogunluk } from '../music.js';
 import {
   pickAdaptiveTables, adaptiveMaxB, pushRecent, difficultyTier,
   initMissed, pushMissed, takeDueMissed, shouldReask
@@ -14,7 +15,7 @@ import {
 
 export function createMultiplyGame({ root, level, api }) {
   const cfg = Object.assign({ tables: [2], mode: 'result', rounds: 7, options: 4, lives: 3, time: 0, maxB: 5, maxBHard: 10 }, level.cfg);
-  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0 };
+  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0 , hintsUsed: 0 };
   let destroyed = false;
 
   const bar = el('div', { class: 'game-bar' });
@@ -56,7 +57,7 @@ export function createMultiplyGame({ root, level, api }) {
     if (state.i >= cfg.rounds || state.lives <= 0) return api.finish({
       correct: state.correct, wrong: state.wrong,
       completed: state.i >= cfg.rounds && state.lives > 0,
-      streak: state.best, total: state.correct + state.wrong
+      streak: state.best, rounds: cfg.rounds || 1, hintsUsed: state.hintsUsed || 0, total: state.correct + state.wrong
     });
 
     state.i++;
@@ -152,6 +153,13 @@ export function createMultiplyGame({ root, level, api }) {
       state.best = Math.max(state.best, state.streak);
       btn.classList.add('correct');
       api.sfx('correct');
+      elemandanPatlama(btn, { adet: 14 + Math.min(14, state.streak * 3) });
+      // Seri arttıkça müzik coşar (konsol oyunlarında müzik skora göre yükselir)
+      muzikYogunluk(state.streak >= 6 ? 3 : state.streak >= 3 ? 2 : 1);
+      if (state.streak === 3) komboYazisi("3'LÜ KOMBO!");
+      else if (state.streak === 5) komboYazisi("5'Lİ KOMBO!");
+      else if (state.streak === 8) komboYazisi("8'Lİ KOMBO! MUHTEŞEM!", '#58cf6a');
+      else if (state.streak === 12) komboYazisi("12'Lİ KOMBO! EFSANE!", '#ff6f9c');
       if (state.streak > 0 && state.streak % 5 === 0) { api.sfx('coin'); api.toast(`${state.streak} doğru seri! Süpersin!`); }
       api.recordAnswer({ correct: true, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
       streakEl.textContent = 'Seri: ' + state.streak;
@@ -164,6 +172,9 @@ export function createMultiplyGame({ root, level, api }) {
       streakEl.textContent = 'Seri: 0';
       api.recordAnswer({ correct: false, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
       api.sfx('wrong');
+      ekranSars(1.15);
+      hitStop(110);
+      muzikYogunluk(1);            // seri bozuldu → müzik sakinleşir
       btn.classList.add('wrong');
       shake(btn);
       livesEl.innerHTML = hearts(Math.max(0, state.lives));
@@ -204,7 +215,8 @@ export function createMultiplyGame({ root, level, api }) {
       hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
       return;
     }
-    state.usedHint = true;          // ipucu kullanıldı → "ipucsuz doğru" ödülü sayılmaz (dürüst ölçüm)
+    state.usedHint = true;
+    state.hintsUsed = (state.hintsUsed || 0) + 1;          // ipucu kullanıldı → "ipucsuz doğru" ödülü sayılmaz (dürüst ölçüm)
     if (state.hintStep === 1) {
       showTechnique();
       hintBtn.textContent = '🔢 Grupları göster';

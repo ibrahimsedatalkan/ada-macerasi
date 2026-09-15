@@ -50,6 +50,7 @@ check('bölüm listesi açıldı', (await c.evaluate('document.querySelectorAll(
 await c.clickSelector('.level-node');
 check('bölüm tanıtımı açıldı', (await c.evaluate('!!document.getElementById("dialog").querySelector(".btn.primary")')));
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 check('oyun ekranı', (await c.evaluate('document.querySelector(".screen.active").dataset.screen')) === 'game');
 const q1 = await c.evaluate('document.querySelector(".question").textContent');
 check('soru üretildi', /×/.test(q1 || ''), q1);
@@ -110,6 +111,7 @@ await c.evaluate('document.querySelectorAll(".world-card")[2].click()');
 await c.sleep(400);
 await c.clickSelector('.level-node');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 const q3 = await c.evaluate('document.querySelector(".question").textContent');
 check('kenar sorusu geldi', /kenar|köşe/.test(q3 || ''), q3);
 check('şekil SVG çizildi', (await c.evaluate('!!document.querySelector(".bubble svg")')));
@@ -123,6 +125,7 @@ await c.evaluate('document.querySelectorAll(".world-card")[3].click()');
 await c.sleep(400);
 await c.clickSelector('.level-node');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(500);
 check('çizim tuvali var', (await c.evaluate('!!document.querySelector(".draw-stage canvas")')));
 await c.screenshot(path.join(SHOTS, '06-draw-before.png'));
@@ -171,6 +174,7 @@ await c.clickByText('Aynı cihazda 2 kişi', 'button', 800);
 check('düello kurulum ekranı', (await c.evaluate('document.querySelector(".screen.active").dataset.screen')) === 'duel');
 await c.evaluate(`document.querySelectorAll('[data-screen="duel"] input')[1].value = 'Arkadas'`);
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 check('düello 1. oyuncuya geçti', (await c.evaluate('document.body.textContent')).includes('Sıra: TestOyuncu'));
 await c.screenshot(path.join(SHOTS, '08-duel.png'));
 await c.clickByText('Hazırım!');
@@ -185,6 +189,7 @@ await c.evaluate('document.querySelectorAll(".world-card")[1].click()');
 await c.sleep(350);
 await c.evaluate('document.querySelectorAll(".level-node")[2].click()');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(600);
 const tokCount0 = await c.evaluate('document.querySelectorAll(".shape-tok").length');
 check('şekil avı tokenları geldi', tokCount0 === 4, 'token: ' + tokCount0);
@@ -212,6 +217,7 @@ await c.evaluate('document.querySelectorAll(".world-card")[4].click()');
 await c.sleep(350);
 await c.evaluate('document.querySelectorAll(".level-node")[0].click()');
 await c.clickByText('Başla!');
+await c.sleep(3400);   // bölüm öncesi geri sayım (3-2-1-BAŞLA)
 await c.sleep(500);
 check('boss ekranı: ejderha ve can çubuğu', (await c.evaluate('!!document.querySelector("svg") && document.body.textContent.includes("Ejderha canı")')));
 check('boss: süre çubuğu', (await c.evaluate('!!document.querySelector(".timer-bar i")')));

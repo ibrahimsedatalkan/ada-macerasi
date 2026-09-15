@@ -28,7 +28,7 @@ export function createSidesGame({ root, level, api }) {
 
   function nextQuestion() {
     if (state.i >= cfg.rounds || state.lives <= 0) {
-      return api.finish({ correct: state.correct, wrong: state.wrong, completed: state.i >= cfg.rounds && state.lives > 0, total: state.correct + state.wrong });
+      return api.finish({ correct: state.correct, wrong: state.wrong, completed: state.i >= cfg.rounds && state.lives > 0, rounds: cfg.rounds || 1, hintsUsed: state.hintsUsed || 0, total: state.correct + state.wrong });
     }
     state.i++;
     progEl.textContent = `Soru ${state.i} / ${cfg.rounds}`;

@@ -240,7 +240,7 @@ export function createBossGame({ root, level, api }) {
     state.over = true;
     stopTimer();
     const completed = state.hp <= 0 || (state.i > cfg.rounds && state.lives > 0);
-    api.finish({ correct: state.correct, wrong: state.wrong, completed, dragonDefeated: state.hp <= 0, total: state.correct + state.wrong });
+    api.finish({ correct: state.correct, wrong: state.wrong, completed, dragonDefeated: state.hp <= 0, rounds: cfg.rounds || 1, hintsUsed: state.hintsUsed || 0, total: state.correct + state.wrong });
   }
 
   return {

@@ -273,3 +273,66 @@ export function shake(node) {
 export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
+
+
+/* ============================================================
+   OYUN "SULU"LUĞU (game juice)
+   Konsol oyunlarında her aksiyonun görsel karşılığı vardır.
+   Bunlar "hissi" belirler: doğru cevap tatmin edici olmalı.
+   ============================================================ */
+
+/** Parçacık patlaması — doğru cevapta kutlama */
+export function patlama(x, y, { adet = 18, renkler = ['#ffd23d', '#58cf6a', '#4aa8ff', '#ff6f9c'], boyut = 1 } = {}) {
+  const kat = document.createElement('div');
+  kat.className = 'patlama-kat';
+  document.body.append(kat);
+  for (let i = 0; i < adet; i++) {
+    const p = document.createElement('i');
+    const aci = (Math.PI * 2 * i) / adet + Math.random() * 0.5;
+    const mesafe = (46 + Math.random() * 78) * boyut;
+    p.style.setProperty('--x', Math.cos(aci) * mesafe + 'px');
+    p.style.setProperty('--y', Math.sin(aci) * mesafe + 'px');
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.background = renkler[i % renkler.length];
+    p.style.animationDelay = (Math.random() * 60) + 'ms';
+    p.style.width = p.style.height = (6 + Math.random() * 7) * boyut + 'px';
+    kat.append(p);
+  }
+  setTimeout(() => kat.remove(), 900);
+}
+
+/** Bir DOM öğesinin merkezinden patlama (kolay kullanım) */
+export function elemandanPatlama(node, opts) {
+  if (!node?.getBoundingClientRect) return;
+  const r = node.getBoundingClientRect();
+  patlama(r.left + r.width / 2, r.top + r.height / 2, opts);
+}
+
+/** Ekran sarsıntısı — büyük olaylarda (kombo, patron vuruşu) */
+export function ekranSars(siddet = 1) {
+  const el0 = document.getElementById('app') || document.body;
+  el0.style.setProperty('--sars', String(siddet));
+  el0.classList.remove('sarsiliyor');
+  void el0.offsetWidth;              // reflow → animasyon yeniden başlasın
+  el0.classList.add('sarsiliyor');
+  setTimeout(() => el0.classList.remove('sarsiliyor'), 320);
+}
+
+/** Hit-stop: çok kısa "donma" — vuruş hissi (konsol oyunlarında yaygın) */
+export function hitStop(ms = 90) {
+  const el0 = document.getElementById('app') || document.body;
+  el0.style.transition = 'filter 40ms';
+  el0.style.filter = 'brightness(1.25) contrast(1.08)';
+  setTimeout(() => { el0.style.filter = ''; }, ms);
+}
+
+/** Kombo çağrısı — ekranda uçan yazı ("3'lü KOMBO!") */
+export function komboYazisi(metin, renk = '#ffd23d') {
+  const y = document.createElement('div');
+  y.className = 'kombo-yazi';
+  y.textContent = metin;
+  y.style.color = renk;
+  document.body.append(y);
+  setTimeout(() => y.remove(), 1100);
+}

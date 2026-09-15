@@ -4,15 +4,16 @@
    yanlışta öğretici an, soru tekrar dinlenebilir.
    ============================================================ */
 
-import { el, clear, shake } from '../ui.js';
+import { el, clear, shake, elemandanPatlama, ekranSars, hitStop, komboYazisi } from '../ui.js';
 import { makeAddQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech, getSpeechRate } from '../audio.js';
+import { muzikYogunluk } from '../music.js';
 import { pushRecent, pushMissed, takeDueMissed, shouldReask } from './adaptive.js';
 
 export function createAddSubGame({ root, level, api }) {
   const cfg = Object.assign({ max: 20, carry: false, mode: 'add', rounds: 7, lives: 3, time: 0 }, level.cfg);
-  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0, usedHint: false, reask: false };
+  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0, usedHint: false, reask: false, hintsUsed: 0 };
   let destroyed = false;
 
   const bar = el('div', { class: 'game-bar' });
@@ -51,7 +52,7 @@ export function createAddSubGame({ root, level, api }) {
     if (state.i >= cfg.rounds || state.lives <= 0) return api.finish({
       correct: state.correct, wrong: state.wrong,
       completed: state.i >= cfg.rounds && state.lives > 0,
-      streak: state.best, total: state.correct + state.wrong
+      streak: state.best, rounds: cfg.rounds || 1, hintsUsed: state.hintsUsed || 0, total: state.correct + state.wrong
     });
 
     state.i++;
@@ -143,6 +144,13 @@ export function createAddSubGame({ root, level, api }) {
       state.best = Math.max(state.best, state.streak);
       btn.classList.add('correct');
       api.sfx('correct');
+      elemandanPatlama(btn, { adet: 14 + Math.min(14, state.streak * 3) });
+      // Seri arttıkça müzik coşar (konsol oyunlarında müzik skora göre yükselir)
+      muzikYogunluk(state.streak >= 6 ? 3 : state.streak >= 3 ? 2 : 1);
+      if (state.streak === 3) komboYazisi("3'LÜ KOMBO!");
+      else if (state.streak === 5) komboYazisi("5'Lİ KOMBO!");
+      else if (state.streak === 8) komboYazisi("8'Lİ KOMBO! MUHTEŞEM!", '#58cf6a');
+      else if (state.streak === 12) komboYazisi("12'Lİ KOMBO! EFSANE!", '#ff6f9c');
       if (state.streak % 5 === 0) { api.sfx('coin'); api.toast(`${state.streak} doğru seri! Süpersin!`); }
       api.recordAnswer({ correct: true, kind: 'addsub', usedHint: state.usedHint });
       streakEl.textContent = 'Seri: ' + state.streak;
@@ -153,6 +161,9 @@ export function createAddSubGame({ root, level, api }) {
       streakEl.textContent = 'Seri: 0';
       api.recordAnswer({ correct: false, kind: 'addsub', usedHint: state.usedHint });
       api.sfx('wrong');
+      ekranSars(1.15);
+      hitStop(110);
+      muzikYogunluk(1);            // seri bozuldu → müzik sakinleşir
       btn.classList.add('wrong');
       shake(btn);
       livesEl.innerHTML = hearts(Math.max(0, state.lives));
@@ -185,6 +196,7 @@ export function createAddSubGame({ root, level, api }) {
       return;
     }
     state.usedHint = true;
+    state.hintsUsed = (state.hintsUsed || 0) + 1;
     if (state.hintStep === 1) { showTechnique(); hintBtn.textContent = '🔢 Adımları göster'; }
     else { showSteps(); hintBtn.textContent = '✖️ İpucunu kapat'; }
   }
