@@ -133,7 +133,73 @@ export function makeMultiplyQuestion(cfg = {}) {
   return novel('mul', (q) => `${q.mode}:${q.a}x${q.b}`, () => buildMultiply(cfg));
 }
 
-/* ---------------- Kenar / köşe ---------------- */
+/* ---------------- Toplama / Çıkarma (2. sınıf çekirdek kazanımı) ----------------
+   Müfredat: 100'e kadar eldeli/eldeisiz toplama, onluk bozarak/bozmadan çıkarma.
+   Zorluk kademeli: önce eldesiz, sonra eldeli; önce 1 basamak, sonra 2 basamak. */
+
+function buildAdd({ max = 20, carry = false, mode = 'add' } = {}) {
+  if (mode === 'sub') {
+    // Çıkarma: sonuç negatif olmasın
+    let a, b;
+    if (carry) {
+      // Onluk bozma gerektiren: birler basamağı yetmez
+      do {
+        a = randInt(11, Math.max(21, max));
+        const aBir = a % 10;
+        b = randInt(aBir + 1, Math.min(9, a - 1) >= aBir + 1 ? Math.min(9, a - 1) : 9);
+      } while (b >= a || a % 10 >= b % 10 || b === 0);
+    } else {
+      // Onluk bozma GEREKMESİN: birler basamağı yetsin
+      do {
+        a = randInt(11, Math.max(21, max));
+        const aBir = a % 10;
+        b = randInt(1, Math.max(1, aBir));
+      } while (b >= a);
+    }
+    const answer = a - b;
+    return {
+      kind: 'addsub', mode: 'sub', a, b, answer,
+      prompt: `${a} − ${b} = ?`,
+      ask: `${a} eksi ${b} kaç eder?`,
+      options: numericOptions(answer, {
+        min: 0, max: 120, count: 4,
+        step: 10, factors: null,
+        pool: [answer + 1, answer - 1, answer + 10, answer - 10, a + b]
+      })
+    };
+  }
+  // Toplama
+  let a, b;
+  if (carry) {
+    do {
+      a = randInt(5, Math.max(10, max - 5));
+      b = randInt(5, Math.max(10, max - a));
+    } while (a % 10 + b % 10 < 10 || a + b > max);   // elde oluşsun
+  } else {
+    do {
+      a = randInt(1, Math.max(5, max - 5));
+      b = randInt(1, Math.max(5, max - a));
+    } while (a % 10 + b % 10 >= 10);                 // elde olmasın
+  }
+  const answer = a + b;
+  return {
+    kind: 'addsub', mode: 'add', a, b, answer,
+    prompt: `${a} + ${b} = ?`,
+    ask: `${a} artı ${b} kaç eder?`,
+    options: numericOptions(answer, {
+      min: 0, max: 130, count: 4,
+      step: 10, factors: null,
+      pool: [answer + 1, answer - 1, answer + 10, answer - 10, Math.abs(a - b)]
+    })
+  };
+}
+
+/** Toplama/çıkarma sorusu — aynı soru arka arkaya gelmez. */
+export function makeAddQuestion(cfg = {}) {
+  return novel('add', (q) => `${q.mode}:${q.a}${q.mode === 'add' ? '+' : '-'}${q.b}`, () => buildAdd(cfg));
+}
+
+/** Kenar / köşe */
 const SIDES_ASKABLE = ['kare', 'dikdortgen', 'ucgen', 'daire', 'besgen', 'altigen'];
 
 export function makeSidesQuestion({ ask = 'mix', shapes = SIDES_ASKABLE } = {}) {
@@ -182,6 +248,7 @@ export function makeTapQuestion({ shapes = ['kare', 'ucgen', 'daire'], count = 4
 export function questionSpeech(q) {
   if (!q) return '';
   if (q.kind === 'multiply') return q.ask;
+  if (q.kind === 'addsub') return q.ask;      // "23 artı 8 kaç eder?"
   if (q.kind === 'sides') return q.ask;
   if (q.kind === 'tap') return q.ask;
   return q.prompt || '';

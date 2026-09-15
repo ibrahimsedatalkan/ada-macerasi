@@ -48,6 +48,10 @@ SCENES = {
                            "crystals growing from the grass, a shimmering silver path of light, soft aurora "
                            "ribbons in violet and teal above, calm sea of clouds below, dreamy and triumphant, "
                            "not dark or scary."),
+    "w7": ("Sayı Denizi", "A bright turquoise sea with gentle rolling waves and small friendly sailboats, "
+                          "a sandy beach with smooth pebbles arranged in neat rows, sparkling water reflections, "
+                          "colorful seashells and starfish on the sand, clear blue sky with soft clouds, "
+                          "cheerful and calm, wide open middle area for game UI."),
     # --- ekranlar ---
     "hero": ("Ana ekran", "A magical adventure world seen from a high viewpoint: five islands floating in a "
                           "turquoise ocean, one with a green meadow, one with a dense forest, one with glowing "

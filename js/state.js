@@ -176,7 +176,8 @@ export function playedToday(profile) {
 /* ---------------- Hikaye: hazine parçaları ---------------- */
 export const TREASURE_NAMES = {
   w1: 'Çayır Kristali', w2: 'Orman Tılsımı', w3: 'Mağara Elması',
-  w4: 'Gökkuşağı Mücevheri', w5: 'Ejderha Tacı', w6: 'Yıldız Kalbi'
+  w4: 'Gökkuşağı Mücevheri', w5: 'Ejderha Tacı', w6: 'Yıldız Kalbi',
+  w7: 'Deniz İncisi'
 };
 
 /** Ada tamamlandı mı? Tüm bölümlerde en az 1 yıldız. */

@@ -103,10 +103,68 @@ export function sidesTechnique(q) {
   };
 }
 
+/** Toplama/çıkarma için akıldan hesap teknikleri (2. sınıf) */
+export function addsubTechnique(q) {
+  if (!q) return null;
+  const ikiBasamak = q.a >= 10 || q.b >= 10;
+  const eldeVar = q.mode === 'add' && (q.a % 10) + (q.b % 10) >= 10;
+  const onlukBoz = q.mode === 'sub' && (q.a % 10) < (q.b % 10);
+
+  if (q.mode === 'add') {
+    if (!ikiBasamak) {
+      return {
+        name: "On'a tamamla",
+        teach: 'Önce büyük sayıyı 10’a tamamla, kalanı üstüne ekle. Misal 8 + 7 için: 8 + 2 = 10, kalan 5, sonuç 15.',
+        countHint: 'Parmaklarınla 10’a kadar say, sonra kalanı ekle.',
+        canVisual: true
+      };
+    }
+    if (eldeVar) {
+      return {
+        name: 'Elde var — birlerden başla',
+        teach: 'Önce birler basamağını topla. Toplam 10’u geçerse "elde 1" deriz ve onlar basamağına ekleriz. Misal 27 + 8: 7 + 8 = 15, yani 5 yaz, elde 1; 20 + 10 = 30, sonuç 35.',
+        countHint: 'Sayıyı onluk ve birlik diye ayır: 27 = 20 + 7. Önce birlikleri topla, sonra onlukları.',
+        canVisual: false
+      };
+    }
+    return {
+      name: 'Onluk + birlik diye ayır',
+      teach: 'Sayıyı parçala, kolay parçaları önce topla. Misal 23 + 5: 20 + 3 + 5 = 20 + 8 = 28. Onluklar yerinde kalsın, yalnız birlikleri topla.',
+      countHint: 'Önce birler basamağını topla, sonra onluğu yanına koy.',
+      canVisual: false
+    };
+  }
+
+  // Çıkarma
+  if (!ikiBasamak) {
+    return {
+      name: 'Geriye doğru say',
+      teach: 'Çıkarırken 10’dan faydalan. Misal 15 − 8 için: 15 − 5 = 10, sonra 10 − 3 = 7.',
+      countHint: 'Önce 10’a in, sonra kalanı çıkar.',
+      canVisual: true
+    };
+  }
+  if (onlukBoz) {
+    return {
+      name: 'Onluk boz',
+      teach: 'Birler basamağı yetmiyorsa bir onluk bozarız. Misal 32 − 7: 2’den 7 çıkmaz, 30’dan bir onluk bozalım → 12 − 7 = 5, kalan 20, sonuç 25.',
+      countHint: 'Önce 10’a tamamla: 32 − 2 = 30, sonra 30 − 5 = 25. Bu genelde daha kolay!',
+      canVisual: false
+    };
+  }
+  return {
+    name: 'Onlukları ve birlikleri ayrı çıkar',
+    teach: 'Onlukları ayrı, birlikleri ayrı çıkar. Misal 48 − 25: 40 − 20 = 20, 8 − 5 = 3, sonuç 23.',
+    countHint: 'Sayıyı onluk + birlik diye ayır, ayrı ayrı çıkar, sonra birleştir.',
+    canVisual: false
+  };
+}
+
 /** Soru tipine göre doğru ipucunu döndür */
 export function techniqueFor(q) {
   if (!q) return null;
   if (q.kind === 'multiply') return multiplyTechnique(q);
+  if (q.kind === 'addsub') return addsubTechnique(q);
   if (q.kind === 'sides') return sidesTechnique(q);
   return null;
 }

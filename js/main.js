@@ -16,6 +16,7 @@ import { createShapeHuntGame } from './games/shapehunt.js';
 import { createDrawGame } from './games/draw.js';
 import { createBossGame } from './games/boss.js';
 import { createDuel } from './duel.js';
+import { createAddSubGame } from './games/addsub.js';
 import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
@@ -24,6 +25,7 @@ import { buildAdvice, adviceToText } from './advice.js';
 const ACTIVE_KEY = 'ada.active.v2';
 const ENGINE_BY_TYPE = {
   multiply: createMultiplyGame,
+  addsub: createAddSubGame,
   sides: createSidesGame,
   shapehunt: createShapeHuntGame,
   draw: createDrawGame,

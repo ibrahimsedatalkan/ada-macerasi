@@ -123,7 +123,10 @@ export const STICKERS = [
   { id: 'st_t10',      name: 'Onlar Bitti',     desc: "10'lar tablosunu bitir",        test: (p) => tableMastered(p, '10'),    art: badgeSticker('10', '#ffd23d') },
   { id: 'st_alltables', name: 'Tüm Tablolar',   desc: "1'den 10'a tüm tablolarda ustalaş", test: (p) => allTablesMastered(p),  art: starSticker('#ffd23d', '#f5b40b') },
   { id: 'st_world6',   name: 'Yıldız Fatihi',   desc: 'Yıldız Adası’nı tamamla',       test: (p) => worldDone(p, 'w6'),        art: badgeSticker('★', '#ffe27a') },
-  { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') }
+  { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') },
+  /* --- Toplama/Çıkarma (2. sınıf çekirdek kazanımı) --- */
+  { id: 'st_world7',   name: 'Deniz Fatihi',    desc: 'Sayı Denizi’ni tamamla',        test: (p) => worldDone(p, 'w7'),        art: badgeSticker('+', '#3dbdff') },
+  { id: 'st_add800',   name: '800 Doğru',       desc: '800 doğru cevap ver',           test: (p) => p.stats.correct >= 800,    art: starSticker('#3dbdff', '#1c93d8') }
 ];
 
 function starSticker(c1, c2) {
@@ -195,7 +198,12 @@ const TREASURE_ART = [
   /* w6 */ `<path d="M50 8 l13 27 l30 5 l-22 21 l5 30 l-26 -14 l-26 14 l5 -30 l-22 -21 l30 -5 z"
              fill="#ffe27a" stroke="#23324d" stroke-width="5" stroke-linejoin="round"/>
            <circle cx="50" cy="50" r="11" fill="#fff6d8" stroke="#23324d" stroke-width="4"/>
-           <path d="M50 44 v12 M44 50 h12" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/>`
+           <path d="M50 44 v12 M44 50 h12" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/>`,
+  /* w7 */ `<path d="M14 62 q18 -22 36 0 q18 -22 36 0 q0 18 -36 22 q-36 -4 -36 -22 z"
+             fill="#3dbdff" stroke="#23324d" stroke-width="5" stroke-linejoin="round"/>
+           <path d="M30 44 q10 -8 20 0" stroke="#dff1ff" stroke-width="5" fill="none" stroke-linecap="round"/>
+           <circle cx="50" cy="30" r="9" fill="#fff" stroke="#23324d" stroke-width="4"/>
+           <path d="M50 25 v10 M45 30 h10" stroke="#1c93d8" stroke-width="3.5" stroke-linecap="round"/>`
 ];
 
 /** Hazine parçası — kazanılmadıysa soluk/soru işaretli */
@@ -209,7 +217,7 @@ export function treasureSVG(has, index) {
 }
 
 /* ---------------- Hazine: tüm parçalar tamam mı? ---------------- */
-export const ALL_TREASURES = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6'];
+export const ALL_TREASURES = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7'];
 export function treasureComplete(profile) {
   const got = profile?.treasures || [];
   return ALL_TREASURES.every((id) => got.includes(id));

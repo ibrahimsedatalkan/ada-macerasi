@@ -5,7 +5,7 @@
 
 import { el, clear, shake, randInt } from '../ui.js';
 import { shapeSVG, SHAPES } from '../shapes.js';
-import { makeMultiplyQuestion, makeSidesQuestion, makeTapQuestion, questionSpeech } from './questions.js';
+import { makeMultiplyQuestion, makeSidesQuestion, makeTapQuestion, makeAddQuestion, questionSpeech } from './questions.js';
 
 function dragonSVG(hpRatio, mood = 'angry', size = 160) {
   const hurt = mood === 'hit';
@@ -90,6 +90,13 @@ export function createBossGame({ root, level, api }) {
       }
       if (kind === 'sides') return makeSidesQuestion({ ask: 'mix', shapes: cfg.shapes });
       if (kind === 'tap') return makeTapQuestion({ shapes: cfg.shapes, count: 3, distractors: 3 });
+      if (kind === 'addsub') {
+        return makeAddQuestion({
+          mode: Math.random() < 0.5 ? 'add' : 'sub',
+          max: cfg.addMax || 100,
+          carry: cfg.addCarry !== false
+        });
+      }
       kind = kinds[randInt(0, kinds.length - 1)];
     }
     return makeMultiplyQuestion({ tables: cfg.tables || [2], mode: 'result', maxB: cfg.maxB });

@@ -128,11 +128,35 @@ export const WORLDS = [
       { id: 'w6-l9', title: 'Yıldız Sınavı', type: 'boss', story: 'Tüm tablolar, tek sınav!',
         cfg: { include: ['multiply', 'sides', 'tap'], tables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], shapes: ['kare', 'dikdortgen', 'ucgen', 'daire', 'besgen', 'altigen'], rounds: 14, lives: 2, time: 180, timePerQ: 14, maxB: 10, maxBHard: 10 } }
     ]
+  },
+  {
+    id: 'w7',
+    name: 'Sayı Denizi',
+    emoji: '🌊',
+    mood: 'happy',
+    intro: 'Toplama ve çıkarma denizi! Eldeli toplama, onluk bozma — hepsi burada.',
+    levels: [
+      { id: 'w7-l1', title: 'Toplama', type: 'addsub', story: 'Eldesiz toplama, ısınma turu.',
+        cfg: { mode: 'add', max: 20, carry: false, rounds: 8, lives: 3 } },
+      { id: 'w7-l2', title: 'Çıkarma', type: 'addsub', story: 'Onluk bozmadan çıkarma.',
+        cfg: { mode: 'sub', max: 20, carry: false, rounds: 8, lives: 3 } },
+      { id: 'w7-l3', title: 'Elde Var!', type: 'addsub', story: 'Birler 10’u geçince elde ekleriz.',
+        cfg: { mode: 'add', max: 100, carry: true, rounds: 9, lives: 3, time: 20 } },
+      { id: 'w7-l4', title: 'Onluk Boz', type: 'addsub', story: 'Birler yetmezse bir onluk boz.',
+        cfg: { mode: 'sub', max: 100, carry: true, rounds: 9, lives: 3, time: 22 } },
+      { id: 'w7-l5', title: 'Karışık Topla-Çıkar', type: 'addsub', story: 'Toplama da var çıkarma da!',
+        cfg: { mode: 'add', max: 100, carry: true, rounds: 10, lives: 3, time: 20 } },
+      { id: 'w7-l6', title: 'Karışık (Çıkarma)', type: 'addsub', story: 'Şimdi çıkarma ağırlıklı.',
+        cfg: { mode: 'sub', max: 100, carry: true, rounds: 10, lives: 3, time: 20 } },
+      { id: 'w7-l7', title: 'Sayı Denizi Sınavı', type: 'boss', story: 'Toplama, çıkarma ve çarpım birlikte!',
+        cfg: { include: ['addsub', 'multiply', 'sides'], tables: [2, 3, 4, 5, 6, 7], shapes: ['kare', 'dikdortgen', 'ucgen', 'daire'], rounds: 14, lives: 2, time: 180, timePerQ: 14, maxB: 10, maxBHard: 10, addMax: 100, addCarry: true } }
+    ]
   }
 ];
 
 export const TYPE_LABEL = {
   multiply: 'Çarpım',
+  addsub: 'Toplama-Çıkarma',
   shapehunt: 'Şekil Avı',
   sides: 'Kenar-Köşe',
   draw: 'Çizim',
@@ -156,6 +180,7 @@ export function levelTopics(level) {
   const c = level.cfg || {};
   const out = [];
   if (level.type === 'multiply') out.push('Çarpım: ' + (c.tables || []).map((t) => t + "'ler").join(', '));
+  if (level.type === 'addsub') out.push(c.mode === 'sub' ? 'Çıkarma' : 'Toplama', c.carry ? (c.mode === 'sub' ? 'onluk bozma' : 'elde') : 'eldesiz');
   if (level.type === 'shapehunt') out.push('Şekil tanıma');
   if (level.type === 'sides') out.push(c.ask === 'kenar' ? 'Kenar sayma' : c.ask === 'kose' ? 'Köşe sayma' : 'Kenar-köşe');
   if (level.type === 'draw') out.push('Geometrik çizim');
