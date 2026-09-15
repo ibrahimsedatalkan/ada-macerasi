@@ -97,23 +97,59 @@ export function sfx(name) {
 
 /* ---------------- Türkçe sesli anlatım ---------------- */
 let lastSpoken = '';
+let voicesReady = false;
 
-export function speak(text, { force = false } = {}) {
+// Sesler tarayıcıda gecikmeli yüklenir (özellikle Chrome/Android).
+// İlk çağrıda liste boş olabilir — hazır olunca işaretle.
+function markVoicesReady() {
+  try {
+    if (window.speechSynthesis.getVoices().length) voicesReady = true;
+  } catch (e) {}
+}
+if ('speechSynthesis' in window) {
+  markVoicesReady();
+  try { window.speechSynthesis.addEventListener('voiceschanged', markVoicesReady); } catch (e) {}
+}
+export function warmUpVoices() { markVoicesReady(); }
+
+/**
+ * Metni Türkçe seslendir.
+ * rate: 7 yaş çocuk için yavaş (0.78). Kelimeler arası nefes payı bırakır.
+ * @param {string} text
+ * @param {{force?:boolean, rate?:number, key?:string}} opts
+ *   force → aynı metin olsa bile tekrar oku
+ *   key   → tekrar kontrolü için kullanılacak kimlik (yeni soru = yeni key)
+ */
+export function speak(text, { force = false, rate = 0.78, key = '' } = {}) {
   if (!audio.voice && !force) return;
   if (!('speechSynthesis' in window)) return;
   const t = String(text || '').slice(0, 180);
-  if (!t || (t === lastSpoken && !force)) return;
-  lastSpoken = t;
+  const token = key || t;
+  if (!t || (token === lastSpoken && !force)) return;
+  lastSpoken = token;
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(t);
     u.lang = 'tr-TR';
-    u.rate = 0.94;
-    u.pitch = 1.12;
-    const v = window.speechSynthesis.getVoices().find((x) => /tr(-|_)?TR/i.test(x.lang));
-    if (v) u.voice = v;
+    u.rate = rate;        // yavaş — çocuk anlayabilsin
+    u.pitch = 1.06;
+    u.volume = 1;
+    // Cümle sonlarında duraklama: TTS motoruna nefes payı
+    u.text = t.replace(/([.?!])\s*/g, '$1 ');
+    const voices = window.speechSynthesis.getVoices() || [];
+    const tr = voices.find((x) => /tr(-|_)?TR/i.test(x.lang));
+    if (tr) u.voice = tr;
+    // Sesler henüz yüklenmediyse, yüklenince tekrar dene
+    if (!tr && !voicesReady) {
+      try { window.speechSynthesis.addEventListener('voiceschanged', () => { markVoicesReady(); try { window.speechSynthesis.speak(u); } catch (e) {} }, { once: true }); } catch (e) {}
+    }
     window.speechSynthesis.speak(u);
   } catch (e) { /* sesli anlatım desteklenmiyor */ }
+}
+
+/** Yeni soruya geçildiğinde çağrılır — tekrar okumayı engelleyen kilidi açar */
+export function resetSpeech() {
+  lastSpoken = '';
 }
 
 export function stopSpeaking() {

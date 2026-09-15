@@ -3,7 +3,7 @@
    Puan = 100 + hız bonusu. Kazanana taç.
    ============================================================ */
 
-import { el, clear, starsHTML, avatarHTML, randInt, toast } from './ui.js';
+import { el, clear, starsHTML, avatarHTML, avatarInline, esc, randInt, toast } from './ui.js';
 import { shapeSVG, SHAPES } from './shapes.js';
 import { makeMultiplyQuestion, makeSidesQuestion, makeTapQuestion, questionSpeech } from './games/questions.js';
 
@@ -138,7 +138,7 @@ export function createDuel({ root, api, onExit }) {
     clear(answerBox);
     state.locked = false;
 
-    const face = el('div', { class: 'q-hint', text: `${p.avatar} ${p.name} oynuyor` });
+    const face = el('div', { class: 'q-hint', html: `${avatarInline(p.avatar, 22)}${esc(p.name)} oynuyor` });
     qBox.append(face);
 
     if (q.kind === 'sides') {

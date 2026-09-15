@@ -7,7 +7,7 @@
 
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
-import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, randInt, shuffle } from './ui.js';
+import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import { createSidesGame } from './games/sides.js';
@@ -137,7 +137,7 @@ function renderLogin() {
   const chips = el('div', { class: 'btn-row', style: { marginTop: '4px' } });
   for (const p of list.slice(0, 6)) {
     chips.append(el('button', {
-      class: 'btn ghost sm', text: `${p.avatar} ${p.nick} ★${p.stars}`,
+      class: 'btn ghost sm', html: `${avatarInline(p.avatar, 20)}${esc(p.nick)} ★${p.stars}`,
       onClick: () => {
         sfx('tap');
         profile = S.loadProfile(p.nick, p.classCode) || S.newProfile(p.nick, p.classCode, p.avatar);
@@ -173,7 +173,7 @@ function renderMap() {
   document.body.dataset.world = firstUnfinishedWorld().id;
 
   const head = el('div', { class: 'map-head' },
-    el('div', {}, el('h1', { text: 'Maceraya devam' }), el('p', { text: `${profile.avatar} ${profile.nick} · Sınıf ${profile.classCode}` })),
+    el('div', {}, el('h1', { text: stars > 0 ? 'Maceraya devam' : 'Maceraya başla' }), el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)}` })),
     el('div', { class: 'grow', style: { flex: '1' } }),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
     el('button', { class: 'btn sm blue', text: '⚔️ Düello', onClick: () => renderDuel() }),
@@ -440,8 +440,8 @@ async function renderBoard() {
   rows.forEach((r, i) => {
     const me = r.nick === profile.nick && r.classCode === profile.classCode;
     tbody.append(el('tr', { class: me ? 'me' : '' },
-      el('td', {}, el('span', { class: 'badge', text: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1) })),
-      el('td', { text: `${r.avatar} ${r.nick}` }),
+      el('td', {}, el('span', { class: 'badge rank-' + (i < 3 ? (i + 1) : 'n'), text: String(i + 1) })),
+      el('td', { html: `${avatarInline(r.avatar, 20)}${esc(r.nick)}` }),
       el('td', { text: '★ ' + r.stars }),
       el('td', { text: '● ' + (r.coins || 0) }),
       el('td', { text: String(r.correct || 0) })
@@ -506,7 +506,7 @@ function renderParent() {
 
   const panel = el('div', { class: 'panel wide' },
     el('h1', { text: '👨‍👩‍👦 Veli / Öğretmen Paneli' }),
-    el('p', { text: `${profile.avatar} ${profile.nick} · Sınıf ${profile.classCode} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
+    el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
 
     el('h3', { text: 'Çarpım tablosu ustalığı' }),
     el('div', { class: 'mastery', style: { marginBottom: '18px' } }, ...masteryRows(st.byTable || {}, (k) => `${k}'ler`, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])),

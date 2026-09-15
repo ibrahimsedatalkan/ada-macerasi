@@ -11,6 +11,23 @@ export function avatarHTML(emoji, { size = 40, cls = '' } = {}) {
     + `loading="lazy" decoding="async" onerror="this.onerror=null;this.replaceWith(document.createTextNode('${emoji}'))">`;
 }
 
+/**
+ * Satır içi küçük avatar — metin akışında emoji YERİNE kullanılır.
+ * Ham emoji bazı cihazlarda kutu/kod olarak görünür; görsel her yerde aynı çıkar.
+ */
+export function avatarInline(emoji, size = 22) {
+  const slug = avatarSlug(emoji);
+  return `<img class="ava-inline" src="assets/avatars/${slug}.jpg" alt="" width="${size}" height="${size}" `
+    + `loading="lazy" decoding="async" onerror="this.style.display='none'">`;
+}
+
+/** Kullanıcı girdisini HTML'e güvenle koy (XSS koruması). */
+export function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 /** Maskot görseli (üretilmiş). Yüklenemezse SVG maskota düşer. */
 export function mascotHTML(size = 150) {
   return `<img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `

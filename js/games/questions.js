@@ -30,8 +30,32 @@ export function numericOptions(answer, { count = 4, min = 0, max = 100, pool = [
   return shuffle([...set]).slice(0, count);
 }
 
+/* ---------------- Tekrar önleyici ----------------
+   Aynı sorunun arka arkaya gelmesini engeller. Son 4 soru hatırlanır. */
+const RECENT_MAX = 4;
+let recentKeys = [];
+
+export function resetQuestionMemory() { recentKeys = []; }
+
+function remember(key) {
+  recentKeys.push(key);
+  if (recentKeys.length > RECENT_MAX) recentKeys.shift();
+}
+
+/** Üreteci, yeni bir soru çıkana kadar dener (sonsuz döngüye girmez). */
+function novel(tag, keyOf, make, tries = 30) {
+  let q = make();
+  for (let i = 0; i < tries; i++) {
+    const k = tag + ':' + keyOf(q);
+    if (!recentKeys.includes(k)) { remember(k); return q; }
+    q = make();
+  }
+  remember(tag + ':' + keyOf(q));
+  return q;
+}
+
 /* ---------------- Çarpım ---------------- */
-export function makeMultiplyQuestion({ tables = [2], mode = 'result', maxB = 5 } = {}) {
+function buildMultiply({ tables = [2], mode = 'result', maxB = 5 } = {}) {
   const a = tables[Math.floor(Math.random() * tables.length)];
   const b = randInt(1, maxB);
   const product = a * b;
@@ -61,43 +85,54 @@ export function makeMultiplyQuestion({ tables = [2], mode = 'result', maxB = 5 }
   };
 }
 
+/** Çarpım sorusu — aynı soru arka arkaya gelmez. */
+export function makeMultiplyQuestion(cfg = {}) {
+  return novel('mul', (q) => `${q.mode}:${q.a}x${q.b}`, () => buildMultiply(cfg));
+}
+
 /* ---------------- Kenar / köşe ---------------- */
 const SIDES_ASKABLE = ['kare', 'dikdortgen', 'ucgen', 'daire', 'besgen', 'altigen'];
 
 export function makeSidesQuestion({ ask = 'mix', shapes = SIDES_ASKABLE } = {}) {
-  const usable = shapes.filter((s) => SHAPES[s]);
-  const shapeId = usable[randInt(0, usable.length - 1)];
-  const s = SHAPES[shapeId];
-  const kind = ask === 'mix' ? (Math.random() < 0.5 ? 'kenar' : 'kose') : ask;
-  const answer = kind === 'kenar' ? s.sides : s.corners;
-  const isCircle = shapeId === 'daire';
-  const pool = uniqueNumbers([0, 3, 4, 5, 6, s.sides + 1, s.sides - 1, s.corners + 1]);
-  return {
-    kind: 'sides', shapeId, ask: kind, answer,
-    prompt: `${s.name} — kaç ${kind === 'kenar' ? 'kenar' : 'köşe'}?`,
-    ask: isCircle
-      ? `Dairenin kaç ${kind === 'kenar' ? 'kenarı' : 'köşesi'} var?`
-      : `${s.name}nin kaç ${kind === 'kenar' ? 'kenarı' : 'köşesi'} var?`,
-    hint: isCircle ? 'Dairenin kenarı ve köşesi yoktur.' : `Kenarları say: ${s.prompt}.`,
-    options: numericOptions(answer, { min: 0, max: 8, count: 4, pool })
+  const build = () => {
+    const usable = shapes.filter((s) => SHAPES[s]);
+    const shapeId = usable[randInt(0, usable.length - 1)];
+    const s = SHAPES[shapeId];
+    const kind = ask === 'mix' ? (Math.random() < 0.5 ? 'kenar' : 'kose') : ask;
+    const answer = kind === 'kenar' ? s.sides : s.corners;
+    const isCircle = shapeId === 'daire';
+    const pool = uniqueNumbers([0, 3, 4, 5, 6, s.sides + 1, s.sides - 1, s.corners + 1]);
+    return {
+      kind: 'sides', shapeId, ask: kind, answer,
+      prompt: `${s.name} — kaç ${kind === 'kenar' ? 'kenar' : 'köşe'}?`,
+      ask: isCircle
+        ? `Dairenin kaç ${kind === 'kenar' ? 'kenarı' : 'köşesi'} var?`
+        : `${s.name}nin kaç ${kind === 'kenar' ? 'kenarı' : 'köşesi'} var?`,
+      hint: isCircle ? 'Dairenin kenarı ve köşesi yoktur.' : `Kenarları say: ${s.prompt}.`,
+      options: numericOptions(answer, { min: 0, max: 8, count: 4, pool })
+    };
   };
+  return novel('side', (q) => `${q.shapeId}:${q.ask}`, build);
 }
 
 /* ---------------- Dokun: doğru şekilleri topla ---------------- */
 export function makeTapQuestion({ shapes = ['kare', 'ucgen', 'daire'], count = 4, distractors = 2 } = {}) {
-  const usable = shapes.filter((s) => SHAPES[s]);
-  const target = usable[randInt(0, usable.length - 1)];
-  const others = SHAPE_IDS.filter((s) => s !== target && usable.includes(s));
-  const otherPool = others.length ? others : SHAPE_IDS.filter((s) => s !== target);
-  const tokens = [];
-  for (let i = 0; i < count; i++) tokens.push({ id: 't' + i + '-' + Math.random().toString(36).slice(2, 6), shape: target, mine: true });
-  for (let i = 0; i < distractors; i++) tokens.push({ id: 'd' + i + '-' + Math.random().toString(36).slice(2, 6), shape: otherPool[randInt(0, otherPool.length - 1)], mine: false });
-  return {
-    kind: 'tap', target, answer: count,
-    prompt: `Tüm ${SHAPES[target].name.toLowerCase()}leri topla!`,
-    ask: `Ekrandaki tüm ${SHAPES[target].name.toLowerCase()}leri topla.`,
-    tokens: shuffle(tokens)
+  const build = () => {
+    const usable = shapes.filter((s) => SHAPES[s]);
+    const target = usable[randInt(0, usable.length - 1)];
+    const others = SHAPE_IDS.filter((s) => s !== target && usable.includes(s));
+    const otherPool = others.length ? others : SHAPE_IDS.filter((s) => s !== target);
+    const tokens = [];
+    for (let i = 0; i < count; i++) tokens.push({ id: 't' + i + '-' + Math.random().toString(36).slice(2, 6), shape: target, mine: true });
+    for (let i = 0; i < distractors; i++) tokens.push({ id: 'd' + i + '-' + Math.random().toString(36).slice(2, 6), shape: otherPool[randInt(0, otherPool.length - 1)], mine: false });
+    return {
+      kind: 'tap', target, answer: count,
+      prompt: `Tüm ${SHAPES[target].name.toLowerCase()}leri topla!`,
+      ask: `Ekrandaki tüm ${SHAPES[target].name.toLowerCase()}leri topla.`,
+      tokens: shuffle(tokens)
+    };
   };
+  return novel('tap', (q) => q.target, build);
 }
 
 /** Soruyu sesli okunacak metne çevir */

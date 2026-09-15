@@ -5,10 +5,12 @@
 
 import { el, clear, starsEl, shake } from '../ui.js';
 import { makeMultiplyQuestion, questionSpeech } from './questions.js';
+import { techniqueFor, techniqueSpeech } from './hints.js';
+import { resetSpeech } from '../audio.js';
 
 export function createMultiplyGame({ root, level, api }) {
   const cfg = Object.assign({ tables: [2], mode: 'result', rounds: 7, options: 4, lives: 3, time: 0, maxB: 5, maxBHard: 10 }, level.cfg);
-  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null };
+  const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0 };
   let destroyed = false;
 
   const bar = el('div', { class: 'game-bar' });
@@ -24,8 +26,8 @@ export function createMultiplyGame({ root, level, api }) {
   const visualEl = el('div', { class: 'bubble', style: { display: 'none', textAlign: 'center' } });
   const answersEl = el('div', { class: 'answers' });
   const hintBtn = el('button', {
-    class: 'btn ghost sm tap-hint', text: 'İpucu göster',
-    onClick: () => { api.sfx('tap'); renderVisual(true); api.speak(state.cur?.hint || 'Noktaları say!'); }
+    class: 'btn ghost sm tap-hint', text: '💡 Nasıl düşünmeliyim?',
+    onClick: () => nextHint()
   });
   const hintRow = el('div', { class: 'btn-row', style: { justifyContent: 'center' } }, hintBtn);
 
@@ -45,9 +47,11 @@ export function createMultiplyGame({ root, level, api }) {
 
     state.i++;
     progEl.textContent = `Soru ${state.i} / ${cfg.rounds}`;
-    const useMax = cfg.mode !== 'result' || state.i > cfg.rounds - 3 ? cfg.maxBHard : cfg.maxB;
     state.cur = makeMultiplyQuestion({ tables: cfg.tables, mode: cfg.mode, maxB: cfg.mode === 'result' ? cfg.maxB : Math.min(10, cfg.maxBHard) });
     state.locked = false;
+    state.hintStep = 0;
+    resetSpeech();                       // yeni soru → ses kilidini aç (tekrar eden sorular da okunur)
+    hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
 
     qEl.innerHTML = state.cur.prompt.replace('?', '<span class="q-mark">?</span>').replace('×', '<span class="q-mark">×</span>');
     hintEl.textContent = '';
@@ -60,7 +64,7 @@ export function createMultiplyGame({ root, level, api }) {
       answersEl.append(b);
     }
 
-    api.speak(questionSpeech(state.cur));
+    api.speak(questionSpeech(state.cur), { force: true, key: 'q' + state.i });
     startTimer();
   }
 
@@ -112,7 +116,6 @@ export function createMultiplyGame({ root, level, api }) {
       if (state.streak > 0 && state.streak % 5 === 0) { api.sfx('coin'); api.toast(`${state.streak} doğru seri! Süpersin!`); }
       api.recordAnswer({ correct: true, table: state.cur.table });
       streakEl.textContent = 'Seri: ' + state.streak;
-      if (cfg.visualHint !== false) renderVisual(false);
       setTimeout(nextQuestion, 620);
     } else {
       state.wrong++;
@@ -125,7 +128,12 @@ export function createMultiplyGame({ root, level, api }) {
       shake(btn);
       livesEl.innerHTML = hearts(Math.max(0, state.lives));
       showCorrect();
-      setTimeout(nextQuestion, 1500);
+      // Öğretici an: doğru cevabı söylemek yerine nasıl bulunacağını göster
+      state.hintStep = 1;
+      hintBtn.textContent = '🔢 Grupları göster';
+      showTechnique();
+      setTimeout(() => { if (!destroyed) { showGroups(); } }, 1500);
+      setTimeout(nextQuestion, 4200);
     }
   }
 
@@ -135,25 +143,72 @@ export function createMultiplyGame({ root, level, api }) {
     }
   }
 
-  /** Eğitici ipucu: a satır × b nokta dizisi (küçük sayılarda) */
-  function renderVisual(force) {
-    const q = state.cur;
-    if (!q || q.mode !== 'result' || q.a > 6 || q.b > 6) {
+  /**
+   * İpucu sistemi — CEVABI VERMEZ, düşünme tekniği öğretir.
+   * 1. basış: tekniği anlat (akıldan nasıl hesaplanır)
+   * 2. basış: grupları göster (çocuk sayarak bulur)
+   * 3. basış: kapat
+   */
+  function nextHint() {
+    api.sfx('tap');
+    state.hintStep = (state.hintStep + 1) % 3;
+    if (state.hintStep === 0) {
       visualEl.style.display = 'none';
+      hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
+      return;
+    }
+    if (state.hintStep === 1) {
+      showTechnique();
+      hintBtn.textContent = '🔢 Grupları göster';
+    } else {
+      showGroups();
+      hintBtn.textContent = '✖️ İpucunu kapat';
+    }
+  }
+
+  /** Teknik açıklaması — cevabı içermez */
+  function showTechnique() {
+    const t = techniqueFor(state.cur);
+    visualEl.style.display = '';
+    clear(visualEl);
+    if (!t) {
+      visualEl.append(el('div', { class: 'small muted', text: 'Önce soruyu bir kez daha düşün.' }));
+      return;
+    }
+    visualEl.append(
+      el('div', { class: 'hint-title', text: '💡 ' + t.name }),
+      el('div', { class: 'hint-body', text: t.teach }),
+      el('div', { class: 'hint-tip', text: '👉 ' + t.countHint })
+    );
+    if (t.strategy) visualEl.append(el('div', { class: 'hint-tip', text: t.strategy }));
+    api.speak(techniqueSpeech(state.cur), { force: true, key: 'hint' + state.i });
+  }
+
+  /** Nokta dizisi — sayılacak gruplar. Sonucu YAZMAZ. */
+  function showGroups() {
+    const q = state.cur;
+    if (!q || q.kind !== 'multiply' || q.mode !== 'result' || q.a > 6 || q.b > 6) {
+      // Büyük sayılarda nokta dizisi anlamsız → tekniğe geri dön
+      showTechnique();
       return;
     }
     visualEl.style.display = '';
     clear(visualEl);
-    const rows = q.b, cols = q.a;
-    const wrap = el('div', { style: { display: 'grid', gap: '4px', justifyItems: 'center', justifyContent: 'center' } });
-    for (let r = 0; r < rows; r++) {
-      const row = el('div', { style: { display: 'flex', gap: '4px' } });
-      for (let c = 0; c < cols; c++) row.append(el('span', { style: {
-        width: '16px', height: '16px', borderRadius: '50%', background: '#3dbdff', display: 'inline-block'
-      } }));
+    visualEl.append(el('div', { class: 'hint-title', text: `🔢 ${q.b} grup, her grupta ${q.a} tane` }));
+    const wrap = el('div', { style: { display: 'grid', gap: '6px', justifyItems: 'center', justifyContent: 'center', marginTop: '8px' } });
+    for (let r = 0; r < q.b; r++) {
+      const row = el('div', { style: { display: 'flex', gap: '5px' } });
+      for (let c = 0; c < q.a; c++) {
+        row.append(el('span', { style: {
+          width: '18px', height: '18px', borderRadius: '50%',
+          background: 'linear-gradient(180deg,#7fd4ff,#3dbdff)',
+          boxShadow: '0 1px 2px rgba(20,40,70,.25)', display: 'inline-block'
+        } }));
+      }
       wrap.append(row);
     }
-    visualEl.append(el('div', { class: 'small muted', text: `${q.b} satır × ${q.a} nokta = ${q.a * q.b}` }), wrap);
+    visualEl.append(wrap, el('div', { class: 'hint-tip', text: `👉 Grupları say: ${q.b} grup ${q.a}'erli. Toplamı sen bul!` }));
+    api.speak(`${q.b} grup var, her grupta ${q.a} tane. Sayarak toplamı bul.`, { force: true, key: 'groups' + state.i });
   }
 
   return {
