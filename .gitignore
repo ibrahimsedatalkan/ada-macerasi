@@ -1,9 +1,2 @@
-# Görsellerin kaynak (büyük PNG) hâlleri — sadece optimize JPEG'ler yayınlanır
-assets/_source/
-
-# Test çıktıları
+server/data/
 test/shots/
-
-# Sistem dosyaları
-.DS_Store
-*.log
