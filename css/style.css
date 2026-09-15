@@ -804,3 +804,53 @@ body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
 .ac-devam { color: #9fd4f0; font-size: clamp(12px,2.2vw,16px); font-weight: 700;
   animation: acYanip 1.5s ease-in-out infinite; }
 @keyframes acYanip { 0%,100% { opacity: .45 } 50% { opacity: 1 } }
+
+/* ============================================================
+   KARAKTER ANİMASYONU — statik görseller canlanır
+   ============================================================ */
+.canli { animation: karakterNefes 3.1s ease-in-out infinite; transform-origin: 50% 92%; }
+@keyframes karakterNefes {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%     { transform: translateY(-3px) scale(1.028); }
+}
+
+.an-sevinc { animation: karakterSevinc .62s cubic-bezier(.2,.9,.3,1.5) !important; }
+@keyframes karakterSevinc {
+  0%   { transform: translateY(0) scale(1) rotate(0); }
+  28%  { transform: translateY(-16px) scale(1.13) rotate(-6deg); }
+  52%  { transform: translateY(-4px) scale(1.05) rotate(5deg); }
+  76%  { transform: translateY(-8px) scale(1.08) rotate(-2deg); }
+  100% { transform: translateY(0) scale(1) rotate(0); }
+}
+
+.an-uzuntu { animation: karakterUzuntu .62s ease; }
+@keyframes karakterUzuntu {
+  0%,100% { transform: translateY(0) scale(1); }
+  30%     { transform: translateY(4px) scale(.93, 1.04) rotate(-3deg); }
+  60%     { transform: translateY(2px) scale(.97, 1.01) rotate(3deg); }
+}
+
+.an-dusunce { animation: karakterDusunce .9s ease-in-out; }
+@keyframes karakterDusunce {
+  0%,100% { transform: rotate(0) translateY(0); }
+  35%     { transform: rotate(-11deg) translateY(-2px); }
+  70%     { transform: rotate(7deg) translateY(-1px); }
+}
+
+/* ============================================================
+   ZORLUK SEÇİMİ — konsol tarzı
+   ============================================================ */
+.zorluk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+.zorluk-kart { border: 4px solid var(--line-strong); border-radius: var(--r-lg); background: var(--paper);
+  padding: 14px 12px; display: grid; gap: 6px; justify-items: center; cursor: pointer; font: inherit;
+  color: var(--ink); box-shadow: 0 5px 0 rgba(35,50,77,.14); transition: transform .12s, box-shadow .12s; }
+.zorluk-kart:hover { transform: translateY(-3px); box-shadow: 0 8px 0 rgba(35,50,77,.14); }
+.zorluk-kart:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(35,50,77,.14); }
+.zorluk-kart.secili { border-color: #2fa348; background: linear-gradient(180deg,#f4fff6,#dcf7e4);
+  box-shadow: 0 5px 0 rgba(47,163,72,.35); }
+.zk-ad { font-weight: 900; font-size: clamp(17px,3vw,22px); }
+.zk-can { font-size: 19px; letter-spacing: 2px; line-height: 1; }
+.zk-aciklama { font-size: 12.5px; color: var(--ink-soft); text-align: center; line-height: 1.3; }
+.zorluk-chip { background: linear-gradient(180deg,#fff,#f0f6ff); border: 2px solid var(--line-strong);
+  font-weight: 800; cursor: pointer; font-family: inherit; }
+.zorluk-chip .zc-can { margin-left: 6px; font-size: 12px; letter-spacing: 1px; }

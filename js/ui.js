@@ -336,3 +336,51 @@ export function komboYazisi(metin, renk = '#ffd23d') {
   document.body.append(y);
   setTimeout(() => y.remove(), 1100);
 }
+
+
+/* ============================================================
+   KARAKTER ANİMASYONU
+   Avatar ve maskot statik görsellerdi — konsol oyunlarında karakter
+   sürekli hareket eder (nefes alır, zıplar, sevinir). CSS ile canlandırıyoruz.
+   ============================================================ */
+
+/** Karakteri canlandır: sürekli hafif nefes + göz kırpma hissi */
+export function canlandir(node) {
+  if (!node) return;
+  node.classList.add('canli');
+  return node;
+}
+
+/** Sevinsin — doğru cevap / ödül (küçük zıplama + dönme) */
+export function avatarSevin(node, siddet = 1) {
+  if (!node) return;
+  animasyonOynat(node, 'sevinc', 640);
+  if (siddet >= 2) setTimeout(() => animasyonOynat(node, 'sevinc', 640), 220);
+}
+
+/** Üzülsün — yanlış cevap (hafif büzülme + sallanma) */
+export function avatarUzul(node) {
+  if (!node) return;
+  animasyonOynat(node, 'uzuntu', 620);
+}
+
+/** Düşünsün — ipucu (hafif eğilme) */
+export function avatarDusun(node) {
+  if (!node) return;
+  animasyonOynat(node, 'dusunce', 900);
+}
+
+function animasyonOynat(node, sinif, sure) {
+  node.classList.remove('an-' + sinif);
+  void node.offsetWidth;                 // reflow → animasyon yeniden başlasın
+  node.classList.add('an-' + sinif);
+  setTimeout(() => node.classList.remove('an-' + sinif), sure);
+}
+
+/** Maskotu ruh haline göre canlandır (sonuç ekranı) */
+export function maskotCanlandir(node, mood) {
+  if (!node) return;
+  if (mood === 'cheer' || mood === 'happy') avatarSevin(node, mood === 'cheer' ? 2 : 1);
+  else if (mood === 'sad') avatarUzul(node);
+  else avatarDusun(node);
+}

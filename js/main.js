@@ -7,7 +7,7 @@
 
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
-import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
+import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle, canlandir, avatarSevin, avatarUzul, avatarDusun, maskotCanlandir } from './ui.js';
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import { muzikBaslat, muzikModu, muzikYogunluk, muzikDurdur, muzikCaliyor, zaferFanfari, odulParlitisi } from './music.js';
@@ -60,9 +60,11 @@ function updateHud() {
   document.getElementById('hud-coins').textContent = '● ' + (profile?.coins || 0);
   document.getElementById('hud-nick').textContent = profile?.nick || 'Oyuncu';
   // HUD avatarı da giydirilmiş hâlde — çocuk aksesuarını her ekranda görsün
-  document.getElementById('hud-avatar').innerHTML = profile
+  const hudAv = document.getElementById('hud-avatar');
+  hudAv.innerHTML = profile
     ? C.avatarDressed(profile, { size: 30, avatarHTML })
     : avatarHTML('🦊', { size: 28 });
+  hudAv.classList.add('canli');          // karakter sürekli nefes alsın (statik durmasın)
   document.getElementById('btn-sound').setAttribute('aria-pressed', String(!!settings.sound));
   document.getElementById('btn-voice').setAttribute('aria-pressed', String(!!settings.voice));
   document.getElementById('btn-music').setAttribute('aria-pressed', String(!!settings.music));
@@ -86,6 +88,51 @@ function applyTextSize() {
 }
 
 /** Serbest Mod — veli açarsa tüm bölümler kilitsiz açılır */
+/**
+ * ZORLUK — konsol oyunları oyuna başlarken zorluk sorar.
+ * Çocuğun seviyesine göre can sayısı ve süre ayarlanır.
+ */
+export const ZORLUKLAR = {
+  kolay:  { ad: 'Kolay',  can: 5, sure: 'off',    aciklama: 'Bol can, süre yok — yeni başlayanlar' },
+  normal: { ad: 'Normal', can: 3, sure: 'normal', aciklama: 'Dengeli — önerilen' },
+  zor:    { ad: 'Zor',    can: 2, sure: 'tight',  aciklama: 'Az can, kısa süre — ustalar' }
+};
+
+/**
+ * ZORLUK SEÇİMİ EKRANI — konsol oyunları oyuna başlarken zorluk sorar.
+ * İlk oyunda otomatik açılır; sonra Veli Paneli'nden değiştirilir.
+ */
+function zorlukSecimi(ilkKez = false) {
+  const simdi = settings.difficulty || 'normal';
+  const secenekler = Object.entries(ZORLUKLAR).map(([id, z]) =>
+    el('button', {
+      class: 'zorluk-kart' + (id === simdi ? ' secili' : ''),
+      onClick: () => {
+        settings.difficulty = id;
+        settings.zorlukSecildi = true;
+        persistSettings();
+        sfx('unlock');
+        close();
+        toast(`Zorluk: ${z.ad}`);
+        renderMap();
+      }
+    },
+      el('div', { class: 'zk-ad', text: z.ad }),
+      el('div', { class: 'zk-can', text: '❤️'.repeat(z.can) }),
+      el('div', { class: 'zk-aciklama', text: z.aciklama })
+    ));
+
+  dialog(el('div', { class: 'center zorluk-dialog' },
+    el('h2', { text: ilkKez ? 'Zorluk seç' : 'Zorluk' }),
+    el('p', { class: 'muted', text: ilkKez
+      ? 'Bu ayarı sonra Veli Paneli\'nden değiştirebilirsin.'
+      : 'Çocuğunun seviyesine göre seç.' }),
+    el('div', { class: 'zorluk-grid' }, ...secenekler),
+    ilkKez ? el('span') : el('div', { class: 'btn-row', style: { justifyContent: 'center' } },
+      el('button', { class: 'btn ghost sm', text: 'Kapat', onClick: () => close() }))
+  ));
+}
+
 function applyFreeMode() {
   S.setFreeMode(!!settings.freeMode);
 }
@@ -103,10 +150,17 @@ function applySpeechSpeed() {
  *   'tight'  → %20 kısa (meydan okuma isteyenler için)
  * Oyun mantığı değişmez, yalnızca süre ayarlanır.
  */
+/**
+ * Bölüm ayarını aile ayarlarına göre uyarla:
+ *   1) Süre modu (Velî Paneli → Zaman baskısı): kapalı / normal / sıkı
+ *   2) Zorluk (Kolay / Normal / Zor): can sayısı + süre
+ * İkisi birlikte uygulanır; erken dönüş YOK — aksi hâlde zorluk atlanır.
+ */
 export function withTimeMode(level) {
-  const mod = settings?.timeMode || 'normal';
-  if (mod === 'normal') return level;
   const cfg = Object.assign({}, level.cfg || {});
+
+  // 1) Süre modu
+  const mod = settings?.timeMode || 'normal';
   if (mod === 'off') {
     cfg.time = 0;
     cfg.timePerQ = 0;
@@ -114,6 +168,16 @@ export function withTimeMode(level) {
     if (cfg.time) cfg.time = Math.max(6, Math.round(cfg.time * 0.8));
     if (cfg.timePerQ) cfg.timePerQ = Math.max(6, Math.round(cfg.timePerQ * 0.8));
   }
+
+  // 2) Zorluk (can + süre) — her zaman uygulanır
+  const z = ZORLUKLAR[settings?.difficulty] || ZORLUKLAR.normal;
+  if (cfg.lives != null) cfg.lives = z.can;                    // net can sayısı
+  if (z.sure === 'off') { cfg.time = 0; cfg.timePerQ = 0; }    // Kolay: süre yok
+  else if (z.sure === 'tight') {
+    if (cfg.time) cfg.time = Math.max(6, Math.round(cfg.time * 0.75));
+    if (cfg.timePerQ) cfg.timePerQ = Math.max(6, Math.round(cfg.timePerQ * 0.75));
+  }
+
   return Object.assign({}, level, { cfg });
 }
 
@@ -133,6 +197,9 @@ const api = {
   toast: (m) => toast(m),
   recordAnswer: (a) => {
     if (profile) S.recordAnswer(profile, a);
+    // KARAKTER TEPKİSİ — konsol oyunlarında karakter her olaya cevap verir
+    const hud = document.getElementById('hud-avatar');
+    if (hud) { if (a.correct) avatarSevin(hud, 1); else avatarUzul(hud); }
     // GÜNLÜK GÖREV yalnız DOĞRU cevaplarla ilerler
     if (profile && a.correct) {
       const odul = S.gorevIlerlet(profile, 1);
@@ -205,7 +272,7 @@ function renderLogin() {
   muzikYogunluk(1);
   const panel = el('div', { class: 'panel narrow' },
     el('div', { style: { display: 'flex', gap: '14px', alignItems: 'center' } },
-      el('div', { html: mascotHTML(92) }),
+      el('div', { class: 'canli', html: mascotHTML(92) }),
       el('div', {},
         el('h1', { text: 'Ada Macerası' }),
         el('p', { text: 'Sayılar ve şekiller diyarında maceraya hoş geldin!' })
@@ -290,6 +357,7 @@ function renderMap() {
     streakChip(),
     trophyChip(),
     gorevChip(),
+    zorlukChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
@@ -338,10 +406,17 @@ function renderMap() {
   if (muzikCaliyor()) muzikModu('menu'); else muzikBaslat('menu');
   muzikYogunluk(1);
 
-  // Kişisel karşılama — dosyalar hazırsa Google sesiyle, değilse tarayıcı sesiyle
+  // Kişisel karşılama — dosyalar hazırsa doğal sesle, değilse tarayıcı sesiyle
   if (!selamlandi && profile?.nick) {
     selamlandi = true;
     setTimeout(() => { sayGreeting(profile.nick).catch(() => {}); }, 700);
+  }
+  // ZORLUK SEÇİMİ — konsollar gibi ilk oyunda bir kez sorulur.
+  // (Test hızlı modunda atlanır; zorluk-verify bunu ayrıca test eder.)
+  if (!settings.zorlukSecildi && !window.__hizliMod) {
+    settings.zorlukSecildi = true;
+    persistSettings();
+    setTimeout(() => zorlukSecimi(true), 2400);
   }
 
   if (!Object.keys(profile.results || {}).length) {
@@ -545,6 +620,22 @@ function gorevChip() {
   );
 }
 
+/**
+ * Zorluk rozeti — dokununca değiştirilir.
+ * Konsol oyunlarında zorluk her zaman görünür bir ayardır.
+ */
+function zorlukChip() {
+  const z = ZORLUKLAR[settings.difficulty] || ZORLUKLAR.normal;
+  return el('button', {
+    class: 'hint-pill zorluk-chip',
+    title: 'Zorluğu değiştir',
+    onClick: () => { sfx('tap'); zorlukSecimi(false); }        // el() onClick bekler (onclick DEĞİL)
+  },
+    el('span', { text: z.ad }),
+    el('span', { class: 'zc-can', text: '❤️'.repeat(z.can) })
+  );
+}
+
 function trophyChip() {
   const kazanilan = C.evaluateStickers(profile).length;
   const hepsi = C.STICKERS.length;
@@ -591,7 +682,7 @@ function renderTrophies() {
       izgara.append(el('div', {
         class: 'trophy-slot tier-' + k + (alindi ? ' has' : ''),
         title: s.desc,
-        onclick: () => { sfx('tap'); if (alindi) toast(s.name + ' — ' + s.desc); }
+        onClick: () => { sfx('tap'); if (alindi) toast(s.name + ' — ' + s.desc); }
       },
         el('div', { class: 'trok', html: C.trophySVG(k, 38) }),
         el('div', { class: 'tname', text: alindi ? s.name : '???' }),
@@ -887,6 +978,11 @@ function finishLevel(result) {
 
   updateHud();
   zaferFanfari('menu');            // coşkulu zafer fanfarı
+  // Maskot kutlasın — sonuç ekranı çizildikten sonra ruh haline göre zıplasın/üzülsün
+  setTimeout(() => {
+    const m = document.querySelector('.maskot-canli');
+    if (m) maskotCanlandir(m, stars === 3 ? 'cheer' : stars === 2 ? 'happy' : 'sad');
+  }, 260);
   renderResult({ world, level, result, stars, rank, score, coins, improved: stars > before.stars, unlockedNew, nextLevel, seri, yeniHazine, yeniCikartma });
 }
 
@@ -915,7 +1011,8 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
 
   const panel = el('div', { class: 'panel' },
     el('div', { class: 'result-hero' },
-      el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascotHTML(120, mood) })),
+      el('div', { style: { display: 'flex', justifyContent: 'center' } },
+        el('div', { class: 'canli maskot-canli', html: mascotHTML(120, mood) })),
       el('h1', { text: stars > 0 ? 'Bölüm tamam!' : 'Tekrar deneyelim' }),
       el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,
