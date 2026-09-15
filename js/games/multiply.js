@@ -7,6 +7,10 @@ import { el, clear, starsEl, shake } from '../ui.js';
 import { makeMultiplyQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech } from '../audio.js';
+import {
+  pickAdaptiveTables, adaptiveMaxB, pushRecent, difficultyTier,
+  initMissed, pushMissed, takeDueMissed, shouldReask
+} from './adaptive.js';
 
 export function createMultiplyGame({ root, level, api }) {
   const cfg = Object.assign({ tables: [2], mode: 'result', rounds: 7, options: 4, lives: 3, time: 0, maxB: 5, maxBHard: 10 }, level.cfg);
@@ -47,14 +51,36 @@ export function createMultiplyGame({ root, level, api }) {
 
     state.i++;
     progEl.textContent = `Soru ${state.i} / ${cfg.rounds}`;
-    state.cur = makeMultiplyQuestion({ tables: cfg.tables, mode: cfg.mode, maxB: cfg.mode === 'result' ? cfg.maxB : Math.min(10, cfg.maxBHard) });
+    initMissed(api.profile);
+
+    /* Adaptif seçim: zayıf tablolar daha sık çıkar, zorluk çocuğa uyar.
+       Her 3. soruda daha önce yanlış yapılan soru tekrar sorulur. */
+    let q = null;
+    let reask = false;
+    if (shouldReask(state.i - 1)) {
+      const m = takeDueMissed(api.profile);
+      if (m) {
+        q = makeMultiplyQuestion({ tables: [m.a], mode: m.mode, maxB: Math.max(m.b, 4) });
+        reask = true;
+      }
+    }
+    if (!q) {
+      const secilenTablolar = pickAdaptiveTables(api.profile, cfg.tables, 1);
+      const temelMax = cfg.mode === 'result' ? cfg.maxB : Math.min(10, cfg.maxBHard);
+      const maxB = adaptiveMaxB(api.profile, temelMax, cfg.maxBHard);
+      q = makeMultiplyQuestion({ tables: secilenTablolar, mode: cfg.mode, maxB });
+    }
+    state.cur = q;
+    state.reask = reask;
+    state.usedHint = false;
     state.locked = false;
     state.hintStep = 0;
-    resetSpeech();                       // yeni soru → ses kilidini aç (tekrar eden sorular da okunur)
+    resetSpeech();
     hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
 
     qEl.innerHTML = state.cur.prompt.replace('?', '<span class="q-mark">?</span>').replace('×', '<span class="q-mark">×</span>');
-    hintEl.textContent = '';
+    hintEl.textContent = reask ? 'Bunu bir kez yanlış yapmıştın — şimdi başarabilirsin!' : '';
+    hintEl.classList.toggle('reask', !!reask);
     visualEl.style.display = 'none';
     clear(answersEl);
 
@@ -94,7 +120,9 @@ export function createMultiplyGame({ root, level, api }) {
     state.wrong++;
     state.streak = 0;
     state.lives--;
-    api.recordAnswer({ correct: false, table: state.cur?.table });
+    pushRecent(api.profile, false);
+    pushMissed(api.profile, state.cur);          // süre doldu → tekrar sorulacak
+    api.recordAnswer({ correct: false, table: state.cur?.table, usedHint: state.usedHint, kind: 'multiply' });
     api.sfx('wrong');
     livesEl.innerHTML = hearts(Math.max(0, state.lives));
     streakEl.textContent = 'Seri: 0';
@@ -107,6 +135,7 @@ export function createMultiplyGame({ root, level, api }) {
     state.locked = true;
     stopTimer();
     const ok = value === state.cur.answer;
+    pushRecent(api.profile, ok);
     if (ok) {
       state.correct++;
       state.streak++;
@@ -114,15 +143,16 @@ export function createMultiplyGame({ root, level, api }) {
       btn.classList.add('correct');
       api.sfx('correct');
       if (state.streak > 0 && state.streak % 5 === 0) { api.sfx('coin'); api.toast(`${state.streak} doğru seri! Süpersin!`); }
-      api.recordAnswer({ correct: true, table: state.cur.table });
+      api.recordAnswer({ correct: true, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
       streakEl.textContent = 'Seri: ' + state.streak;
       setTimeout(nextQuestion, 620);
     } else {
       state.wrong++;
       state.streak = 0;
       state.lives--;
+      pushMissed(api.profile, state.cur);        // yanlış → birkaç soru sonra tekrar
       streakEl.textContent = 'Seri: 0';
-      api.recordAnswer({ correct: false, table: state.cur.table });
+      api.recordAnswer({ correct: false, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
       api.sfx('wrong');
       btn.classList.add('wrong');
       shake(btn);
@@ -157,6 +187,7 @@ export function createMultiplyGame({ root, level, api }) {
       hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
       return;
     }
+    state.usedHint = true;          // ipucu kullanıldı → "ipucsuz doğru" ödülü sayılmaz (dürüst ölçüm)
     if (state.hintStep === 1) {
       showTechnique();
       hintBtn.textContent = '🔢 Grupları göster';

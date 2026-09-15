@@ -137,6 +137,8 @@ export function migrate(p) {
   p.stats.wrong = p.stats.wrong || 0;
   p.stats.byTable = p.stats.byTable || {};
   p.stats.byShape = p.stats.byShape || {};
+  p.stats.recent = p.stats.recent || [];      // adaptif zorluk için son cevaplar
+  p.missed = p.missed || [];                  // aralıklı tekrar kuyruğu
   return p;
 }
 
