@@ -648,3 +648,60 @@ body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
 .lesson-meta { font-weight: 800; color: var(--ink-soft); font-size: clamp(13px,2vw,17px); }
 .lesson-h { font-weight: 900; font-size: clamp(19px,3.2vw,28px); margin-top: 14px; color: var(--ink); }
 .lesson-p { font-size: clamp(15px,2.6vw,21px); line-height: 1.5; margin-top: 6px; color: var(--ink); max-width: 640px; margin-inline: auto; }
+
+/* ============================================================
+   TROFELER — PS5 tarzı madalya sunumu
+   ============================================================ */
+.trophy-pop { position: fixed; top: 14px; right: -420px; z-index: 9000;
+  display: flex; align-items: center; gap: 12px; padding: 10px 20px 10px 12px;
+  background: linear-gradient(180deg, #2b3a55, #1b2740); color: #fff;
+  border: 3px solid #ffd23d; border-radius: 999px; max-width: 92vw;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  transition: right .45s cubic-bezier(.2,.9,.25,1.15); }
+.trophy-pop.in { right: 14px; }
+.trophy-pop.tier-silver { border-color: #d7e0ea; }
+.trophy-pop.tier-bronze { border-color: #d08a52; }
+.trophy-pop.tier-platinum { border-color: #9fe9ff; box-shadow: 0 10px 34px rgba(120,220,255,.5); }
+.tp-icon { display: grid; place-items: center; flex: 0 0 auto; }
+.tp-label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.tp-name { font-size: clamp(15px,2.4vw,19px); font-weight: 900; }
+
+/* Harita rozeti */
+.trophy-chip .tc-ikon { display: inline-grid; place-items: center; vertical-align: -3px; margin-right: 4px; }
+
+/* Trofe Odası */
+.trophy-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin: 14px 0 18px; }
+.tsum { background: rgba(255,255,255,.94); border: 3px solid var(--line-strong); border-radius: var(--r-lg);
+  padding: 10px; display: grid; justify-items: center; gap: 4px; }
+.tsum.tier-platinum { border-color: #3aa8d8; background: linear-gradient(180deg,#eafaff,#d6f2ff); }
+.tsum.tier-gold { border-color: #d99a00; background: linear-gradient(180deg,#fffbe8,#fff2c4); }
+.tsum.tier-silver { border-color: #8d99a8; background: linear-gradient(180deg,#f7fafc,#e9eef4); }
+.tsum.tier-bronze { border-color: #8a5228; background: linear-gradient(180deg,#fdf3e9,#f6e3d2); }
+.tsum-ad { font-weight: 900; font-size: 15px; }
+.tsum-sayi { font-weight: 800; color: var(--ink-soft); font-size: 14px; }
+.tsum-bar { width: 100%; height: 9px; border-radius: 999px; background: rgba(35,50,77,.18); overflow: hidden; }
+.tsum-bar i { display: block; height: 100%; background: linear-gradient(90deg,#58cf6a,#1c93d8); }
+
+.trophy-h { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; font-size: clamp(15px,2.6vw,20px); font-weight: 900; }
+.trophy-h .th-ikon { display: grid; place-items: center; }
+.trophy-h .th-sayi { margin-left: auto; font-size: 14px; color: var(--ink-soft); font-weight: 800; }
+.trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+.trophy-slot { background: rgba(255,255,255,.95); border: 3px solid var(--line-strong); border-radius: var(--r-lg);
+  padding: 10px 8px; display: grid; justify-items: center; gap: 4px; cursor: pointer; text-align: center; }
+.trophy-slot .trok { filter: grayscale(1) brightness(.72); opacity: .38; transition: filter .3s, opacity .3s; }
+.trophy-slot.has .trok { filter: none; opacity: 1; }
+.trophy-slot.has.tier-platinum { border-color: #3aa8d8; box-shadow: 0 0 0 3px rgba(120,220,255,.3); }
+.trophy-slot.has.tier-gold { border-color: #d99a00; box-shadow: 0 0 0 3px rgba(255,210,61,.35); }
+.trophy-slot.has.tier-silver { border-color: #8d99a8; }
+.trophy-slot.has.tier-bronze { border-color: #8a5228; }
+.trophy-slot .tname { font-weight: 900; font-size: 13px; }
+.trophy-slot .tdesc { font-size: 11.5px; color: var(--ink-soft); line-height: 1.25; }
+
+.trophy-dialog .td-medal { display: grid; place-items: center; margin-bottom: 6px;
+  animation: trophyPop .55s cubic-bezier(.2,.9,.3,1.4); }
+@keyframes trophyPop { 0% { transform: scale(.4) rotate(-18deg); opacity: 0; }
+  60% { transform: scale(1.14) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+.platinum-banner { display: flex; align-items: center; gap: 14px; justify-content: center;
+  background: linear-gradient(135deg,#d9f6ff,#9fe9ff); border: 3px solid #3aa8d8;
+  border-radius: var(--r-lg); padding: 14px 20px; margin: 10px 0 16px; font-weight: 900; }
+.pb-text { font-size: clamp(15px,2.6vw,20px); color: #0b3a52; }

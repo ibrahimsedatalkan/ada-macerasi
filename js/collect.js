@@ -96,37 +96,84 @@ export const SLOT_STYLE = {
 
 export const itemById = (id) => ITEMS.find((i) => i.id === id) || null;
 
+/* ============================================================
+   TROFELER — PS5 tarzı madalya sistemi
+   Aynı başarım kontrolü, konsol oyunlarındaki gibi sunulur:
+   bronz / gümüş / altın / platin. Platin = hepsini topla.
+   ============================================================ */
+export const TROPHY_META = {
+  bronze:   { ad: 'Bronz',  renk: '#d08a52', renk2: '#8a5228', puan: 1 },
+  silver:   { ad: 'Gümüş',  renk: '#d7e0ea', renk2: '#8d99a8', puan: 2 },
+  gold:     { ad: 'Altın',  renk: '#ffd23d', renk2: '#d99a00', puan: 3 },
+  platinum: { ad: 'Platin', renk: '#9fe9ff', renk2: '#3aa8d8', puan: 4 }
+};
+export const TROPHY_ORDER = ['bronze', 'silver', 'gold', 'platinum'];
+
+/** Kazanılan trofeleri kademeye göre say */
+export function trophyCounts(profile) {
+  const kazanilan = evaluateStickers(profile);
+  const t = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
+  for (const s of STICKERS) if (kazanilan.includes(s.id)) t[s.tier || 'bronze']++;
+  return t;
+}
+
+/** Toplam trofe puanı (kademeye göre ağırlıklı) */
+export function trophyScore(profile) {
+  const t = trophyCounts(profile);
+  return TROPHY_ORDER.reduce((top, k) => top + t[k] * TROPHY_META[k].puan, 0);
+}
+
+/** Her kademede toplam kaç trofe var? */
+export function trophyTotals() {
+  const t = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
+  for (const s of STICKERS) t[s.tier || 'bronze']++;
+  return t;
+}
+
+/** Trofe madalyası SVG'si (her cihazda aynı görünür) */
+export function trophySVG(tier, boyut = 40) {
+  const m = TROPHY_META[tier] || TROPHY_META.bronze;
+  return `<svg viewBox="0 0 64 64" width="${boyut}" height="${boyut}" aria-hidden="true">
+    <path d="M18 8 h28 v12 a14 14 0 0 1 -28 0 z" fill="${m.renk}" stroke="#23324d" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M18 12 h-7 a9 9 0 0 0 9 9" fill="none" stroke="#23324d" stroke-width="4" stroke-linecap="round"/>
+    <path d="M46 12 h7 a9 9 0 0 1 -9 9" fill="none" stroke="#23324d" stroke-width="4" stroke-linecap="round"/>
+    <rect x="28" y="34" width="8" height="10" fill="${m.renk2}" stroke="#23324d" stroke-width="4"/>
+    <rect x="18" y="44" width="28" height="8" rx="3" fill="${m.renk2}" stroke="#23324d" stroke-width="4"/>
+    <circle cx="32" cy="20" r="5" fill="#fff" opacity=".55"/>
+  </svg>`;
+}
+
 /* ---------------- Çıkartmalar (başarımla kazanılır) ----------------
    Satın alınmaz — oynayarak kazanılır. Koleksiyon motivasyonu.      */
 export const STICKERS = [
-  { id: 'st_first',    name: 'İlk Adım',        desc: 'İlk bölümü bitir',              test: (p) => totalPlays(p) >= 1,        art: starSticker('#ffd23d', '#f5b40b') },
-  { id: 'st_10c',      name: '10 Doğru',        desc: '10 doğru cevap ver',            test: (p) => p.stats.correct >= 10,     art: starSticker('#3dbdff', '#1c93d8') },
-  { id: 'st_streak5',  name: 'Seri Ustası',     desc: '5 doğruyu üst üste yap',        test: (p) => (p.stats.bestStreak || 0) >= 5,  art: starSticker('#ff9a3d', '#ef7f1a') },
-  { id: 'st_t1',       name: 'Birler Bitti',    desc: "1'ler tablosunu bitir",         test: (p) => tableMastered(p, '1'),     art: badgeSticker('1', '#ff6f9c') },
-  { id: 'st_t2',       name: 'İkiler Bitti',    desc: "2'ler tablosunu bitir",         test: (p) => tableMastered(p, '2'),     art: badgeSticker('2', '#58cf6a') },
-  { id: 'st_t5',       name: 'Beşler Bitti',    desc: "5'ler tablosunu bitir",         test: (p) => tableMastered(p, '5'),     art: badgeSticker('5', '#3dbdff') },
-  { id: 'st_shape',    name: 'Şekil Avcısı',    desc: 'Kenar/köşe sorularında 10 doğru', test: (p) => shapeCorrect(p) >= 10,   art: badgeSticker('◆', '#b07cff') },
-  { id: 'st_draw',     name: 'Küçük Ressam',    desc: 'İlk çizim bölümünü bitir',      test: (p) => p.stats.drawDone >= 1,     art: badgeSticker('✎', '#ff9a3d') },
-  { id: 'st_boss',     name: 'Ejderha Yenen',   desc: 'Boss bölümünü bitir',           test: (p) => p.stats.bossDone >= 1,     art: badgeSticker('D', '#ff5a5f') },
-  { id: 'st_50c',      name: '50 Doğru',        desc: '50 doğru cevap ver',            test: (p) => p.stats.correct >= 50,     art: starSticker('#b07cff', '#8a5ee0') },
-  { id: 'st_world1',   name: 'Çayır Fatihi',    desc: '1. adayı tamamla',              test: (p) => worldDone(p, 'w1'),        art: badgeSticker('1', '#58cf6a') },
-  { id: 'st_100c',     name: '100 Doğru',       desc: '100 doğru cevap ver',           test: (p) => p.stats.correct >= 100,    art: starSticker('#ffd23d', '#ff9a3d') },
-  { id: 'st_nohelp',   name: 'Kendi Başına',    desc: 'İpuçsuz 10 soruyu doğru yap',   test: (p) => (p.stats.correctNoHint || 0) >= 10, art: starSticker('#58cf6a', '#34a94a') },
-  { id: 'st_allday',   name: 'Her Gün Burada',  desc: '3 gün üst üste oyna',           test: (p) => (p.streak?.best || 0) >= 3, art: badgeSticker('☀', '#ffd23d') },
-  { id: 'st_300c',     name: '300 Doğru',       desc: '300 doğru cevap ver',           test: (p) => p.stats.correct >= 300,    art: starSticker('#ff6f9c', '#ff5a5f') },
-  { id: 'st_allshapes', name: 'Geometri Ustası', desc: 'Tüm şekillerde ustalaş',       test: (p) => shapeMasteredAll(p),       art: badgeSticker('★', '#b07cff') },
+  { id: 'st_first',    name: 'İlk Adım',        desc: 'İlk bölümü bitir',              test: (p) => totalPlays(p) >= 1,        art: starSticker('#ffd23d', '#f5b40b') , tier: 'gold' },
+  { id: 'st_10c',      name: '10 Doğru',        desc: '10 doğru cevap ver',            test: (p) => p.stats.correct >= 10,     art: starSticker('#3dbdff', '#1c93d8') , tier: 'bronze' },
+  { id: 'st_streak5',  name: 'Seri Ustası',     desc: '5 doğruyu üst üste yap',        test: (p) => (p.stats.bestStreak || 0) >= 5,  art: starSticker('#ff9a3d', '#ef7f1a') , tier: 'bronze' },
+  { id: 'st_t1',       name: 'Birler Bitti',    desc: "1'ler tablosunu bitir",         test: (p) => tableMastered(p, '1'),     art: badgeSticker('1', '#ff6f9c') , tier: 'bronze' },
+  { id: 'st_t2',       name: 'İkiler Bitti',    desc: "2'ler tablosunu bitir",         test: (p) => tableMastered(p, '2'),     art: badgeSticker('2', '#58cf6a') , tier: 'bronze' },
+  { id: 'st_t5',       name: 'Beşler Bitti',    desc: "5'ler tablosunu bitir",         test: (p) => tableMastered(p, '5'),     art: badgeSticker('5', '#3dbdff') , tier: 'silver' },
+  { id: 'st_shape',    name: 'Şekil Avcısı',    desc: 'Kenar/köşe sorularında 10 doğru', test: (p) => shapeCorrect(p) >= 10,   art: badgeSticker('◆', '#b07cff') , tier: 'bronze' },
+  { id: 'st_draw',     name: 'Küçük Ressam',    desc: 'İlk çizim bölümünü bitir',      test: (p) => p.stats.drawDone >= 1,     art: badgeSticker('✎', '#ff9a3d') , tier: 'bronze' },
+  { id: 'st_boss',     name: 'Ejderha Yenen',   desc: 'Boss bölümünü bitir',           test: (p) => p.stats.bossDone >= 1,     art: badgeSticker('D', '#ff5a5f') , tier: 'silver' },
+  { id: 'st_50c',      name: '50 Doğru',        desc: '50 doğru cevap ver',            test: (p) => p.stats.correct >= 50,     art: starSticker('#b07cff', '#8a5ee0') , tier: 'bronze' },
+  { id: 'st_world1',   name: 'Çayır Fatihi',    desc: '1. adayı tamamla',              test: (p) => worldDone(p, 'w1'),        art: badgeSticker('1', '#58cf6a') , tier: 'bronze' },
+  { id: 'st_100c',     name: '100 Doğru',       desc: '100 doğru cevap ver',           test: (p) => p.stats.correct >= 100,    art: starSticker('#ffd23d', '#ff9a3d') , tier: 'silver' },
+  { id: 'st_nohelp',   name: 'Kendi Başına',    desc: 'İpuçsuz 10 soruyu doğru yap',   test: (p) => (p.stats.correctNoHint || 0) >= 10, art: starSticker('#58cf6a', '#34a94a') , tier: 'silver' },
+  { id: 'st_allday',   name: 'Her Gün Burada',  desc: '3 gün üst üste oyna',           test: (p) => (p.streak?.best || 0) >= 3, art: badgeSticker('☀', '#ffd23d') , tier: 'silver' },
+  { id: 'st_300c',     name: '300 Doğru',       desc: '300 doğru cevap ver',           test: (p) => p.stats.correct >= 300,    art: starSticker('#ff6f9c', '#ff5a5f') , tier: 'silver' },
+  { id: 'st_allshapes', name: 'Geometri Ustası', desc: 'Tüm şekillerde ustalaş',       test: (p) => shapeMasteredAll(p),       art: badgeSticker('★', '#b07cff') , tier: 'gold' },
   /* --- 6-10 tabloları (2. sınıfın ikinci yarısı) --- */
-  { id: 'st_t6',       name: 'Altılar Bitti',   desc: "6'lar tablosunu bitir",         test: (p) => tableMastered(p, '6'),     art: badgeSticker('6', '#ff9a3d') },
-  { id: 'st_t7',       name: 'Yediler Bitti',   desc: "7'ler tablosunu bitir",         test: (p) => tableMastered(p, '7'),     art: badgeSticker('7', '#3dbdff') },
-  { id: 'st_t8',       name: 'Sekizler Bitti',  desc: "8'ler tablosunu bitir",         test: (p) => tableMastered(p, '8'),     art: badgeSticker('8', '#58cf6a') },
-  { id: 'st_t9',       name: 'Dokuzlar Bitti',  desc: "9'lar tablosunu bitir",         test: (p) => tableMastered(p, '9'),     art: badgeSticker('9', '#b07cff') },
-  { id: 'st_t10',      name: 'Onlar Bitti',     desc: "10'lar tablosunu bitir",        test: (p) => tableMastered(p, '10'),    art: badgeSticker('10', '#ffd23d') },
-  { id: 'st_alltables', name: 'Tüm Tablolar',   desc: "1'den 10'a tüm tablolarda ustalaş", test: (p) => allTablesMastered(p),  art: starSticker('#ffd23d', '#f5b40b') },
-  { id: 'st_world6',   name: 'Yıldız Fatihi',   desc: 'Yıldız Adası’nı tamamla',       test: (p) => worldDone(p, 'w6'),        art: badgeSticker('★', '#ffe27a') },
-  { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') },
+  { id: 'st_t6',       name: 'Altılar Bitti',   desc: "6'lar tablosunu bitir",         test: (p) => tableMastered(p, '6'),     art: badgeSticker('6', '#ff9a3d') , tier: 'silver' },
+  { id: 'st_t7',       name: 'Yediler Bitti',   desc: "7'ler tablosunu bitir",         test: (p) => tableMastered(p, '7'),     art: badgeSticker('7', '#3dbdff') , tier: 'silver' },
+  { id: 'st_t8',       name: 'Sekizler Bitti',  desc: "8'ler tablosunu bitir",         test: (p) => tableMastered(p, '8'),     art: badgeSticker('8', '#58cf6a') , tier: 'silver' },
+  { id: 'st_t9',       name: 'Dokuzlar Bitti',  desc: "9'lar tablosunu bitir",         test: (p) => tableMastered(p, '9'),     art: badgeSticker('9', '#b07cff') , tier: 'silver' },
+  { id: 'st_t10',      name: 'Onlar Bitti',     desc: "10'lar tablosunu bitir",        test: (p) => tableMastered(p, '10'),    art: badgeSticker('10', '#ffd23d') , tier: 'gold' },
+  { id: 'st_alltables', name: 'Tüm Tablolar',   desc: "1'den 10'a tüm tablolarda ustalaş", test: (p) => allTablesMastered(p),  art: starSticker('#ffd23d', '#f5b40b') , tier: 'platinum' },
+  { id: 'st_world6',   name: 'Yıldız Fatihi',   desc: 'Yıldız Adası’nı tamamla',       test: (p) => worldDone(p, 'w6'),        art: badgeSticker('★', '#ffe27a') , tier: 'gold' },
+  { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') , tier: 'gold' },
   /* --- Toplama/Çıkarma (2. sınıf çekirdek kazanımı) --- */
-  { id: 'st_world7',   name: 'Deniz Fatihi',    desc: 'Sayı Denizi’ni tamamla',        test: (p) => worldDone(p, 'w7'),        art: badgeSticker('+', '#3dbdff') },
-  { id: 'st_add800',   name: '800 Doğru',       desc: '800 doğru cevap ver',           test: (p) => p.stats.correct >= 800,    art: starSticker('#3dbdff', '#1c93d8') }
+  { id: 'st_world7',   name: 'Deniz Fatihi',    desc: 'Sayı Denizi’ni tamamla',        test: (p) => worldDone(p, 'w7'),        art: badgeSticker('+', '#3dbdff') , tier: 'gold' },
+  { id: 'st_add800',   name: '800 Doğru',       desc: '800 doğru cevap ver',           test: (p) => p.stats.correct >= 800,    art: starSticker('#3dbdff', '#1c93d8') , tier: 'gold' }
 ];
 
 function starSticker(c1, c2) {

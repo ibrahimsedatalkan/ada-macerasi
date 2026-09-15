@@ -64,6 +64,12 @@ function noise({ dur = 0.18, gain = 0.12, hp = 900, delay = 0 }) {
 }
 
 const SFX = {
+  /* PS5 tarzı trofe kazanma sesi — yükselen üçlü akor */
+  trophy: () => {
+    tone({ freq: 880, dur: 0.12, type: 'triangle', gain: 0.17 });
+    setTimeout(() => tone({ freq: 1175, dur: 0.12, type: 'triangle', gain: 0.17 }), 115);
+    setTimeout(() => tone({ freq: 1568, dur: 0.38, type: 'triangle', gain: 0.19 }), 230);
+  },
   click: () => tone({ freq: 620, dur: 0.07, type: 'triangle', gain: 0.1 }),
   tap: () => tone({ freq: 420, dur: 0.06, type: 'square', gain: 0.07 }),
   pop: () => { noise({ dur: 0.14, gain: 0.16, hp: 500 }); tone({ freq: 300, glide: 1000, dur: 0.16, type: 'sine', gain: 0.14 }); },

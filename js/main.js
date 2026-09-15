@@ -229,10 +229,11 @@ function renderMap() {
     el('div', {}, el('h1', { text: stars > 0 ? 'Maceraya devam' : 'Maceraya başla' }), el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)}` })),
     el('div', { class: 'grow', style: { flex: '1' } }),
     streakChip(),
+    trophyChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
-    el('button', { class: 'btn sm purple', text: '📖 Albüm', onClick: () => renderAlbum() }),
+    el('button', { class: 'btn sm purple', text: '🏆 Trofeler', onClick: () => renderTrophies() }),
     el('button', { class: 'btn sm blue', text: '⚔️ Düello', onClick: () => renderDuel() }),
     el('button', { class: 'btn sm green', text: '🏅 Sınıf Tablosu', onClick: () => renderBoard() }),
     el('button', { class: 'btn sm ghost', text: '👨‍👩‍👦 Veli Paneli', onClick: () => renderParent() }),
@@ -328,19 +329,24 @@ function checkStickers({ sessiz = false } = {}) {
   S.saveProfile(profile);
   updateHud();
   if (!sessiz) {
-    sfx('unlock');
-    confetti({ count: 70 });
-    const ilk = yeni[0];
-    speak(`Yeni çıkartma kazandın: ${ilk.name}!`, { force: true });
-    dialog(el('div', { class: 'center' },
-      el('div', { class: 'sticker-big', html: svgWrap(ilk.art) }),
-      el('h2', { text: 'Yeni Çıkartma!' }),
-      el('p', { class: 'hint-title', text: ilk.name }),
-      el('p', { class: 'muted', text: ilk.desc }),
-      yeni.length > 1 ? el('p', { class: 'small', text: `+${yeni.length - 1} çıkartma daha kazandın!` }) : null,
-      el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
-        el('button', { class: 'btn green', text: 'Harika!', onClick: () => close() }))
-    ));
+    const tier = ilk.tier || 'bronze';
+    const meta = C.TROPHY_META[tier];
+    sfx('trophy');
+    confetti({ count: 80 });
+    // Konsol tarzı: önce sağ üstten kayan trofe bildirimi
+    yeni.forEach((st, k) => setTimeout(() => trophyPopup(st), k * 1100));
+    speak(`${meta.ad} trofe kazandın: ${ilk.name}!`, { force: true });
+    setTimeout(() => {
+      dialog(el('div', { class: 'center trophy-dialog tier-' + tier },
+        el('div', { class: 'td-medal', html: C.trophySVG(tier, 92) }),
+        el('h2', { text: meta.ad.toUpperCase() + ' TROFE' }),
+        el('p', { class: 'hint-title', text: ilk.name }),
+        el('p', { class: 'muted', text: ilk.desc }),
+        yeni.length > 1 ? el('p', { class: 'small', text: `+${yeni.length - 1} trofe daha kazandın!` }) : null,
+        el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
+          el('button', { class: 'btn green', text: 'Harika!', onClick: () => close() }))
+      ));
+    }, 320);
   }
   return yeni;
 }
@@ -434,6 +440,105 @@ function framePreview(it) {
     <circle cx="50" cy="50" r="29" fill="${c1}" stroke="#23324d" stroke-width="4"/>
     <circle cx="50" cy="50" r="19" fill="#fff" stroke="#23324d" stroke-width="4"/>
   </svg>`;
+}
+
+/* ============================================================
+   TROFELER — PS5 tarzı sunum
+   ============================================================ */
+
+/** Trofe kazanıldığında sağ üstten kayan bildirim (konsol hissi) */
+function trophyPopup(sticker) {
+  const tier = sticker.tier || 'bronze';
+  const meta = C.TROPHY_META[tier];
+  const kutu = el('div', { class: 'trophy-pop tier-' + tier },
+    el('div', { class: 'tp-icon', html: C.trophySVG(tier, 44) }),
+    el('div', { class: 'tp-text' },
+      el('div', { class: 'tp-label', text: meta.ad + ' Trofe Kazandın!' }),
+      el('div', { class: 'tp-name', text: sticker.name })
+    )
+  );
+  document.body.append(kutu);
+  sfx('trophy');                      // PS5'te trofe sesi ayrı ve belirgindir
+  requestAnimationFrame(() => kutu.classList.add('in'));
+  setTimeout(() => {
+    kutu.classList.remove('in');
+    setTimeout(() => kutu.remove(), 500);
+  }, 3600);
+}
+
+/** Haritadaki trofe rozeti — kazanılan/toplam */
+function trophyChip() {
+  const kazanilan = C.evaluateStickers(profile).length;
+  const hepsi = C.STICKERS.length;
+  return el('div', { class: 'hint-pill trophy-chip', title: `Trofe puanı: ${C.trophyScore(profile)}` },
+    el('span', { class: 'tc-ikon', html: C.trophySVG('gold', 18) }),
+    el('span', { text: `${kazanilan}/${hepsi}` })
+  );
+}
+
+/** TROFE ODASI — kademelere göre gruplanmış koleksiyon */
+function renderTrophies() {
+  if (!profile) return renderLogin();
+  updateHud();
+  const root = showScreen('album');
+  const kazanilan = C.evaluateStickers(profile);
+  const t = C.trophyCounts(profile);
+  const toplam = C.trophyTotals();
+  const puan = C.trophyScore(profile);
+  const hepsiAlindi = kazanilan.length >= C.STICKERS.length;
+
+  const ozet = el('div', { class: 'trophy-summary' });
+  for (const k of C.TROPHY_ORDER) {
+    const m = C.TROPHY_META[k];
+    ozet.append(el('div', { class: 'tsum tier-' + k },
+      el('div', { class: 'tsum-ikon', html: C.trophySVG(k, 34) }),
+      el('div', { class: 'tsum-ad', text: m.ad }),
+      el('div', { class: 'tsum-sayi', text: `${t[k]}/${toplam[k]}` }),
+      el('div', { class: 'tsum-bar' }, el('i', { style: { width: (toplam[k] ? (t[k] / toplam[k]) * 100 : 0) + '%' } }))
+    ));
+  }
+
+  const govde = el('div', { class: 'trophy-groups' });
+  for (const k of [...C.TROPHY_ORDER].reverse()) {          // platin en üstte
+    const liste = C.STICKERS.filter((s) => (s.tier || 'bronze') === k);
+    const alinan = liste.filter((s) => kazanilan.includes(s.id)).length;
+    govde.append(el('h3', { class: 'trophy-h tier-' + k },
+      el('span', { class: 'th-ikon', html: C.trophySVG(k, 24) }),
+      el('span', { text: `${C.TROPHY_META[k].ad} Trofeler` }),
+      el('span', { class: 'th-sayi', text: `${alinan}/${liste.length}` })
+    ));
+    const izgara = el('div', { class: 'trophy-grid' });
+    for (const s of liste) {
+      const alindi = kazanilan.includes(s.id);
+      izgara.append(el('div', {
+        class: 'trophy-slot tier-' + k + (alindi ? ' has' : ''),
+        title: s.desc,
+        onclick: () => { sfx('tap'); if (alindi) toast(s.name + ' — ' + s.desc); }
+      },
+        el('div', { class: 'trok', html: C.trophySVG(k, 38) }),
+        el('div', { class: 'tname', text: alindi ? s.name : '???' }),
+        el('div', { class: 'tdesc', text: s.desc })
+      ));
+    }
+    govde.append(izgara);
+  }
+
+  root.append(el('div', { class: 'panel wide' },
+    el('h2', { class: 'page-title', text: 'Trofe Odası' }),
+    el('p', { class: 'page-sub', text: `Konsol oyunlarındaki gibi trofe topla! Toplam puan: ${puan}` }),
+    hepsiAlindi
+      ? el('div', { class: 'platinum-banner' },
+          el('div', { class: 'pb-ikon', html: C.trophySVG('platinum', 48) }),
+          el('div', { class: 'pb-text', text: 'PLATİN TROFE! Tüm trofeleri topladın!' }))
+      : el('span'),
+    ozet,
+    govde,
+    el('div', { class: 'btn-row', style: { marginTop: '16px' } },
+      el('button', { class: 'btn ghost sm', text: '🗺️ Haritaya dön', onClick: () => renderMap() })
+    )
+  ));
+  speak('Trofe odası. Kazandığın madalyalar burada.');
+  return root;
 }
 
 /* ---------------- ÇIKARTMA ALBÜMÜ ---------------- */
