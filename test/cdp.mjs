@@ -39,11 +39,13 @@ export async function connect(port = 9222) {
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  const goto = async (url, waitMs = 1500) => {
+  const goto = async (url, waitMs = 1500, secenek = {}) => {
     await send('Page.navigate', { url });
     await sleep(waitMs);
-    // Test hızlı modu: açılış ekranını ve bölüm geri sayımını atla
-    try {
+    // Test hızlı modu: açılış ekranını ve bölüm geri sayımını atla.
+    // (secenek.keepIntro = true ise açılış ekranı KORUNUR — onu test eden
+    //  dosyalar için: sahne-verify)
+    if (!secenek.keepIntro) try {
       await evaluate(`(() => {
         window.__hizliMod = true;
         try { sessionStorage.setItem('ada_hizli', '1'); } catch (e) {}

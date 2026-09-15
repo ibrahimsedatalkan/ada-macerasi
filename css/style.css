@@ -854,3 +854,23 @@ body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
 .zorluk-chip { background: linear-gradient(180deg,#fff,#f0f6ff); border: 2px solid var(--line-strong);
   font-weight: 800; cursor: pointer; font-family: inherit; }
 .zorluk-chip .zc-can { margin-left: 6px; font-size: 12px; letter-spacing: 1px; }
+
+/* ============================================================
+   HİKÂYE SAHNESİ — bölüm öncesi sinematik
+   ============================================================ */
+.sahne { position: fixed; inset: 0; z-index: 9200; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 35%, rgba(20,50,85,.88), rgba(6,16,30,.96));
+  cursor: pointer; transition: opacity .42s, transform .42s; padding: 22px; }
+.sahne.gidiyor { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.sn-icerik { text-align: center; max-width: 640px; display: grid; gap: 10px; justify-items: center;
+  animation: sahneGir .6s cubic-bezier(.2,.9,.3,1.15); }
+@keyframes sahneGir { 0% { opacity: 0; transform: translateY(22px) scale(.94) } 100% { opacity: 1; transform: none } }
+.sn-maskot { filter: drop-shadow(0 8px 22px rgba(0,0,0,.5)); }
+.sn-ada { font-size: clamp(13px,2.4vw,17px); font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; color: #8fd4ff; }
+.sn-bolum { font-size: clamp(24px,6vw,46px); font-weight: 900; color: #fff; margin: 0;
+  -webkit-text-stroke: 2px #0d2438; text-shadow: 0 5px 0 rgba(0,0,0,.3); }
+.sn-hikaye { font-size: clamp(15px,2.9vw,22px); line-height: 1.5; color: #dcefff;
+  font-weight: 700; margin: 4px 0 0; max-width: 560px; }
+.sn-devam { margin-top: 12px; font-size: clamp(12px,2.2vw,15px); font-weight: 700;
+  color: #9fd4f0; animation: acYanip 1.5s ease-in-out infinite; }

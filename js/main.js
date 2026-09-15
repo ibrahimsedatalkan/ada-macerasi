@@ -237,8 +237,72 @@ const ACILIS_IPUCLARI = [
   'İpucu: Dersler ekranı her zaman açık — istediğin konuyu önce öğren.'
 ];
 
+/** Zayıf tablo için akıldan hesap tekniği */
+const TABLO_IPUCU = {
+  2: '2\'ler için: aynı sayıyı kendisiyle topla.',
+  3: '3\'ler için: 3-6-9-12 diye üçer üçer say.',
+  4: '4\'ler için: önce 2 ile çarp, sonucu bir daha 2 ile çarp.',
+  5: '5\'ler için: 5-10-15-20 diye beşer say. Sonuç 0 ya da 5 ile biter.',
+  6: '6\'lar için: 5 katı + 1 katı. Mesela 6×7 = (5×7) + 7.',
+  7: '7\'ler için: 5 katı + 2 katı. Mesela 7×8 = (5×8) + (2×8).',
+  8: '8\'ler için: iki kez iki katına çıkar (2→4→8).',
+  9: '9\'lar için: 10 katından 1 katını çıkar. 9×7 = 70 − 7.',
+  10: '10\'lar için: sona bir sıfır ekle.'
+};
+
+/**
+ * KİŞİSELLEŞEN İPUCU — yükleme ekranında çocuğun kendi verisine göre
+ * öneri gösterilir. Konsol oyunlarında ipuçları oyuncuya göre değişir.
+ */
+function kisiselIpucu() {
+  const genel = () => ACILIS_IPUCLARI[Math.floor(Math.random() * ACILIS_IPUCLARI.length)];
+  // Açılış ekranı, profil yüklenmeden ÖNCE çalışır — o yüzden kayıtlı
+  // oyuncuyu burada kendimiz okuyoruz. Aksi hâlde ipucu hep genel kalır.
+  let p = profile;
+  if (!p) {
+    const aktif = getActive();
+    if (aktif) { try { p = S.loadProfile(aktif.nick, aktif.classCode); } catch (e) { p = null; } }
+  }
+  if (!p) return genel();
+  const st = p.stats || {};
+  const byTable = st.byTable || {};
+
+  // 1) Zayıf tablo var mı? (en az 3 deneme, doğruluk %70 altı)
+  const zayiflar = Object.entries(byTable)
+    .filter(([, v]) => v.c + v.w >= 3 && v.c / (v.c + v.w) < 0.7)
+    .sort((a, b) => (b[1].w - a[1].w))
+    .map(([t]) => Number(t));
+  if (zayiflar.length) {
+    const t = zayiflar[0];
+    const teknik = TABLO_IPUCU[t];
+    if (teknik) return `Senin için: ${teknik}`;
+  }
+
+  // 2) İpucu bağımlılığı (cevapların yarısından çoğunda ipucu)
+  const toplamCevap = (st.correct || 0) + (st.wrong || 0);
+  const ipucsuzOran = toplamCevap ? (st.correctNoHint || 0) / Math.max(1, st.correct || 1) : 1;
+  if (toplamCevap >= 15 && ipucsuzOran < 0.3) {
+    return 'Senin için: İpucu almadan denemeyi dene — beynin daha hızlı öğrenir. Zorlanırsan ipucu hep orada.';
+  }
+
+  // 3) Güçlü gidiyorsa meydan okuma
+  if (st.correct >= 40 && (st.correct / Math.max(1, toplamCevap)) >= 0.85) {
+    return 'Senin için: Harika gidiyorsun! Bir zorluk seviyesi yükseltmeye hazır mısın? (Haritadaki zorluk rozeti)';
+  }
+
+  // 4) Günlük görev
+  const g = S.gunlukGorev(p);
+  if (g.yapilan >= g.hedef) return 'Bugünün görevi tamam! Yarın yeni bir görev var.';
+
+  // 5) Günlük seri
+  const seri = p.streak?.count || 0;
+  if (seri >= 2) return `Senin için: ${seri} gündür oynuyorsun — seriyi bozma!`;
+
+  return genel();
+}
+
 function acilisEkrani(bitti) {
-  const ipucu = ACILIS_IPUCLARI[Math.floor(Math.random() * ACILIS_IPUCLARI.length)];
+  const ipucu = kisiselIpucu();
   const kat = el('div', { class: 'acilis' },
     el('div', { class: 'ac-logo' },
       el('div', { class: 'ac-maskot', html: mascotHTML(116) }),
@@ -818,6 +882,44 @@ function openLevelIntro(world, level) {
  * Bölüm öncesi geri sayım — konsol oyunlarındaki "hazırlan" anı.
  * Beklenti yaratır ve çocuğu ekrana kilitler.
  */
+/**
+ * HİKÂYE SAHNESİ — bölümden önce kısa anlatım.
+ * Konsol oyunlarında bölümler sinematikle başlar. Bizde Pofi konuşur:
+ * adanın tanıtımı + bölümün hikâyesi, sesli olarak.
+ * (Sesler `ada-<id>` ve `bolum-<id>` olarak önceden üretilmişti.)
+ */
+function sahneOynat(world, level, bitti) {
+  if (window.__hizliMod || sessionStorage.getItem('ada_hizli') === '1') { bitti(); return; }
+
+  const kat = el('div', { class: 'sahne sahne-' + world.id },
+    el('div', { class: 'sn-icerik' },
+      el('div', { class: 'sn-maskot canli', html: mascotHTML(96) }),
+      el('div', { class: 'sn-ada', text: world.name }),
+      el('h2', { class: 'sn-bolum', text: level.title }),
+      el('p', { class: 'sn-hikaye', text: level.story || world.intro || '' }),
+      el('div', { class: 'sn-devam', text: 'Başlamak için dokun' })
+    )
+  );
+  document.body.append(kat);
+
+  // Sesli anlatım: önce adanın tanıtımı, sonra bölümün hikâyesi
+  const adaSes = world.intro || '';
+  const bolumSes = level.story || '';
+  if (adaSes) speak(adaSes, { force: true, key: 'sahne-ada-' + world.id });
+  if (bolumSes) setTimeout(() => speak(bolumSes, { force: true, key: 'sahne-bolum-' + level.id }), adaSes ? 3400 : 0);
+
+  let gecti = false;
+  const gec = () => {
+    if (gecti) return;
+    gecti = true;
+    stopSpeaking();
+    kat.classList.add('gidiyor');
+    setTimeout(() => { kat.remove(); bitti(); }, 420);
+  };
+  kat.addEventListener('click', gec);
+  setTimeout(gec, 7000);            // dokunmazsa kendi geçsin
+}
+
 function geriSayim(container, bitti) {
   // Test hızlı modu: geri sayımı atla (testler 2.8 sn beklemesin)
   if (window.__hizliMod || sessionStorage.getItem('ada_hizli') === '1') { bitti(); return; }
@@ -870,9 +972,12 @@ function startLevel(world, level) {
   muzikYogunluk(1);
   // Bölüm öncesi geri sayım — konsol oyunlarındaki "hazırlan" anı.
   // Beklenti yaratır; çocuk soru gelmeden ekrana kilitlenir.
-  geriSayim(stage, () => {
-    currentEngine = factory({ root: stage, level: withTimeMode(level), api });
-    currentEngine.start();
+  // Önce hikâye sahnesi, sonra geri sayım, sonra oyun
+  sahneOynat(world, level, () => {
+    geriSayim(stage, () => {
+      currentEngine = factory({ root: stage, level: withTimeMode(level), api });
+      currentEngine.start();
+    });
   });
   api._stage = stage;
 }
