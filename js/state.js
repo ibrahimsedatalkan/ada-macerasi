@@ -203,7 +203,7 @@ export function deleteProfile(nick, code) {
 }
 
 /* ---------------- Ayarlar (cihaz bazlı) ---------------- */
-export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false });
+export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false, timeMode: 'normal' });
 
 export function loadSettings() {
   return Object.assign(defaultSettings(), read(SETTINGS_KEY, {}));

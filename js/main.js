@@ -77,6 +77,27 @@ function applyTextSize() {
   document.body.classList.toggle('big-text', !!settings.bigText);
 }
 
+/**
+ * Zaman baskısı ayarı — aile seçer.
+ *   'off'    → süre yok (kaygılı çocuklar için)
+ *   'normal' → bölümün kendi süresi
+ *   'tight'  → %20 kısa (meydan okuma isteyenler için)
+ * Oyun mantığı değişmez, yalnızca süre ayarlanır.
+ */
+export function withTimeMode(level) {
+  const mod = settings?.timeMode || 'normal';
+  if (mod === 'normal') return level;
+  const cfg = Object.assign({}, level.cfg || {});
+  if (mod === 'off') {
+    cfg.time = 0;
+    cfg.timePerQ = 0;
+  } else if (mod === 'tight') {
+    if (cfg.time) cfg.time = Math.max(6, Math.round(cfg.time * 0.8));
+    if (cfg.timePerQ) cfg.timePerQ = Math.max(6, Math.round(cfg.timePerQ * 0.8));
+  }
+  return Object.assign({}, level, { cfg });
+}
+
 function setActive(nick, classCode) {
   try { localStorage.setItem(ACTIVE_KEY, JSON.stringify({ nick, classCode })); } catch (e) {}
 }
@@ -522,7 +543,7 @@ function startLevel(world, level) {
 
   const factory = ENGINE_BY_TYPE[level.type];
   if (!factory) { toast('Bu bölüm tipi henüz yok'); renderMap(); return; }
-  currentEngine = factory({ root: stage, level, api });
+  currentEngine = factory({ root: stage, level: withTimeMode(level), api });
   currentEngine.start();
   api._stage = stage;
 }
@@ -779,6 +800,37 @@ function adviceSection() {
   );
 }
 
+/** Veli paneli: zaman baskısı ayarı (kaygılı çocuk için kapatılabilir) */
+function timeModeSection() {
+  const mod = settings.timeMode || 'normal';
+  const secenekler = [
+    ['off', 'Kapalı', 'Süre yok. Kaygılanan ya da yeni başlayan çocuklar için.'],
+    ['normal', 'Normal', 'Bölümün kendi süresi (önerilen).'],
+    ['tight', 'Sıkı', '%20 daha kısa süre. Sıkılan / meydan okuma isteyen çocuklar için.']
+  ];
+  return el('div', { class: 'advice-box' },
+    el('h3', { style: { marginTop: '0' }, text: 'Zaman baskısı' }),
+    el('p', { class: 'small muted', style: { marginTop: '0' },
+      text: 'Süre kaygısı öğrenmeyi engelleyebilir. Çocuğunuz acele ederken hata yapıyorsa "Kapalı" seçin.' }),
+    el('div', { class: 'btn-row' },
+      ...secenekler.map(([val, ad, aciklama]) => el('button', {
+        class: 'btn sm ' + (mod === val ? 'green' : 'ghost'),
+        text: ad,
+        title: aciklama,
+        onClick: () => {
+          settings.timeMode = val;
+          persistSettings();
+          sfx('tap');
+          toast(aciklama);
+          renderParent();
+        }
+      }))
+    ),
+    el('p', { class: 'small', style: { marginTop: '8px' },
+      text: secenekler.find((s) => s[0] === mod)?.[2] || '' })
+  );
+}
+
 function renderParent() {
   const root = showScreen('parent');
   const st = profile.stats;
@@ -800,6 +852,8 @@ function renderParent() {
     el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
 
     adviceSection(),
+
+    timeModeSection(),
 
     el('h3', { text: 'Çarpım tablosu ustalığı' }),
     el('div', { class: 'mastery', style: { marginBottom: '18px' } }, ...masteryRows(st.byTable || {}, (k) => `${k}'ler`, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])),
