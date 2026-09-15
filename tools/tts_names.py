@@ -47,6 +47,9 @@ def slug(ad: str) -> str:
     tr = str.maketrans("çğıöşüâîû", "cgiosuaiu")
     s = s.translate(tr)
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+    import unicodedata
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
     s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
     return s or "isim"
 

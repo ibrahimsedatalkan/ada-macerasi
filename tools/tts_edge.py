@@ -83,7 +83,10 @@ def main():
             s = ad.strip().lower()
             s = s.replace("ç", "c").replace("ğ", "g").replace("ı", "i").replace("ö", "o")
             s = s.replace("ş", "s").replace("ü", "u").replace("â", "a").replace("î", "i").replace("û", "u")
-            s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+            import unicodedata
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
             return s or "isim"
 
         isim_man = {}

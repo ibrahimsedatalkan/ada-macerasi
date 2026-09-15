@@ -46,10 +46,17 @@ GEMINI_BEKLEME = 9.0    # saniye — ücretsiz kota için
 
 
 def slug(ad: str) -> str:
+    """DİKKAT: audio.js içindeki nameSlug() ile BİREBİR aynı olmalı.
+    Türkçe büyük İ (U+0130) lower() sonrası birleşik nokta (U+0307) bırakır;
+    NFKD + birleşik işaret temizliği yapılmazsa 'İpek' -> 'i-pek' olur ve
+    JS'in ürettiği 'ipek' ile EŞLEŞMEZ."""
     s = ad.strip().lower()
     for a, b in [("ç", "c"), ("ğ", "g"), ("ı", "i"), ("ö", "o"), ("ş", "s"),
                  ("ü", "u"), ("â", "a"), ("î", "i"), ("û", "u")]:
         s = s.replace(a, b)
+    import unicodedata
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-") or "isim"
 
 

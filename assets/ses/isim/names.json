@@ -23,5 +23,12 @@
  "poyraz": "assets/ses/isim/poyraz.mp3",
  "melis": "assets/ses/isim/melis.mp3",
  "bora": "assets/ses/isim/bora.mp3",
- "lina": "assets/ses/isim/lina.mp3"
+ "lina": "assets/ses/isim/lina.mp3",
+ "uygar": "assets/ses/isim/uygar.mp3",
+ "meric": "assets/ses/isim/meric.mp3",
+ "kagan": "assets/ses/isim/kagan.mp3",
+ "ali": "assets/ses/isim/ali.mp3",
+ "yigit": "assets/ses/isim/yigit.mp3",
+ "yigit-efe": "assets/ses/isim/yigit-efe.mp3",
+ "ipek": "assets/ses/isim/ipek.mp3"
 }
