@@ -10,23 +10,53 @@ export function uniqueNumbers(list) {
   return [...new Set(list.filter((n) => Number.isFinite(n) && n >= 0).map((n) => Math.round(n)))];
 }
 
-/** Doğru cevap + yakın çeldiriciler (pedagojik: komşu çarpımlar ve ±1) */
-export function numericOptions(answer, { count = 4, min = 0, max = 100, pool = [] } = {}) {
+/**
+ * Doğru cevap + PEDAGOJİK çeldiriciler.
+ *
+ * İyi çeldirici "bariz yanlış" değil, "düşünmeyi gerektiren" olandır:
+ *   1) Tablo komşusu (a×(b±1))  → tabloyu gerçekten biliyor mu?
+ *   2) Toplama hatası (a+b)     → × ile + karıştırıyor mu?
+ *   3) ±1 / ±2                  → dikkat hatası
+ *   4) Onluk kayma (±10)        → SADECE cevap ≥20 ise (küçük sayıda anlamsız:
+ *                                 4 yerine 14 seçeneği soruyu bedava kolaylaştırır)
+ *
+ * @param {number} answer
+ * @param {{count?:number,min?:number,max?:number,pool?:number[],step?:number,factors?:number[]}} o
+ *   step    → tablo adımı (çarpanda a). Tablo komşusu çeldirici üretir.
+ *   factors → [a, b] toplama hatası çeldiricisi için.
+ */
+export function numericOptions(answer, { count = 4, min = 0, max = 100, pool = [], step = 0, factors = null } = {}) {
   const set = new Set([answer]);
-  const candidates = shuffle([
-    ...pool,
-    answer + 1, answer - 1, answer + 2, answer - 2,
-    answer + 10, answer - 10, answer + 2, answer - 2
-  ]);
-  let gi = 0;
-  const guard = 400;
-  while (set.size < count && gi < guard) {
-    const c = candidates[gi % candidates.length] + (gi > candidates.length ? Math.floor(gi / candidates.length) : 0);
-    gi++;
-    if (c >= min && c <= max && c !== answer) set.add(c);
-  }
-  let extra = answer + 3;
-  while (set.size < count) { if (extra <= max && extra >= min) set.add(extra); extra += 3; }
+  const ekle = (v) => {
+    if (set.size >= count) return;
+    const n = Math.round(Number(v));
+    if (Number.isFinite(n) && n >= min && n <= max && n !== answer) set.add(n);
+  };
+
+  /* 1) Tablo komşuları — en öğretici çeldirici */
+  if (step > 0) { ekle(answer - step); ekle(answer + step); ekle(answer + 2 * step); }
+
+  /* 2) Çarpma yerine toplama yapan çocuk */
+  if (factors && factors.length === 2) ekle(Number(factors[0]) + Number(factors[1]));
+
+  /* 3) Çağıranın önerdiği adaylar */
+  for (const p of pool) ekle(p);
+
+  /* 4) Dikkat hataları */
+  for (const d of [-1, 1, -2, 2, 3, -3]) ekle(answer + d);
+
+  /* 5) Onluk kayma — yalnızca cevap büyükken anlamlı */
+  if (answer >= 20) { ekle(answer + 10); ekle(answer - 10); }
+
+  /* 6) Hâlâ eksikse tablo adımıyla uzaklaş */
+  const adim = Math.max(1, step || 1);
+  let k = 3;
+  while (set.size < count && k <= 12) { ekle(answer + k * adim); ekle(answer - k * adim); k++; }
+
+  /* 7) Son çare: küçük artışlarla doldur */
+  let e = 1;
+  while (set.size < count && e <= 40) { ekle(answer + e); ekle(answer - e); e++; }
+
   return shuffle([...set]).slice(0, count);
 }
 
@@ -66,7 +96,11 @@ function buildMultiply({ tables = [2], mode = 'result', maxB = 5 } = {}) {
       kind: 'multiply', table: a, a, b, answer: b, mode: 'missing',
       prompt: `${a} × ? = ${product}`,
       ask: `${a} çarpı kaç, ${product} eder?`,
-      options: numericOptions(b, { min: 1, max: Math.max(10, maxB), count: 4, pool: [1, 2, 3, 4, 5].filter((x) => x !== b) })
+      options: numericOptions(b, {
+        min: 1, max: Math.max(10, maxB), count: 4,
+        step: 1, factors: [a, b],
+        pool: [b + 1, b - 1, b + 2, Math.max(1, b - 2), a]
+      })
     };
   }
   if (m === 'reverse') {
@@ -74,14 +108,23 @@ function buildMultiply({ tables = [2], mode = 'result', maxB = 5 } = {}) {
       kind: 'multiply', table: b, a, b, answer: a, mode: 'reverse',
       prompt: `? × ${b} = ${product}`,
       ask: `Kaç çarpı ${b}, ${product} eder?`,
-      options: numericOptions(a, { min: 1, max: Math.max(10, maxB), count: 4, pool: tables.filter((x) => x !== a) })
+      options: numericOptions(a, {
+        min: 1, max: Math.max(10, maxB), count: 4,
+        step: 1, factors: [a, b],
+        pool: [a + 1, a - 1, a + 2, Math.max(1, a - 2), b]
+      })
     };
   }
   return {
     kind: 'multiply', table: a, a, b, answer: product, mode: 'result',
     prompt: `${a} × ${b} = ?`,
     ask: `${a} çarpı ${b} kaç eder?`,
-    options: numericOptions(product, { min: 1, max: 100, count: 4, pool: [a * (b + 1), a * (b - 1), a + b, 2 * a].filter((x) => x > 0) })
+    // step = a → "bir üst/alt tablo" çeldiricisi (tabloyu gerçekten biliyor mu?)
+    options: numericOptions(product, {
+      min: 1, max: 200, count: 4,
+      step: a, factors: [a, b],
+      pool: [a * (b + 1), a * (b - 1)]
+    })
   };
 }
 
