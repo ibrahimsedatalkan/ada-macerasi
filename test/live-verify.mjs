@@ -16,6 +16,10 @@ await c.goto(`${LIVE}/`, 4000);
 const baslik = await c.evaluate(`document.title`);
 T('Sayfa yüklendi (başlık doğru)', /Ada Macerası/.test(baslik || ''), baslik);
 
+/* Temiz başlangıç: önceki oturumu sil, giriş ekranı gelsin */
+await c.evaluate(`(() => { localStorage.clear(); return true; })()`);
+await c.goto(`${LIVE}/`, 4000);
+
 /* JS modül grafiği çalıştı mı? (ekran render olduysa evet) */
 const ekran = await c.evaluate(`(() => {
   const aktif = document.querySelector('.screen.active');
@@ -93,6 +97,26 @@ const ipucu = await c.evaluate(`(() => {
 })()`);
 const ip = JSON.parse(ipucu || '{}');
 T('İpucu canlıda çalışıyor (teknik anlatıyor)', ip.var, ip.metin);
+
+/* Çeldirici kalitesi CANLIDA: küçük çarpımlarda saçma seçenek olmamalı */
+const cel = await c.evaluate(`(async () => {
+  const Q = await import('./js/games/questions.js');
+  let kotu = 0, toplam = 0, ornek = '';
+  for (let a = 1; a <= 5; a++) {
+    for (let b = 1; b <= 5; b++) {
+      Q.resetQuestionMemory();
+      const q = Q.makeMultiplyQuestion({ tables: [a], mode: 'result', maxB: 5, maxBHard: 5 });
+      toplam++;
+      const c = q.a * q.b;
+      const sacma = q.options.filter(x => x !== c && x % q.a !== 0 && Math.abs(x - c) > Math.max(3, q.a));
+      if (sacma.length) { kotu++; if (!ornek) ornek = q.a + 'x' + q.b + '=' + c + ' → ' + q.options.join(','); }
+    }
+  }
+  return JSON.stringify({ toplam, kotu, ornek });
+})()`);
+const cl = JSON.parse(cel || '{}');
+T('Canlıda çeldiriciler temiz (bariz yanlış seçenek yok)', cl.kotu === 0,
+  `${cl.toplam} soruda ${cl.kotu} saçma` + (cl.ornek ? ' | ' + cl.ornek : ''));
 
 await c.screenshot('test/shots/live-vercel.png');
 
