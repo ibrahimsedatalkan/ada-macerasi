@@ -1,0 +1,1402 @@
+[
+  {
+    "id": "ders-geo-0",
+    "metin": "Etrafındaki her şey bir şekildir. Pencere kare. Kapı dikdörtgen. Top yuvarlak.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-geo-1",
+    "metin": "Düz çizgilere kenar deriz. Kenarların birleştiği sivri yere köşe deriz.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-geo-2",
+    "metin": "Kenarları sayabiliriz. Köşeleri de sayabiliriz.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-kare-0",
+    "metin": "Karenin dört kenarı var. Hepsi eşit. Dört köşesi var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-kare-1",
+    "metin": "Pencerede kare var. Kitap kapağında kare var. Fayanslarda kare var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-kare-2",
+    "metin": "Sağa git. Aşağı git. Sola git. Yukarı git. Başladığın yere dön.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-dikdortgen-0",
+    "metin": "Dikdörtgenin dört kenarı var. Karşılıklı kenarlar eşit. İki kenar uzun, iki kenar kısa.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-dikdortgen-1",
+    "metin": "Kapıda dikdörtgen var. Tahtada dikdörtgen var. Telefonunda da var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-dikdortgen-2",
+    "metin": "Önce uzun kenarı çiz. Sonra kısa kenarı. Sonra uzun, en son kısa.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-ucgen-0",
+    "metin": "Üçgenin üç kenarı var. Üç köşesi var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-ucgen-1",
+    "metin": "Çatıda üçgen var. Trafik levhasında üçgen var. Pizza diliminde de var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-ucgen-2",
+    "metin": "Birden ikiye git. İkiden üçe git. Üçten bire dön.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-daire-0",
+    "metin": "Dairenin kenarı yok. Köşesi yok. Yuvarlaktır.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-daire-1",
+    "metin": "Saatte daire var. Tabakta daire var. Topta da var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-daire-2",
+    "metin": "Birden başla. Saat yönünde yuvarlak çiz. Elin hiç durmasın.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-besgen-0",
+    "metin": "Beşgenin beş kenarı var. Beş köşesi var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-besgen-1",
+    "metin": "Futbol topundaki siyah parçalar beşgen. Bal peteği de beşgen.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-besgen-2",
+    "metin": "Numaraları sırayla takip et. Bir, iki, üç, dört, beş. Sonra bire dön.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-altigen-0",
+    "metin": "Altıgenin altı kenarı var. Altı köşesi var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-altigen-1",
+    "metin": "Bal peteğinde altıgen var. Kalemin ucunda da var.",
+    "kategori": "ders"
+  },
+  {
+    "id": "ders-altigen-2",
+    "metin": "Numaraları sırayla takip et. Birden altıya kadar. Sonra bire dön.",
+    "kategori": "ders"
+  },
+  {
+    "id": "cizim-kare",
+    "metin": "Sağa git. Aşağı git. Sola git. Yukarı git. Başladığın yere dön.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "cizim-dikdortgen",
+    "metin": "Önce uzun kenarı çiz. Sonra kısa kenarı. Karşılıklı kenarlar eşit.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "cizim-ucgen",
+    "metin": "Birden ikiye git. İkiden üçe git. Üçten bire dön.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "cizim-daire",
+    "metin": "Birden başla. Saat yönünde yuvarlak çiz. Köşe yapma.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "cizim-besgen",
+    "metin": "Numaraları sırayla takip et. Birden beşe kadar. Sonra bire dön.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "cizim-altigen",
+    "metin": "Numaraları sırayla takip et. Birden altıya kadar. Sonra bire dön.",
+    "kategori": "cizim"
+  },
+  {
+    "id": "sor-kenar-kare",
+    "metin": "Kare kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-kare",
+    "metin": "Kare kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-kare",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kenar-dikdortgen",
+    "metin": "Dikdörtgen kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-dikdortgen",
+    "metin": "Dikdörtgen kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-dikdortgen",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kenar-ucgen",
+    "metin": "Üçgen kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-ucgen",
+    "metin": "Üçgen kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-ucgen",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kenar-daire",
+    "metin": "Daire kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-daire",
+    "metin": "Daire kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-daire",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kenar-besgen",
+    "metin": "Beşgen kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-besgen",
+    "metin": "Beşgen kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-besgen",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kenar-altigen",
+    "metin": "Altıgen kaç kenarlı?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-kose-altigen",
+    "metin": "Altıgen kaç köşeli?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "sor-ad-altigen",
+    "metin": "Bu şeklin adı ne?",
+    "kategori": "sekil-soru"
+  },
+  {
+    "id": "carpim-1x1",
+    "metin": "1 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x2",
+    "metin": "1 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x3",
+    "metin": "1 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x4",
+    "metin": "1 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x5",
+    "metin": "1 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x6",
+    "metin": "1 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x7",
+    "metin": "1 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x8",
+    "metin": "1 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x9",
+    "metin": "1 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-1x10",
+    "metin": "1 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x1",
+    "metin": "2 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x2",
+    "metin": "2 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x3",
+    "metin": "2 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x4",
+    "metin": "2 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x5",
+    "metin": "2 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x6",
+    "metin": "2 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x7",
+    "metin": "2 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x8",
+    "metin": "2 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x9",
+    "metin": "2 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-2x10",
+    "metin": "2 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x1",
+    "metin": "3 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x2",
+    "metin": "3 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x3",
+    "metin": "3 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x4",
+    "metin": "3 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x5",
+    "metin": "3 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x6",
+    "metin": "3 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x7",
+    "metin": "3 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x8",
+    "metin": "3 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x9",
+    "metin": "3 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-3x10",
+    "metin": "3 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x1",
+    "metin": "4 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x2",
+    "metin": "4 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x3",
+    "metin": "4 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x4",
+    "metin": "4 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x5",
+    "metin": "4 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x6",
+    "metin": "4 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x7",
+    "metin": "4 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x8",
+    "metin": "4 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x9",
+    "metin": "4 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-4x10",
+    "metin": "4 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x1",
+    "metin": "5 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x2",
+    "metin": "5 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x3",
+    "metin": "5 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x4",
+    "metin": "5 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x5",
+    "metin": "5 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x6",
+    "metin": "5 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x7",
+    "metin": "5 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x8",
+    "metin": "5 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x9",
+    "metin": "5 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-5x10",
+    "metin": "5 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x1",
+    "metin": "6 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x2",
+    "metin": "6 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x3",
+    "metin": "6 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x4",
+    "metin": "6 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x5",
+    "metin": "6 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x6",
+    "metin": "6 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x7",
+    "metin": "6 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x8",
+    "metin": "6 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x9",
+    "metin": "6 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-6x10",
+    "metin": "6 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x1",
+    "metin": "7 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x2",
+    "metin": "7 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x3",
+    "metin": "7 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x4",
+    "metin": "7 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x5",
+    "metin": "7 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x6",
+    "metin": "7 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x7",
+    "metin": "7 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x8",
+    "metin": "7 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x9",
+    "metin": "7 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-7x10",
+    "metin": "7 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x1",
+    "metin": "8 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x2",
+    "metin": "8 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x3",
+    "metin": "8 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x4",
+    "metin": "8 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x5",
+    "metin": "8 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x6",
+    "metin": "8 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x7",
+    "metin": "8 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x8",
+    "metin": "8 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x9",
+    "metin": "8 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-8x10",
+    "metin": "8 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x1",
+    "metin": "9 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x2",
+    "metin": "9 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x3",
+    "metin": "9 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x4",
+    "metin": "9 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x5",
+    "metin": "9 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x6",
+    "metin": "9 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x7",
+    "metin": "9 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x8",
+    "metin": "9 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x9",
+    "metin": "9 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-9x10",
+    "metin": "9 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x1",
+    "metin": "10 çarpı 1 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x2",
+    "metin": "10 çarpı 2 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x3",
+    "metin": "10 çarpı 3 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x4",
+    "metin": "10 çarpı 4 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x5",
+    "metin": "10 çarpı 5 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x6",
+    "metin": "10 çarpı 6 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x7",
+    "metin": "10 çarpı 7 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x8",
+    "metin": "10 çarpı 8 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x9",
+    "metin": "10 çarpı 9 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "carpim-10x10",
+    "metin": "10 çarpı 10 kaç eder?",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-1",
+    "metin": "1 çarpı bir kaç eder? Cevap 1.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-2",
+    "metin": "2 çarpı bir kaç eder? Cevap 2.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-3",
+    "metin": "3 çarpı bir kaç eder? Cevap 3.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-4",
+    "metin": "4 çarpı bir kaç eder? Cevap 4.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-5",
+    "metin": "5 çarpı bir kaç eder? Cevap 5.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-6",
+    "metin": "6 çarpı bir kaç eder? Cevap 6.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-7",
+    "metin": "7 çarpı bir kaç eder? Cevap 7.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-8",
+    "metin": "8 çarpı bir kaç eder? Cevap 8.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-9",
+    "metin": "9 çarpı bir kaç eder? Cevap 9.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "tablo-10",
+    "metin": "10 çarpı bir kaç eder? Cevap 10.",
+    "kategori": "carpim"
+  },
+  {
+    "id": "ipucu-0",
+    "metin": "Sayı kendisi kalır. Parmaklarınla 1'er 1'er say — 1 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-1",
+    "metin": "İki katı = iki tanesini topla. Parmaklarınla 1'er 1'er say — 2 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-2",
+    "metin": "Üçer üçer ritmik say. Parmaklarınla 1'er 1'er say — 3 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-3",
+    "metin": "İki kere iki katı. Parmaklarınla 1'er 1'er say — 4 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-4",
+    "metin": "Beşer beşer say. Parmaklarınla 1'er 1'er say — 5 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-5",
+    "metin": "Beş katı + bir katı. Parmaklarınla 1'er 1'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-6",
+    "metin": "Beş katı + iki katı. Parmaklarınla 1'er 1'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-7",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 1'er 1'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-8",
+    "metin": "On katı eksi bir katı. Parmaklarınla 1'er 1'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-9",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 1'er 1'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-10",
+    "metin": "İki katı = iki tanesini topla. Parmaklarınla 2'er 2'er say — 2 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-11",
+    "metin": "Üçer üçer ritmik say. Parmaklarınla 2'er 2'er say — 3 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-12",
+    "metin": "İki kere iki katı. Parmaklarınla 2'er 2'er say — 4 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-13",
+    "metin": "Beşer beşer say. Parmaklarınla 2'er 2'er say — 5 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-14",
+    "metin": "Beş katı + bir katı. Parmaklarınla 2'er 2'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-15",
+    "metin": "Beş katı + iki katı. Parmaklarınla 2'er 2'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-16",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 2'er 2'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-17",
+    "metin": "On katı eksi bir katı. Parmaklarınla 2'er 2'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-18",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 2'er 2'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-19",
+    "metin": "Üçer üçer ritmik say. Parmaklarınla 3'er 3'er say — 3 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-20",
+    "metin": "İki kere iki katı. Parmaklarınla 3'er 3'er say — 4 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-21",
+    "metin": "Beşer beşer say. Parmaklarınla 3'er 3'er say — 5 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-22",
+    "metin": "Beş katı + bir katı. Parmaklarınla 3'er 3'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-23",
+    "metin": "Beş katı + iki katı. Parmaklarınla 3'er 3'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-24",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 3'er 3'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-25",
+    "metin": "On katı eksi bir katı. Parmaklarınla 3'er 3'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-26",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 3'er 3'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-27",
+    "metin": "İki kere iki katı. Parmaklarınla 4'er 4'er say — 4 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-28",
+    "metin": "Beşer beşer say. Parmaklarınla 4'er 4'er say — 5 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-29",
+    "metin": "Beş katı + bir katı. Parmaklarınla 4'er 4'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-30",
+    "metin": "Beş katı + iki katı. Parmaklarınla 4'er 4'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-31",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 4'er 4'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-32",
+    "metin": "On katı eksi bir katı. Parmaklarınla 4'er 4'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-33",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 4'er 4'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-34",
+    "metin": "Beşer beşer say. Parmaklarınla 5'er 5'er say — 5 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-35",
+    "metin": "Beş katı + bir katı. Parmaklarınla 5'er 5'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-36",
+    "metin": "Beş katı + iki katı. Parmaklarınla 5'er 5'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-37",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 5'er 5'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-38",
+    "metin": "On katı eksi bir katı. Parmaklarınla 5'er 5'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-39",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 5'er 5'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-40",
+    "metin": "Beş katı + bir katı. Parmaklarınla 6'er 6'er say — 6 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-41",
+    "metin": "Beş katı + iki katı. Parmaklarınla 6'er 6'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-42",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 6'er 6'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-43",
+    "metin": "On katı eksi bir katı. Parmaklarınla 6'er 6'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-44",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 6'er 6'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-45",
+    "metin": "Beş katı + iki katı. Parmaklarınla 7'er 7'er say — 7 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-46",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 7'er 7'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-47",
+    "metin": "On katı eksi bir katı. Parmaklarınla 7'er 7'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-48",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 7'er 7'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-49",
+    "metin": "İki kere iki kere iki katı. Parmaklarınla 8'er 8'er say — 8 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-50",
+    "metin": "On katı eksi bir katı. Parmaklarınla 8'er 8'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-51",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 8'er 8'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-52",
+    "metin": "On katı eksi bir katı. Parmaklarınla 9'er 9'er say — 9 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-53",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 9'er 9'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-54",
+    "metin": "Sonuna sıfır ekle. Parmaklarınla 10'er 10'er say — 10 adım sayacaksın.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-55",
+    "metin": "Onluk boz. Önce 10’a tamamla: 32 − 2 = 30, sonra 30 − 5 = 25. Bu genelde daha kolay!",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-56",
+    "metin": "Elde var — birlerden başla. Sayıyı onluk ve birlik diye ayır: 27 = 20 + 7. Önce birlikleri topla, sonra onlukları.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-57",
+    "metin": "Onlukları ve birlikleri ayrı çıkar. Sayıyı onluk + birlik diye ayır, ayrı ayrı çıkar, sonra birleştir.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-58",
+    "metin": "Onluk + birlik diye ayır. Önce birler basamağını topla, sonra onluğu yanına koy.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-59",
+    "metin": "Kenar = düz çizgi sayısı. Kenarları parmağınla sırayla takip et, her düz çizgide bir say.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "ipucu-60",
+    "metin": "Dairenin özelliği. Parmağınla dairenin çevresini bir tur dolaş.",
+    "kategori": "ipucu"
+  },
+  {
+    "id": "geri-0",
+    "metin": "Harika, çizdin!",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-1",
+    "metin": "Çok yakın, biraz daha devam et.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-2",
+    "metin": "Şeklin üzerinden geç.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-3",
+    "metin": "Tekrar dene, noktaları takip et.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-4",
+    "metin": "Doğru! Süpersin!",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-5",
+    "metin": "Aferin!",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-6",
+    "metin": "Şimdi sıra sende! Aynı şekilde çiz.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-7",
+    "metin": "Süper, beş doğru üst üste!",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-8",
+    "metin": "Dersler. Bir şekil seç, önce öğren sonra çiz.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "geri-9",
+    "metin": "Sayıyı onluk ve birlik diye ayır. Sırayla hesapla.",
+    "kategori": "geri-bildirim"
+  },
+  {
+    "id": "ada-w1",
+    "metin": "Pofi çayırda hazine sandığını arıyor. Çarpımları bilirsen yol açılır!",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w1-l1",
+    "metin": "Bir kere bir, hep bir!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w1-l2",
+    "metin": "İkişer ikişer sayalım.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w1-l3",
+    "metin": "Üçer üçer zıplayalım.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w1-l4",
+    "metin": "İki tablo karıştı, dikkat!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w1-l5",
+    "metin": "Süre başlıyor, hızlı ol!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w2",
+    "metin": "Ormanın şekilleri karıştı! 4 ve 5 çarpımlarıyla onları yerlerine koy.",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w2-l1",
+    "metin": "Dört ayaklı dostlar 4'er sayıyor.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w2-l2",
+    "metin": "Beşer beşer yukarı!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w2-l3",
+    "metin": "Şekilleri doğru sepete sürükle.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w2-l4",
+    "metin": "Kare, dikdörtgen, üçgen, daire!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w2-l5",
+    "metin": "Üç tablo bir arada.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w3",
+    "metin": "Kristaller kenar ve köşe sayıyor. Sayabilir misin?",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w3-l1",
+    "metin": "Kaç kenarı var?",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w3-l2",
+    "metin": "Kaç köşesi var?",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w3-l3",
+    "metin": "Karışık sorular geliyor!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w3-l4",
+    "metin": "Beşgen, altıgen ve daire!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w3-l5",
+    "metin": "Kristal canavar uyandı!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w4",
+    "metin": "Sihirli kalemle şekilleri çiz, köprüyü tamamla!",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w4-l1",
+    "metin": "Dört eşit kenar çiz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l2",
+    "metin": "Uzun ve kısa kenarlar.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l3",
+    "metin": "Üç kenar birleşir.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l4",
+    "metin": "Yuvarlak ve pürüzsüz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l5",
+    "metin": "Beş kenar, beş köşe.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l6",
+    "metin": "Altı kenar, altı köşe.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l7",
+    "metin": "Kare ve dikdörtgeni arka arkaya çiz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l8",
+    "metin": "Köşeli ve yuvarlak şekil.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w4-l9",
+    "metin": "Altı şekli arka arkaya çiz — usta ol!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w5",
+    "metin": "Ejderha hazineyi koruyor. Bildiklerini kullan ve kaleyi kazan!",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w5-l1",
+    "metin": "Hızlı cevap ver!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w5-l2",
+    "metin": "Kenar ve köşe yağmuru!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w5-l3",
+    "metin": "3 × ? = 12 — eksik sayıyı bul.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w5-l4",
+    "metin": "? × 4 = 20 — baştaki sayı kaç?",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w5-l5",
+    "metin": "Her şey karıştı, son sınav!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w6",
+    "metin": "Büyük sayılar diyarı! 6, 7, 8, 9 ve 10’lar burada. Yıldızı hak et!",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w6-l1",
+    "metin": "Altışar altışar yükseliyoruz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l2",
+    "metin": "Yediler en zorudur, cesaret!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l3",
+    "metin": "Sekizer sekizer, iki kere iki kere iki!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l4",
+    "metin": "Dokuzların hilesi: on katı eksi bir katı.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l5",
+    "metin": "Sonuna sıfır ekle, bu kadar kolay!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l6",
+    "metin": "Beş tablo bir arada, dikkat!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l7",
+    "metin": "6 × ? = 42 — eksik sayıyı bul.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l8",
+    "metin": "? × 7 = 56 — baştaki sayı kaç?",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w6-l9",
+    "metin": "Tüm tablolar, tek sınav!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "ada-w7",
+    "metin": "Toplama ve çıkarma denizi! Eldeli toplama, onluk bozma — hepsi burada.",
+    "kategori": "ada"
+  },
+  {
+    "id": "bolum-w7-l1",
+    "metin": "Eldesiz toplama, ısınma turu.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l2",
+    "metin": "Onluk bozmadan çıkarma.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l3",
+    "metin": "Birler 10’u geçince elde ekleriz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l4",
+    "metin": "Birler yetmezse bir onluk boz.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l5",
+    "metin": "Toplama da var çıkarma da!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l6",
+    "metin": "Şimdi çıkarma ağırlıklı.",
+    "kategori": "bolum"
+  },
+  {
+    "id": "bolum-w7-l7",
+    "metin": "Toplama, çıkarma ve çarpım birlikte!",
+    "kategori": "bolum"
+  },
+  {
+    "id": "karsilama-hos",
+    "metin": "Hoş geldin",
+    "kategori": "karsilama"
+  },
+  {
+    "id": "karsilama-hazir",
+    "metin": "Bugün geometri öğreneceğiz. Hazır mısın?",
+    "kategori": "karsilama"
+  }
+]

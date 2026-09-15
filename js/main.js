@@ -8,7 +8,7 @@
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
 import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
-import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate } from './audio.js';
+import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import * as C from './collect.js';
 import { createSidesGame } from './games/sides.js';
@@ -35,6 +35,7 @@ const ENGINE_BY_TYPE = {
 };
 
 let profile = null;
+let selamlandi = false;   // kişisel karşılama oturumda bir kez
 let settings = S.loadSettings();
 let currentEngine = null;
 let currentLevel = null;
@@ -273,6 +274,12 @@ function renderMap() {
   });
 
   root.append(head, treasureStrip, grid);
+
+  // Kişisel karşılama — dosyalar hazırsa Google sesiyle, değilse tarayıcı sesiyle
+  if (!selamlandi && profile?.nick) {
+    selamlandi = true;
+    setTimeout(() => { sayGreeting(profile.nick).catch(() => {}); }, 700);
+  }
 
   if (!Object.keys(profile.results || {}).length) {
     setTimeout(() => speak('Haritadan bir ada seç ve maceraya başla!'), 400);
@@ -1242,6 +1249,7 @@ function boot() {
   applyTextSize();                       // kayıtlı büyük-yazı ayarını uygula
   applyFreeMode();                       // kayıtlı serbest mod ayarını uygula
   applySpeechSpeed();                    // kayıtlı konuşma hızını uygula
+  preloadSpeech();                       // doğal ses dosyalarını arka planda yükle
   window.adaConfetti = confetti;
   bindHud();
   sparkles();

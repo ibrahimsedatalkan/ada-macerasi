@@ -162,6 +162,145 @@ function cumlelereBol(t) {
     .filter((s) => s.length > 1);
 }
 
+/* ---------------- Önceden üretilmiş ses dosyaları ----------------
+   Google Gemini TTS ile bir kez üretilen MP3'ler. Tarayıcı sesinden
+   çok daha doğal. Dosya varsa o çalınır, yoksa tarayıcı TTS'ine düşülür.
+   Böylece API anahtarı tarayıcıya HİÇ gitmez ve internet gerekmez. */
+let sesManifest = null;
+let sesManifestHazir = false;
+let aktifSes = null;      // çalan Audio nesnesi
+let sonSesYolu = '';
+
+const normalize = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+
+/** Manifest'i bir kez yükle (boot'ta çağrılır) */
+export async function preloadSpeech() {
+  if (sesManifestHazir) return sesManifest;
+  try {
+    const r = await fetch('assets/ses/manifest.json', { cache: 'force-cache' });
+    sesManifest = r.ok ? await r.json() : {};
+  } catch (e) {
+    sesManifest = {};
+  }
+  sesManifestHazir = true;
+  return sesManifest;
+}
+
+/** MP3'ü çal — hız ayarı playbackRate ile uygulanır */
+function dosyaCal(yol, { rate = null, key = '' } = {}) {
+  try {
+    if (aktifSes) { aktifSes.pause(); aktifSes = null; }
+    const a = new Audio(yol);
+    // speechRate (0.72 normal) -> makul dinleme hızı aralığı
+    const hiz = Number.isFinite(rate) && rate > 0 ? rate : speechRate;
+    a.playbackRate = Math.max(0.75, Math.min(1.2, hiz + 0.16));
+    a.volume = 1;
+    aktifSes = a;
+    sonSesYolu = key || yol;
+    a.play().catch(() => {
+      // Otomatik oynatma engellendi → tarayıcı TTS'ine düş
+      aktifSes = null;
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
+/** Çalan sesi durdur */
+export function stopSpeech() {
+  if (aktifSes) { try { aktifSes.pause(); } catch (e) {} aktifSes = null; }
+}
+
+/* ---------------- Kişisel karşılama ----------------
+   "Hoş geldin" + [çocuğun adı] + "Bugün geometri öğreneceğiz. Hazır mısın?"
+   Sabit parçalar ortak; her isim ayrı küçük bir dosya. Böylece sınıftaki
+   her çocuk KENDİ adını duyar, ama tüm cümleyi tek tek üretmek gerekmez. */
+let isimManifest = null;
+
+/** İsmi dosya adına çevir — Python tarafındaki slug() ile AYNI olmalı */
+export function nameSlug(ad) {
+  return String(ad || '')
+    .trim().toLowerCase()
+    .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
+    .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u')
+    .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'isim';
+}
+
+async function isimPaketi() {
+  if (isimManifest) return isimManifest;
+  try {
+    const r = await fetch('assets/ses/isim/names.json', { cache: 'force-cache' });
+    isimManifest = r.ok ? await r.json() : {};
+  } catch (e) { isimManifest = {}; }
+  return isimManifest;
+}
+
+/** Tek bir MP3'ü baştan sona çal (Promise) */
+function calVeBekle(yol) {
+  return new Promise((cozum) => {
+    try {
+      if (aktifSes) { aktifSes.pause(); }
+      const a = new Audio(yol);
+      a.playbackRate = Math.max(0.75, Math.min(1.2, speechRate + 0.16));
+      aktifSes = a;
+      a.onended = () => cozum(true);
+      a.onerror = () => cozum(false);
+      a.play().catch(() => cozum(false));
+    } catch (e) { cozum(false); }
+  });
+}
+
+/**
+ * Kişisel karşılama. Dosyalar hazırsa Google sesiyle, değilse
+ * tarayıcı sesiyle okur. true dönerse karşılama yapıldı.
+ */
+export async function sayGreeting(ad, { force = false } = {}) {
+  if (!audio.voice || !ad) return false;
+  const anahtar = 'greet-' + String(ad).toLowerCase();
+  if (!force && anahtar === lastSpoken) return false;
+  lastSpoken = anahtar;
+
+  await preloadSpeech();
+  const m = sesManifest || {};
+  const hos = m['Hoş geldin'];
+  const hazir = m['Bugün geometri öğreneceğiz. Hazır mısın?'];
+
+  // Sabit parçalar üretilmemişse tarayıcı sesine düş
+  if (!hos || !hazir) {
+    tarayiciSpeak(`Hoş geldin ${ad}! Bugün geometri öğreneceğiz. Hazır mısın?`, speechRate, anahtar, null);
+    return true;
+  }
+
+  const isimler = await isimPaketi();
+  const isimDosya = isimler[nameSlug(ad)];
+
+  stopSpeaking();
+  await calVeBekle(hos);
+  if (isimDosya) {
+    await calVeBekle(isimDosya);
+  } else {
+    // İsim paketinde yok → yalnız ADI tarayıcı sesiyle söyle (kısa, fark az)
+    await new Promise((cozum) => {
+      try {
+        if (!('speechSynthesis' in window)) return cozum();
+        if (!trVoice) trVoice = pickTurkishVoice();
+        const u = new SpeechSynthesisUtterance(ad);
+        u.lang = 'tr-TR';
+        u.rate = speechRate;
+        u.pitch = 1.02;
+        if (trVoice) u.voice = trVoice;
+        u.onend = () => cozum();
+        u.onerror = () => cozum();
+        window.speechSynthesis.speak(u);
+        setTimeout(cozum, 2500);   // güvenlik
+      } catch (e) { cozum(); }
+    });
+  }
+  await calVeBekle(hazir);
+  return true;
+}
+
 /**
  * Metni Türkçe seslendir — CÜMLE CÜMLE, yavaş.
  * @param {string} text
@@ -176,6 +315,22 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
   if (!t || (token === lastSpoken && !force)) return;
   lastSpoken = token;
 
+  // 1) Önceden üretilmiş doğal ses dosyası var mı?
+  if (sesManifestHazir && sesManifest && audio.voice) {
+    const dosya = sesManifest[normalize(t)];
+    if (dosya) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      if (dosyaCal(dosya, { rate: hiz, key: token })) return;
+    }
+  }
+
+  // 2) Yoksa tarayıcı sesi (yedek)
+  tarayiciSpeak(t, hiz, token, onDone);
+}
+
+/** Tarayıcının kendi ses motoruyla oku (yedek yol) */
+function tarayiciSpeak(t, hiz, token, onDone) {
+  if (!('speechSynthesis' in window)) return;
   try {
     window.speechSynthesis.cancel();
     if (!trVoice) trVoice = pickTurkishVoice();
@@ -183,7 +338,6 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
     const parcalar = cumlelereBol(t).slice(0, 6);   // çok uzun metni sınırla
     if (!parcalar.length) return;
 
-    let son = 0;
     parcalar.forEach((cumle, i) => {
       const u = new SpeechSynthesisUtterance(cumle);
       u.lang = 'tr-TR';
@@ -193,7 +347,6 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
       if (trVoice) u.voice = trVoice;
       if (i === parcalar.length - 1 && typeof onDone === 'function') u.onend = () => onDone();
       window.speechSynthesis.speak(u);   // motor sıraya koyar, aralara nefes payı ekler
-      son = i;
     });
 
     // Sesler henüz yüklenmediyse: hazır olunca Türkçe sesi bağla ve tekrar dene
@@ -201,7 +354,7 @@ export function speak(text, { force = false, rate = null, key = '', onDone = nul
       try {
         window.speechSynthesis.addEventListener('voiceschanged', () => {
           markVoicesReady();
-          if (trVoice) speak(t, { force: true, rate, key: token });
+          if (trVoice) speak(t, { force: true, rate: hiz, key: token });
         }, { once: true });
       } catch (e) {}
     }
@@ -215,6 +368,7 @@ export function resetSpeech() {
 
 export function stopSpeaking() {
   try { window.speechSynthesis?.cancel(); } catch (e) {}
+  stopSpeech();   // çalan önceden üretilmiş sesi de durdur
 }
 
 /* ---------------- Müzik: basit, neşeli döngü ---------------- */
