@@ -42,6 +42,16 @@ export async function connect(port = 9222) {
   const goto = async (url, waitMs = 1500) => {
     await send('Page.navigate', { url });
     await sleep(waitMs);
+    // Test hızlı modu: açılış ekranını ve bölüm geri sayımını atla
+    try {
+      await evaluate(`(() => {
+        window.__hizliMod = true;
+        try { sessionStorage.setItem('ada_hizli', '1'); } catch (e) {}
+        const a = document.querySelector('.acilis'); if (a) a.remove();
+        return true;
+      })()`);
+    } catch (e) {}
+
   };
 
   const clickSelector = async (sel, waitMs = 350) => {

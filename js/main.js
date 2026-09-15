@@ -155,8 +155,54 @@ const api = {
 };
 
 /* ---------------- 1) GİRİŞ ---------------- */
+/**
+ * AÇILIŞ EKRANI — konsol oyunlarındaki yükleme ekranı + ipucu.
+ * Hem atmosfer kurar hem de çocuğa oyunu öğretir (ipuçları dönüşümlü).
+ */
+const ACILIS_IPUCLARI = [
+  'İpucu: "Nasıl düşünmeliyim?" düğmesi cevabı söylemez — sana yöntem öğretir.',
+  'İpucu: Bir soruyu kaçırdıysan "Soruyu tekrar dinle" düğmesine bas.',
+  'İpucu: Üst üste doğru yaparsan müzik coşar ve kombo yazısı çıkar!',
+  'İpucu: Her doğru cevap günlük görevini ilerletir ve jeton kazandırır.',
+  'İpucu: Trofe Odası\'nda bronz, gümüş, altın ve PLATİN trofeler var.',
+  'İpucu: Bölümleri 3 yıldızla bitirirsen yeni adalar açılır.',
+  'İpucu: Çizim bölümlerinde noktalı kâğıdı ve okları takip et.',
+  'İpucu: Dersler ekranı her zaman açık — istediğin konuyu önce öğren.'
+];
+
+function acilisEkrani(bitti) {
+  const ipucu = ACILIS_IPUCLARI[Math.floor(Math.random() * ACILIS_IPUCLARI.length)];
+  const kat = el('div', { class: 'acilis' },
+    el('div', { class: 'ac-logo' },
+      el('div', { class: 'ac-maskot', html: mascotHTML(116) }),
+      el('h1', { class: 'ac-ad', text: 'ADA MACERASI' }),
+      el('p', { class: 'ac-alt', text: 'Sayılar ve Şekiller Adası' })
+    ),
+    el('div', { class: 'ac-ipucu', text: ipucu }),
+    el('div', { class: 'ac-yukleniyor' }, el('i')),
+    el('div', { class: 'ac-devam', text: 'Başlamak için dokun' })
+  );
+  document.body.append(kat);
+  if (!muzikCaliyor()) muzikBaslat('menu');
+  speak('Ada Macerası. Başlamak için dokun.');
+  let gecti = false;
+  const gec = () => {
+    if (gecti) return; gecti = true;
+    kat.classList.add('gidiyor');
+    setTimeout(() => { kat.remove(); bitti(); }, 480);
+  };
+  kat.addEventListener('click', gec);
+  window.addEventListener('keydown', gec, { once: true });
+  setTimeout(gec, 4200);              // dokunmazsa kendi geçsin
+}
+
 function renderLogin() {
   const root = showScreen('login');
+  if (!muzikCaliyor()) muzikBaslat('menu');   // tema müziği ilk ekrandan
+  muzikYogunluk(1);
+  // PS5 oyunlarında tema müziği İLK EKRANDAN başlar — atmosfer kurar
+  if (!muzikCaliyor()) muzikBaslat('menu');
+  muzikYogunluk(1);
   const panel = el('div', { class: 'panel narrow' },
     el('div', { style: { display: 'flex', gap: '14px', alignItems: 'center' } },
       el('div', { html: mascotHTML(92) }),
@@ -682,6 +728,8 @@ function openLevelIntro(world, level) {
  * Beklenti yaratır ve çocuğu ekrana kilitler.
  */
 function geriSayim(container, bitti) {
+  // Test hızlı modu: geri sayımı atla (testler 2.8 sn beklemesin)
+  if (window.__hizliMod || sessionStorage.getItem('ada_hizli') === '1') { bitti(); return; }
   const kat = el('div', { class: 'countdown' });
   container.append(kat);
   let n = 3;
@@ -1412,6 +1460,47 @@ function openProfileDialog() {
 }
 
 /* ---------------- AÇILIŞ ---------------- */
+/**
+ * KLAVYE DESTEĞİ — konsol oyunlarında tuş takımı esastır.
+ * 1-4: seçenek seç · Enter/Space: ileri · Esc: geri · M: müzik
+ * Ayrıca fiziksel klavyesi olan tabletlerde oyun hissi artar.
+ */
+function klavyeBagla() {
+  window.addEventListener('keydown', (e) => {
+    if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;   // yazı yazarken karışma
+    const ekran = document.querySelector('.screen.active')?.dataset.screen;
+    const tus = e.key;
+
+    // 1-4 → cevap seçenekleri (oyun ekranlarında)
+    if (ekran === 'game' && /^[1-4]$/.test(tus)) {
+      const secenekler = [...document.querySelectorAll('.opt, .answer-btn, .choice')]
+        .filter((b) => !b.disabled && b.offsetParent !== null);
+      const hedef = secenekler[Number(tus) - 1];
+      if (hedef) { e.preventDefault(); hedef.click(); }
+      return;
+    }
+    // Enter / Space → ekrandaki ana buton
+    if (tus === 'Enter' || tus === ' ') {
+      const ana = [...document.querySelectorAll('button.btn.primary, button.btn.green, .dialog button')]
+        .filter((b) => b.offsetParent !== null)[0];
+      if (ana) { e.preventDefault(); ana.click(); }
+      return;
+    }
+    // Esc → çık / geri
+    if (tus === 'Escape') {
+      if (ekran === 'game') { e.preventDefault(); quitLevel(); }
+      else if (ekran && !['login', 'map'].includes(ekran)) { e.preventDefault(); renderMap(); }
+      return;
+    }
+    // D → dersler, T → trofeler, S → dükkân (kısayol)
+    if (ekran === 'map') {
+      if (tus === 'd' || tus === 'D') renderLessons();
+      if (tus === 't' || tus === 'T') renderTrophies();
+      if (tus === 's' || tus === 'S') renderShop();
+    }
+  });
+}
+
 function bindHud() {
   document.getElementById('hud-profile').addEventListener('click', () => { sfx('tap'); openProfileDialog(); });
   document.getElementById('btn-sound').addEventListener('click', () => { settings.sound = !settings.sound; persistSettings(); sfx('click'); });
@@ -1465,7 +1554,13 @@ function boot() {
   applySpeechSpeed();                    // kayıtlı konuşma hızını uygula
   preloadSpeech();                       // doğal ses dosyalarını arka planda yükle
   window.adaConfetti = confetti;
+  // Açılış ekranı (konsol oyunlarındaki yükleme + ipucu anı)
+  acilisEkrani(() => {
+
+  });
+
   bindHud();
+  klavyeBagla();
   sparkles();
   preloadArt();
   document.addEventListener('pointerdown', () => unlockAudio(), { once: true });

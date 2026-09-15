@@ -778,3 +778,29 @@ body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
 .gorev-chip { background: linear-gradient(180deg,#fff8e6,#ffe9b8); border: 2px solid #d99a00; color: #6b4700; font-weight: 800; }
 .gorev-chip.tamam { background: linear-gradient(180deg,#e9fbef,#cdf3da); border-color: #2fa348; color: #16512a; }
 .gorev-chip .gc-ikon { margin-right: 4px; }
+
+/* ============================================================
+   AÇILIŞ EKRANI — konsol yükleme + ipucu anı
+   ============================================================ */
+.acilis { position: fixed; inset: 0; z-index: 9800; display: grid; place-items: center;
+  gap: 22px; align-content: center; padding: 24px; text-align: center; cursor: pointer;
+  background: linear-gradient(170deg, #0f2a4a 0%, #1c4a6e 45%, #2e7ba8 100%);
+  transition: opacity .45s, transform .45s; }
+.acilis.gidiyor { opacity: 0; transform: scale(1.06); pointer-events: none; }
+.ac-maskot { display: grid; place-items: center; margin-bottom: 6px; animation: acNefes 1.9s ease-in-out infinite; }
+@keyframes acNefes { 0%,100% { transform: translateY(0) scale(1) } 50% { transform: translateY(-7px) scale(1.04) } }
+.ac-ad { font-size: clamp(30px,7.5vw,62px); font-weight: 900; color: #fff; margin: 0;
+  letter-spacing: .04em; -webkit-text-stroke: 3px #12304d; text-shadow: 0 6px 0 rgba(0,0,0,.28); }
+.ac-alt { font-size: clamp(14px,2.8vw,20px); color: #cdeaff; font-weight: 700; margin: 4px 0 0; }
+.ac-ipucu { max-width: 560px; background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.35);
+  color: #eaf6ff; border-radius: var(--r-lg); padding: 12px 20px; font-size: clamp(13px,2.3vw,17px);
+  font-weight: 700; line-height: 1.45; backdrop-filter: blur(4px); }
+.ac-yukleniyor { width: min(320px, 72vw); height: 12px; border-radius: 999px;
+  background: rgba(255,255,255,.2); overflow: hidden; }
+.ac-yukleniyor i { display: block; height: 100%; width: 40%; border-radius: 999px;
+  background: linear-gradient(90deg, #ffd23d, #58cf6a, #4aa8ff);
+  animation: acYukle 1.6s ease-in-out infinite; }
+@keyframes acYukle { 0% { transform: translateX(-110%) } 100% { transform: translateX(310%) } }
+.ac-devam { color: #9fd4f0; font-size: clamp(12px,2.2vw,16px); font-weight: 700;
+  animation: acYanip 1.5s ease-in-out infinite; }
+@keyframes acYanip { 0%,100% { opacity: .45 } 50% { opacity: 1 } }

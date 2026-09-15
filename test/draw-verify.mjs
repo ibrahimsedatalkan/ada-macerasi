@@ -143,7 +143,8 @@ const cizim = await c.evaluate(`(async () => {
   }
   gonder('pointerup', noktalar[noktalar.length-1][0], noktalar[noktalar.length-1][1]);
   await new Promise(res => setTimeout(res, 700));
-  return JSON.stringify({ kapsama: document.querySelector('.hint-pill.good, .hint-pill')?.innerText || '', ekran: document.querySelector('.screen.active')?.dataset.screen });
+  const kapsamaPill = [...document.querySelectorAll('.hint-pill')].find(x => /Kapsama/.test(x.innerText||''));
+  return JSON.stringify({ kapsama: kapsamaPill?.innerText || '', ekran: document.querySelector('.screen.active')?.dataset.screen });
 })()`);
 const cz = JSON.parse(cizim || '{}');
 const yuzde = Number((/(\d+)/.exec(cz.kapsama || '') || [])[1] || 0);

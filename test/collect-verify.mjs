@@ -87,21 +87,21 @@ T('Satın alma jetonu düşürüyor', ab.coins < beforeCoins, `${beforeCoins} �
 T('Satın alınan ürün envantere girdi', (ab.items || []).length >= 1, JSON.stringify(ab.items));
 T('Alınan ürün otomatik takıldı', Object.keys(ab.equipped || {}).length >= 1, JSON.stringify(ab.equipped));
 
-/* ---- 4) Albüm açılıyor ---- */
+/* ---- 4) Trofe Odası açılıyor ---- */
 await c.evaluate(`(() => { const b=[...document.querySelectorAll('button')].find(x=>/Haritaya dön/.test(x.textContent||'')); if(b) b.click(); return !!b; })()`);
 await c.sleep(800);
-await c.clickByText('Albüm', 'button', 1100);
+await c.clickByText('Trofeler', 'button', 1100);
 const album = await c.evaluate(`(async () => {
   const C = await import('./js/collect.js');
   return JSON.stringify({
-    slots: document.querySelectorAll('.album-slot').length,
+    slots: document.querySelectorAll('.trophy-slot').length,
     beklenen: C.STICKERS.length,
-    has: document.querySelectorAll('.album-slot.has').length,
+    has: document.querySelectorAll('.trophy-slot.has').length,
     title: (document.querySelector('h2')||{}).innerText || ''
   });
 })()`);
 const al = JSON.parse(album || '{}');
-T('Albüm açıldı (tüm çıkartmalar)', al.slots === al.beklenen, `${al.slots} slot / ${al.beklenen} çıkartma`);
+T('Trofe Odası açıldı (tüm trofeler)', al.slots === al.beklenen, `${al.slots} slot / ${al.beklenen} çıkartma`);
 
 /* ---- 5) Günlük seri ---- */
 const streak = await c.evaluate(`(async () => {
@@ -136,7 +136,7 @@ await c.clickByText('Dükkân', 'button', 1100);
 await c.screenshot('test/shots/new-shop.png');
 await c.evaluate(`(() => { const b=[...document.querySelectorAll('button')].find(x=>/Haritaya dön/.test(x.textContent||'')); if(b) b.click(); return !!b; })()`);
 await c.sleep(700);
-await c.clickByText('Albüm', 'button', 1100);
+await c.clickByText('Trofeler', 'button', 1100);
 await c.screenshot('test/shots/new-album.png');
 
 console.log(`\n=== ${pass} geçti / ${fail} kaldı ===`);

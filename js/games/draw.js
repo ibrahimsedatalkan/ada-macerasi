@@ -269,7 +269,10 @@ export function createDrawGame({ root, level, api }) {
   function onDown(e) {
     if (state.done || !state.cur) return;
     e.preventDefault();
-    canvas.setPointerCapture?.(e.pointerId);
+    // setPointerCapture bazı ortamlarda (sentetik olaylar, eski tarayıcılar)
+    // hata fırlatır. Fırlatırsa state.drawing hiç true olmaz ve çizim
+    // KAYDEDİLMEZ — bu yüzden ayrı try içinde.
+    try { canvas.setPointerCapture?.(e.pointerId); } catch (err) {}
     state.drawing = true;
     state.strokes.push([pos(e)]);
     redraw();
@@ -414,7 +417,8 @@ export function createDrawGame({ root, level, api }) {
     api.speak(`${s.name} çiz. ${howTo(id)}`);
     // İlk kez gelen şekilde çizimi otomatik göster
     if (!state.seen) state.seen = {};
-    if (!state.seen[id]) { state.seen[id] = true; setTimeout(() => { if (!state.done) playDemo(); }, 900); }
+    // Otomatik demo KAPALI: çocuk isterse '👀 Nasıl çizilir?' düğmesine basar.
+    // (Otomatik oynatma, çizmeye başlayan çocuğun çizimini eziyordu.)
   }
 
   /**
