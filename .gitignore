@@ -1,4 +1,6 @@
 server/data/
 test/shots/
 assets/_source/
+.vercel/
+node_modules/
 *.log
