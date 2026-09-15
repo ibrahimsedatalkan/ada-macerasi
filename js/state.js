@@ -62,10 +62,21 @@ export function newProfile(nick, code, avatar) {
     avatar: avatar || AVATARS[0],
     coins: 0,
     results: {},              // "w1-l1": { stars, best, plays }
+    /* --- Koleksiyon / ödül ekonomisi --- */
+    items: [],                // satın alınan aksesuar+evcil hayvan id'leri
+    equipped: {},             // { head: id, pet: id }
+    stickers: [],             // kazanılan çıkartma id'leri
+    treasures: [],            // hikaye: toplanan hazine parçaları (w1..w5)
+    worldDoneIds: [],         // tamamlanan adalar
+    /* --- Günlük seri --- */
+    streak: { count: 0, best: 0, lastDay: '' },
     stats: {
       plays: 0,
       correct: 0,
       wrong: 0,
+      correctNoHint: 0,       // ipucu kullanmadan doğru (ödül için)
+      drawDone: 0,
+      bossDone: 0,
       byTable: {},            // "3": { c: 8, w: 2 }
       byShape: {},            // "kare": { c: 5, w: 1 }
       bestStreak: 0
@@ -104,7 +115,84 @@ export function saveProfile(profile) {
 
 export function loadProfile(nick, code) {
   const p = read(profileKey(nick, code), null);
-  return p && p.v === 2 ? p : null;
+  if (!p || p.v !== 2) return null;
+  return migrate(p);
+}
+
+/** Eski kayıtlara yeni alanları ekle (geriye dönük uyumlu) */
+export function migrate(p) {
+  if (!p) return p;
+  p.items = p.items || [];
+  p.equipped = p.equipped || {};
+  p.stickers = p.stickers || [];
+  p.treasures = p.treasures || [];
+  p.worldDoneIds = p.worldDoneIds || [];
+  p.streak = p.streak || { count: 0, best: 0, lastDay: '' };
+  p.stats = p.stats || {};
+  p.stats.correctNoHint = p.stats.correctNoHint || 0;
+  p.stats.drawDone = p.stats.drawDone || 0;
+  p.stats.bossDone = p.stats.bossDone || 0;
+  p.stats.plays = p.stats.plays || 0;
+  p.stats.correct = p.stats.correct || 0;
+  p.stats.wrong = p.stats.wrong || 0;
+  p.stats.byTable = p.stats.byTable || {};
+  p.stats.byShape = p.stats.byShape || {};
+  return p;
+}
+
+/* ---------------- Günlük seri ---------------- */
+function dayKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Bugün ilk kez oynanıyorsa seriyi ilerlet.
+ * Dün oynadıysa +1, ara verildiyse 1'e döner.
+ * @returns {{count:number, best:number, arttı:boolean, yeniRekor:boolean}}
+ */
+export function touchDailyStreak(profile) {
+  const today = dayKey();
+  const s = profile.streak || (profile.streak = { count: 0, best: 0, lastDay: '' });
+  if (s.lastDay === today) return { count: s.count, best: s.best, artti: false, yeniRekor: false };
+
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  const dun = dayKey(d);
+  const artti = s.lastDay === dun;
+  s.count = artti ? s.count + 1 : 1;
+  s.lastDay = today;
+  const yeniRekor = s.count > (s.best || 0);
+  if (yeniRekor) s.best = s.count;
+  saveProfile(profile);
+  return { count: s.count, best: s.best, artti, yeniRekor };
+}
+
+/** Bugün oynandı mı? */
+export function playedToday(profile) {
+  return (profile?.streak?.lastDay || '') === dayKey();
+}
+
+/* ---------------- Hikaye: hazine parçaları ---------------- */
+export const TREASURE_NAMES = {
+  w1: 'Çayır Kristali', w2: 'Orman Tılsımı', w3: 'Mağara Elması',
+  w4: 'Gökkuşağı Mücevheri', w5: 'Ejderha Tacı'
+};
+
+/** Ada tamamlandı mı? Tüm bölümlerde en az 1 yıldız. */
+export function markWorldProgress(profile, worlds) {
+  const yeni = [];
+  for (const w of worlds) {
+    if ((profile.worldDoneIds || []).includes(w.id)) continue;
+    const hepsi = w.levels.every((l) => getResult(profile, l.id).stars > 0);
+    if (hepsi) {
+      profile.worldDoneIds = [...(profile.worldDoneIds || []), w.id];
+      if (!(profile.treasures || []).includes(w.id)) {
+        profile.treasures = [...(profile.treasures || []), w.id];
+        yeni.push({ worldId: w.id, name: TREASURE_NAMES[w.id] || 'Hazine' });
+      }
+    }
+  }
+  if (yeni.length) saveProfile(profile);
+  return yeni;
 }
 
 export function deleteProfile(nick, code) {
@@ -198,9 +286,10 @@ export function maxStars(worlds) {
 }
 
 /* İstatistik kaydı — her soru sonrası çağrılır */
-export function recordAnswer(profile, { correct, table, shape }) {
+export function recordAnswer(profile, { correct, table, shape, usedHint = false, kind = null }) {
   const s = profile.stats;
   if (correct) s.correct++; else s.wrong++;
+  if (correct && !usedHint) s.correctNoHint = (s.correctNoHint || 0) + 1;
   if (table != null) {
     const k = String(table);
     s.byTable[k] = s.byTable[k] || { c: 0, w: 0 };
@@ -210,6 +299,14 @@ export function recordAnswer(profile, { correct, table, shape }) {
     s.byShape[shape] = s.byShape[shape] || { c: 0, w: 0 };
     if (correct) s.byShape[shape].c++; else s.byShape[shape].w++;
   }
+  return s;
+}
+
+/** Bölüm tipine göre tamamlama sayacı (çıkartma ödülleri için) */
+export function markKindDone(profile, kind) {
+  if (!profile?.stats) return;
+  if (kind === 'draw') profile.stats.drawDone = (profile.stats.drawDone || 0) + 1;
+  if (kind === 'boss') profile.stats.bossDone = (profile.stats.bossDone || 0) + 1;
 }
 
 /* ---------------- Yerel sınıf tablosu ---------------- */

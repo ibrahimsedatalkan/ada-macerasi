@@ -224,8 +224,9 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
   justify-content: flex-end; padding: 14px 16px; margin-bottom: 14px; overflow: hidden; }
 .dialog-banner h2, .dialog-banner p { color: #fff; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
 .dialog-banner p { color: rgba(255,255,255,.95); }
-.wc-prog { height: 10px; border-radius: 999px; background: var(--paper-2); border: 2px solid var(--line); overflow: hidden; margin-top: 10px; }
-.wc-prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow)); }
+.wc-prog { height: 14px; border-radius: 999px; background: rgba(35,50,77,.28); border: 2px solid rgba(255,255,255,.85); overflow: hidden; margin-top: 10px; }
+.wc-prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow));
+  box-shadow: 0 0 8px rgba(255,210,61,.6); transition: width .4s ease; }
 
 /* ---------- Bölüm listesi ---------- */
 .level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; }
@@ -417,3 +418,94 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
 }
+
+/* ============================================================
+   KOLEKSİYON · ÖDÜL EKONOMİSİ
+   ============================================================ */
+
+/* ---------- Günlük seri rozeti ---------- */
+.hint-pill.streak { background: linear-gradient(180deg,#ffe9b8,#ffd23d); border: 2px solid #d99a00;
+  color: #6b4700; font-weight: 900; }
+.hint-pill.streak.on { box-shadow: 0 0 0 3px rgba(255,210,61,.4); }
+.hint-pill.coin-live { background: linear-gradient(180deg,#fff3d0,#ffe08a); border: 2px solid #d99a00;
+  color: #6b4700; font-weight: 900; }
+
+/* ---------- Hazine şeridi ---------- */
+.treasure-strip { background: rgba(255,255,255,.82); border: 3px solid var(--line-strong);
+  border-radius: var(--r-lg); padding: 12px 16px; box-shadow: var(--shadow-1); }
+.treasure-strip.complete { background: linear-gradient(135deg,#fff8e0,#ffe9b8); border-color: #d99a00; }
+.ts-label { font-weight: 900; font-size: clamp(14px,2.1vw,18px); color: var(--ink); text-align: center; margin-bottom: 10px; }
+.ts-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.ts-slot { display: grid; justify-items: center; gap: 4px; opacity: .55; transition: transform var(--t-fast); }
+.ts-slot.has { opacity: 1; }
+.ts-slot.has .ts-art { animation: pop .5s ease; }
+.ts-art { width: clamp(46px,7vw,64px); height: clamp(46px,7vw,64px); }
+.ts-art svg { width: 100%; height: 100%; display: block; }
+.ts-name { font-size: 11px; font-weight: 800; color: var(--ink-soft); text-align: center; max-width: 92px; }
+.ts-slot.has .ts-name { color: var(--ink); }
+
+/* ---------- Karakter giydirme (avatar + aksesuar) ---------- */
+.dress-wrap { position: relative; display: inline-block; flex: none; }
+.dress-avatar { display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+  transition: box-shadow var(--t-fast); }
+.dress-avatar .ava-img { width: 100% !important; height: 100% !important; }
+.dress-layer { position: absolute; pointer-events: none; }
+.dress-svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- Dükkân ---------- */
+.shop-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.shop-preview { display: flex; align-items: center; gap: 18px; justify-content: center;
+  background: rgba(255,255,255,.85); border: 3px solid var(--line-strong); border-radius: var(--r-lg);
+  padding: 16px 22px; box-shadow: var(--shadow-1); margin-bottom: 20px; flex-wrap: wrap; }
+.sp-avatar { flex: none; }
+.sp-name { font-weight: 900; font-size: clamp(18px,3vw,24px); color: var(--ink); }
+.shop-body { display: grid; gap: 18px; }
+.shop-sec { font-weight: 900; color: var(--ink); font-size: clamp(16px,2.5vw,20px); margin: 0;
+  background: rgba(255,255,255,.92); border: 3px solid var(--line-strong); border-radius: 999px;
+  padding: 6px 20px; display: inline-block; box-shadow: 0 3px 0 rgba(35,50,77,.12); }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.shop-item { background: rgba(255,255,255,.9); border: 3px solid var(--line-strong); border-radius: var(--r-md);
+  padding: 12px; display: grid; gap: 8px; justify-items: center; text-align: center; }
+.shop-item.owned { background: #f3fff5; border-color: var(--green-deep); }
+.shop-item.equipped { background: linear-gradient(180deg,#e8fff0,#d3f7de); border-color: var(--green-deep);
+  box-shadow: 0 0 0 3px rgba(88,207,106,.28); }
+.si-art { width: 72px; height: 72px; }
+.si-art svg { width: 100%; height: 100%; display: block; }
+.si-name { font-weight: 800; font-size: 13px; color: var(--ink); line-height: 1.2; min-height: 2.4em; }
+.shop-item .btn { width: 100%; }
+
+/* ---------- Çıkartma albümü ---------- */
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 14px; }
+
+/* Sayfa başlıkları — arka plan görseli üzerinde okunaklı */
+.page-title { font-weight: 900; color: var(--ink); text-align: center; margin: 14px auto 6px; width: fit-content;
+  background: rgba(255,255,255,.94); border: 3px solid var(--line-strong); border-radius: 999px;
+  padding: 8px 26px; box-shadow: var(--shadow-1); font-size: clamp(20px,3.4vw,28px); }
+.page-sub { text-align: center; font-weight: 800; color: var(--ink-soft); font-size: clamp(13px,2vw,16px);
+  background: rgba(255,255,255,.88); border-radius: 999px; padding: 5px 18px; width: fit-content;
+  margin: 0 auto 8px; }
+.album-slot { background: rgba(255,255,255,.86); border: 3px dashed var(--line-strong); border-radius: var(--r-md);
+  padding: 12px 8px; display: grid; gap: 6px; justify-items: center; text-align: center; }
+.album-slot.has { border-style: solid; border-color: var(--purple); background: linear-gradient(180deg,#faf5ff,#f0e6ff); }
+.as-art { width: 72px; height: 72px; }
+.album-slot:not(.has) .as-art { opacity: .75; }
+.as-art svg { width: 100%; height: 100%; display: block; }
+.album-slot.has .as-art { animation: pop .5s ease; }
+.as-name { font-weight: 900; font-size: 13px; color: var(--ink); }
+.album-slot:not(.has) .as-name { color: #9fb0c7; }
+.as-desc { font-size: 11px; color: var(--ink-soft); line-height: 1.3; }
+.sticker-big { width: 130px; height: 130px; margin: 0 auto 8px; }
+.sticker-big svg { width: 100%; height: 100%; display: block; animation: pop .6s ease; }
+
+/* ---------- Bölüm sonu ödül kutusu ---------- */
+.reward-box { display: grid; gap: 8px; margin: 12px auto 0; max-width: 460px; }
+.reward-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.92);
+  border: 2px solid var(--line-strong); border-radius: var(--r-md); padding: 8px 12px;
+  font-size: clamp(13px,2vw,15px); color: var(--ink); text-align: left; }
+.reward-row.streak { background: linear-gradient(180deg,#fff6dd,#ffe9b8); border-color: #d99a00; }
+.reward-row.treasure { background: linear-gradient(180deg,#f0fff4,#dcf7e4); border-color: var(--green-deep); }
+.reward-row.sticker { background: linear-gradient(180deg,#faf5ff,#efe4ff); border-color: var(--purple); }
+.rw-ico { width: 30px; height: 30px; flex: none; display: grid; place-items: center; font-size: 20px; }
+.rw-ico svg { width: 100%; height: 100%; display: block; }
+
+@keyframes pop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }

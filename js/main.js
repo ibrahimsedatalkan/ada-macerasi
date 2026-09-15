@@ -10,6 +10,7 @@ import * as S from './state.js';
 import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
+import * as C from './collect.js';
 import { createSidesGame } from './games/sides.js';
 import { createShapeHuntGame } from './games/shapehunt.js';
 import { createDrawGame } from './games/draw.js';
@@ -175,12 +176,17 @@ function renderMap() {
   const head = el('div', { class: 'map-head' },
     el('div', {}, el('h1', { text: stars > 0 ? 'Maceraya devam' : 'Maceraya başla' }), el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)}` })),
     el('div', { class: 'grow', style: { flex: '1' } }),
+    streakChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
+    el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
+    el('button', { class: 'btn sm purple', text: '📖 Albüm', onClick: () => renderAlbum() }),
     el('button', { class: 'btn sm blue', text: '⚔️ Düello', onClick: () => renderDuel() }),
     el('button', { class: 'btn sm green', text: '🏅 Sınıf Tablosu', onClick: () => renderBoard() }),
     el('button', { class: 'btn sm ghost', text: '👨‍👩‍👦 Veli Paneli', onClick: () => renderParent() }),
     el('button', { class: 'btn sm ghost', text: '🔄 Oyuncu', onClick: () => { clearActive(); profile = null; renderLogin(); } })
   );
+
+  const treasureStrip = renderTreasureStrip();
 
   const grid = el('div', { class: 'map-grid' });
   WORLDS.forEach((w, i) => {
@@ -214,11 +220,203 @@ function renderMap() {
     card.style.backgroundPosition = 'center';
   });
 
-  root.append(head, grid);
+  root.append(head, treasureStrip, grid);
 
   if (!Object.keys(profile.results || {}).length) {
     setTimeout(() => speak('Haritadan bir ada seç ve maceraya başla!'), 400);
   }
+}
+
+/* ============================================================
+   GÜNLÜK SERİ · HAZİNE · DÜKKÂN · ALBÜM
+   ============================================================ */
+
+/** Haritada günlük seri rozeti */
+function streakChip() {
+  const s = profile?.streak || { count: 0, best: 0 };
+  if (!s.count) return el('span');
+  const bugun = S.playedToday(profile);
+  return el('div', {
+    class: 'hint-pill streak' + (bugun ? ' on' : ''),
+    title: `En iyi seri: ${s.best} gün${bugun ? '' : ' — bugün henüz oynamadın!'}`
+  }, `🔥 ${s.count} gün`);
+}
+
+/** Pofi'nin hazine sandığı — hikaye ilerlemesi */
+function renderTreasureStrip() {
+  const got = profile?.treasures || [];
+  const tamam = C.treasureComplete(profile);
+  const wrap = el('div', { class: 'treasure-strip' + (tamam ? ' complete' : '') });
+  wrap.append(el('div', { class: 'ts-label' },
+    tamam ? '🏆 Pofi tüm hazineyi topladı! Ada senin oldu.' : `Pofi'nin hazine sandığı — ${got.length}/5 parça`));
+  const row = el('div', { class: 'ts-row' });
+  WORLDS.forEach((w, i) => {
+    const has = got.includes(w.id);
+    row.append(el('div', { class: 'ts-slot' + (has ? ' has' : ''), title: has ? (S.TREASURE_NAMES[w.id] || w.name) : 'Bu adayı bitirince açılır' },
+      el('div', { class: 'ts-art', html: C.treasureSVG(has, i) }),
+      el('div', { class: 'ts-name', text: has ? (S.TREASURE_NAMES[w.id] || w.name) : '???' })
+    ));
+  });
+  wrap.append(row);
+  return wrap;
+}
+
+/** Profil değişikliklerinden sonra çıkartma kontrolü + kutlama */
+function checkStickers({ sessiz = false } = {}) {
+  const yeni = C.evaluateStickers(profile);
+  if (!yeni.length) return [];
+  S.saveProfile(profile);
+  updateHud();
+  if (!sessiz) {
+    sfx('unlock');
+    confetti({ count: 70 });
+    const ilk = yeni[0];
+    speak(`Yeni çıkartma kazandın: ${ilk.name}!`, { force: true });
+    dialog(el('div', { class: 'center' },
+      el('div', { class: 'sticker-big', html: svgWrap(ilk.art) }),
+      el('h2', { text: 'Yeni Çıkartma!' }),
+      el('p', { class: 'hint-title', text: ilk.name }),
+      el('p', { class: 'muted', text: ilk.desc }),
+      yeni.length > 1 ? el('p', { class: 'small', text: `+${yeni.length - 1} çıkartma daha kazandın!` }) : null,
+      el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
+        el('button', { class: 'btn green', text: 'Harika!', onClick: () => close() }))
+    ));
+  }
+  return yeni;
+}
+
+function svgWrap(inner, vb = 100) {
+  return `<svg viewBox="0 0 ${vb} ${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+
+/* ---------------- DÜKKÂN ---------------- */
+function renderShop() {
+  if (!profile) return renderLogin();
+  updateHud();
+  const root = showScreen('shop');
+
+  const coinChip = () => el('div', { class: 'hint-pill coin-live', text: `● ${profile.coins || 0} jeton` });
+
+  const build = () => {
+    clear(root);
+    const headRow = el('div', { class: 'shop-head' },
+      el('button', { class: 'btn sm ghost', text: '← Haritaya dön', onClick: () => { sfx('click'); renderMap(); } }),
+      el('div', { class: 'grow', style: { flex: '1' } }),
+      coinChip()
+    );
+
+    const preview = el('div', { class: 'shop-preview' },
+      el('div', { class: 'sp-avatar', html: C.avatarDressed(profile, { size: 120, avatarHTML }) }),
+      el('div', {},
+        el('div', { class: 'sp-name', text: profile.nick }),
+        el('div', { class: 'small muted', text: 'Karakterini süsle! Kazandığın jetonlarla al.' })
+      )
+    );
+
+    const sections = [['Şapkalar', 'head'], ['Evcil Hayvanlar', 'pet'], ['Çerçeveler', 'frame']];
+    const body = el('div', { class: 'shop-body' });
+    for (const [title, slot] of sections) {
+      body.append(el('h3', { class: 'shop-sec', text: title }));
+      const grid = el('div', { class: 'shop-grid' });
+      for (const it of C.ITEMS.filter((x) => x.slot === slot)) {
+        const owned = C.ownsItem(profile, it.id);
+        const equipped = (profile.equipped || {})[it.slot] === it.id;
+        const afford = (profile.coins || 0) >= it.price;
+        const card = el('div', { class: 'shop-item' + (owned ? ' owned' : '') + (equipped ? ' equipped' : '') },
+          el('div', { class: 'si-art', html: it.slot === 'frame' ? framePreview(it) : svgWrap(it.art) }),
+          el('div', { class: 'si-name', text: it.name }),
+          owned
+            ? el('button', {
+                class: 'btn sm ' + (equipped ? 'green' : 'ghost'),
+                text: it.slot === 'frame' ? 'Aktif' : (equipped ? 'Takılı ✓' : 'Tak'),
+                onClick: () => {
+                  sfx('tap');
+                  C.toggleEquip(profile, it.id);
+                  S.saveProfile(profile);
+                  build();
+                  speak(equipped ? 'Çıkardın.' : 'Harika görünüyor!');
+                }
+              })
+            : el('button', {
+                class: 'btn sm ' + (afford ? 'yellow' : 'ghost'),
+                text: afford ? `● ${it.price}` : `● ${it.price} — yetersiz`,
+                onClick: () => {
+                  const r = C.buyItem(profile, it.id);
+                  if (!r.ok) { sfx('wrong'); toast(r.reason === 'jeton yetersiz' ? 'Yeterli jetonun yok. Bölüm bitirip jeton kazan!' : r.reason); return; }
+                  sfx('coin');
+                  confetti({ count: 50 });
+                  S.saveProfile(profile);
+                  updateHud();
+                  speak(`${it.name} senin oldu!`, { force: true });
+                  toast(`${it.name} alındı!`);
+                  if (it.slot !== 'frame') C.toggleEquip(profile, it.id);
+                  S.saveProfile(profile);
+                  build();
+                }
+              })
+        );
+        grid.append(card);
+      }
+      body.append(grid);
+    }
+
+    root.append(headRow, preview, body);
+  };
+
+  build();
+  speak('Jeton dükkânı! Kazandığın jetonlarla karakterini süsleyebilirsin.');
+}
+
+function framePreview(it) {
+  const [c1, c2] = it.ring;
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="40" fill="${c2}" stroke="#23324d" stroke-width="5"/>
+    <circle cx="50" cy="50" r="29" fill="${c1}" stroke="#23324d" stroke-width="4"/>
+    <circle cx="50" cy="50" r="19" fill="#fff" stroke="#23324d" stroke-width="4"/>
+  </svg>`;
+}
+
+/* ---------------- ÇIKARTMA ALBÜMÜ ---------------- */
+function renderAlbum() {
+  if (!profile) return renderLogin();
+  updateHud();
+  const root = showScreen('album');
+  const owned = new Set(profile.stickers || []);
+  const total = C.STICKERS.length;
+
+  root.append(
+    el('div', { class: 'shop-head' },
+      el('button', { class: 'btn sm ghost', text: '← Haritaya dön', onClick: () => { sfx('click'); renderMap(); } }),
+      el('div', { class: 'grow', style: { flex: '1' } }),
+      el('div', { class: 'hint-pill', text: `📖 ${owned.size} / ${total} çıkartma` })
+    ),
+    el('h2', { class: 'page-title', text: 'Çıkartma Albümüm' }),
+    el('p', { class: 'page-sub', text: 'Çıkartmalar satın alınmaz — oynayarak kazanılır!' })
+  );
+
+  const grid = el('div', { class: 'album-grid' });
+  for (const s of C.STICKERS) {
+    const has = owned.has(s.id);
+    grid.append(el('div', { class: 'album-slot' + (has ? ' has' : '') },
+      el('div', { class: 'as-art', html: has ? svgWrap(s.art) : placeholderSticker() }),
+      el('div', { class: 'as-name', text: has ? s.name : '???' }),
+      el('div', { class: 'as-desc', text: s.desc })
+    ));
+  }
+  root.append(grid);
+
+  const kalan = total - owned.size;
+  root.append(el('p', { class: 'small muted', style: { textAlign: 'center', marginTop: '14px' },
+    text: kalan ? `${kalan} çıkartma kaldı — oynamaya devam!` : 'Tebrikler! Tüm çıkartmaları topladın!' }));
+  speak(kalan ? `${owned.size} çıkartman var, ${kalan} tane kaldı.` : 'Tüm çıkartmaları topladın, harikasın!');
+}
+
+function placeholderSticker() {
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="36" fill="#e6ecf5" stroke="#b6c3d4" stroke-width="5" stroke-dasharray="9 7"/>
+    <text x="50" y="64" text-anchor="middle" font-size="34" font-weight="900" fill="#b6c3d4"
+      font-family="Fredoka, Nunito, system-ui, sans-serif">?</text>
+  </svg>`;
 }
 
 function firstUnfinishedWorld() {
@@ -347,9 +545,19 @@ function finishLevel(result) {
   const score = (result.correct || 0) * 100 + (result.streak || 0) * 50 + (result.dragonDefeated ? 300 : 0);
   const before = S.getResult(profile, level.id);
   const saved = S.saveLevelResult(profile, level, { stars, score });
-  const coins = (result.correct || 0) * 2 + stars * 6;
+
+  /* --- Ödül ekonomisi --- */
+  const seri = S.touchDailyStreak(profile);          // günlük seri
+  S.markKindDone(profile, level.type);               // çizim / boss sayacı
+  const hasatliJeton = (result.correct || 0) * 2 + stars * 6;
+  const seriBonusu = seri.artti ? Math.min(seri.count, 5) * 3 : 0;   // günlük seri ödülü
+  const coins = hasatliJeton + seriBonusu;
   S.addCoins(profile, coins);
   S.pushBoard(profile);
+
+  const yeniHazine = S.markWorldProgress(profile, WORLDS);           // hikaye parçası
+  const yeniCikartma = C.evaluateStickers(profile);                  // çıkartma ödülü
+  if (yeniCikartma.length) S.saveProfile(profile);
   const completedRun = !!result.completed;
   const perfectRun = (result.wrong || 0) === 0 && completedRun;
   if (journey) {
@@ -367,10 +575,10 @@ function finishLevel(result) {
   if (unlockedNew) setTimeout(() => { sfx('unlock'); toast('🔓 Yeni bölüm açıldı!'); }, 900);
 
   updateHud();
-  renderResult({ world, level, result, stars, score, coins, improved: stars > before.stars, unlockedNew, nextLevel });
+  renderResult({ world, level, result, stars, score, coins, improved: stars > before.stars, unlockedNew, nextLevel, seri, yeniHazine, yeniCikartma });
 }
 
-function renderResult({ world, level, result, stars, score, coins, improved, unlockedNew, nextLevel }) {
+function renderResult({ world, level, result, stars, score, coins, improved, unlockedNew, nextLevel, seri = null, yeniHazine = [], yeniCikartma = [] }) {
   const root = showScreen('result');
   const mood = stars === 3 ? 'cheer' : stars === 2 ? 'happy' : stars === 1 ? 'think' : 'sad';
   const total = (result.correct || 0) + (result.wrong || 0);
@@ -388,7 +596,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
     el('div', { class: 'result-hero' },
       el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascotHTML(120) })),
       el('h1', { text: stars > 0 ? 'Bölüm tamam!' : 'Tekrar deneyelim' }),
-      el('p', { class: 'small', text: `${world.emoji} ${world.name} · ${level.title}` }),
+      el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,
       el('h2', { text: msg }),
       el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '8px' } },
@@ -400,6 +608,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
         result.dragonDefeated ? el('span', { class: 'hint-pill', text: '🐉 Ejderha yenildi!' }) : el('span')
       ),
       improved || unlockedNew ? el('p', { class: 'small', text: unlockedNew ? '🔓 Yeni bölüm açıldı!' : '⭐ Yıldızını artırdın!' }) : el('span'),
+      rewardBlock({ seri, yeniHazine, yeniCikartma }),
       el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '16px' } },
         el('button', { class: 'btn primary', text: '🔁 Tekrar oyna', onClick: () => { sfx('click'); startLevel(world, level); } }),
         nextLevel && stars > 0 && S.isLevelUnlocked(profile, world, world.levels.indexOf(nextLevel))
@@ -418,6 +627,44 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
 
 function renderMapSilently() { /* sonraki bölüm açılırken haritayı arkada güncelle */
   if (profile) { S.pushBoard(profile); updateHud(); }
+}
+
+/** Bölüm sonu ödül bloğu: seri, hazine parçası, çıkartma */
+function rewardBlock({ seri, yeniHazine, yeniCikartma }) {
+  const satirlar = [];
+
+  if (seri && seri.artti) {
+    satirlar.push(el('div', { class: 'reward-row streak' },
+      el('span', { class: 'rw-ico', text: '🔥' }),
+      el('span', {}, `Günlük seri: ${seri.count} gün! `),
+      el('b', { text: `+${Math.min(seri.count, 5) * 3} jeton bonus` })
+    ));
+  }
+  if (seri && seri.yeniRekor && seri.best > 1) {
+    satirlar.push(el('div', { class: 'reward-row' },
+      el('span', { class: 'rw-ico', text: '🏆' }),
+      el('span', {}, `Yeni rekor: ${seri.best} gün üst üste!`)
+    ));
+  }
+
+  for (const h of (yeniHazine || [])) {
+    satirlar.push(el('div', { class: 'reward-row treasure' },
+      el('span', { class: 'rw-ico', html: svgWrap(C.treasureSVG(true, WORLDS.findIndex((w) => w.id === h.worldId))) }),
+      el('span', {}, 'Hazine parçası kazandın: '),
+      el('b', { text: h.name })
+    ));
+  }
+
+  for (const s of (yeniCikartma || [])) {
+    satirlar.push(el('div', { class: 'reward-row sticker' },
+      el('span', { class: 'rw-ico', html: svgWrap(s.art) }),
+      el('span', {}, 'Yeni çıkartma: '),
+      el('b', { text: s.name })
+    ));
+  }
+
+  if (!satirlar.length) return el('span');
+  return el('div', { class: 'reward-box' }, satirlar);
 }
 
 /* ---------------- 5) SINIF TABLOSU ---------------- */
