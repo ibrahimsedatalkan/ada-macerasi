@@ -28,10 +28,36 @@ export function esc(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/** Maskot görseli (üretilmiş). Yüklenemezse SVG maskota düşer. */
-export function mascotHTML(size = 150) {
-  return `<img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `
-    + `decoding="async" onerror="this.onerror=null;this.outerHTML='${mascot('happy', size).replace(/'/g, '&#39;').replace(/\n/g, '')}'">`;
+/** Ruh haline göre rozet (SVG — her cihazda aynı görünür) */
+const MOOD_BADGE = {
+  cheer: `<svg viewBox="0 0 100 100"><path d="M50 8 l11 24 l26 4 l-19 18 l5 26 l-23 -13 l-23 13 l5 -26 l-19 -18 l26 -4 z"
+    fill="#ffd23d" stroke="#23324d" stroke-width="5" stroke-linejoin="round"/></svg>`,
+  happy: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="#58cf6a" stroke="#23324d" stroke-width="5"/>
+    <path d="M34 44 q6 -10 12 0 M54 44 q6 -10 12 0" stroke="#23324d" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M36 60 q14 14 28 0" stroke="#23324d" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  think: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="#ffd23d" stroke="#23324d" stroke-width="5"/>
+    <circle cx="38" cy="48" r="5" fill="#23324d"/><circle cx="50" cy="48" r="5" fill="#23324d"/><circle cx="62" cy="48" r="5" fill="#23324d"/></svg>`,
+  sad: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="#7fd4ff" stroke="#23324d" stroke-width="5"/>
+    <path d="M36 46 q7 -9 14 0 M50 46 q7 -9 14 0" stroke="#23324d" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M38 64 q12 -12 24 0" stroke="#23324d" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  ooo: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="#b07cff" stroke="#23324d" stroke-width="5"/>
+    <circle cx="38" cy="46" r="7" fill="#23324d"/><circle cx="62" cy="46" r="7" fill="#23324d"/>
+    <ellipse cx="50" cy="66" rx="7" ry="9" fill="#23324d"/></svg>`
+};
+
+/**
+ * Maskot görseli (üretilmiş AI portresi) + ruh hali.
+ * Ruh hali bir rozet ve hafif animasyonla gösterilir.
+ * @param {number} size
+ * @param {'happy'|'cheer'|'think'|'sad'|'ooo'} mood
+ */
+export function mascotHTML(size = 150, mood = 'happy') {
+  const badge = MOOD_BADGE[mood];
+  return `<span class="mascot-wrap mood-${mood}" style="width:${size}px;height:${size}px;">
+    <img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `
+    + `decoding="async" onerror="this.onerror=null;this.outerHTML='${mascot(mood, size).replace(/'/g, '&#39;').replace(/\n/g, '')}'">`
+    + (badge ? `<span class="mascot-badge">${badge}</span>` : '')
+    + `</span>`;
 }
 
 export function el(tag, props = {}, ...children) {

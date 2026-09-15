@@ -596,7 +596,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
 
   const panel = el('div', { class: 'panel' },
     el('div', { class: 'result-hero' },
-      el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascotHTML(120) })),
+      el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascotHTML(120, mood) })),
       el('h1', { text: stars > 0 ? 'Bölüm tamam!' : 'Tekrar deneyelim' }),
       el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,

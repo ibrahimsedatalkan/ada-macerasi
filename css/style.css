@@ -364,7 +364,7 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 /* Sonuç */
 .result-hero { text-align: center; }
 .result-stars { font-size: clamp(46px, 12vw, 96px); letter-spacing: 6px; line-height: 1; }
-.result-stars .s { color: #e2e8f1; }
+.result-stars .s { color: #dbe3ee; -webkit-text-stroke: 2px #b9c6d8; }
 .result-stars .s.on { color: var(--yellow); text-shadow: 0 3px 0 #cf9a00; animation: starPop .5s ease backwards; }
 @keyframes starPop { from { transform: scale(.2) rotate(-30deg); opacity: 0 } }
 .review { display: grid; gap: 8px; max-height: 34vh; overflow-y: auto; }
@@ -531,3 +531,45 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
   border: 2px solid rgba(255,255,255,.85); overflow: hidden; margin-bottom: 12px; }
 .duel-progress i { display: block; height: 100%; background: linear-gradient(90deg,var(--blue),var(--purple));
   transition: width .3s ease; }
+
+/* ============================================================
+   MASKOT RUY HALİ + ETKİLEŞİM HİSSİ
+   ============================================================ */
+.mascot-wrap { position: relative; display: inline-block; flex: none; }
+.mascot-wrap .mascot-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.mascot-badge { position: absolute; right: -4px; bottom: -4px; width: 38%; height: 38%;
+  filter: drop-shadow(0 3px 6px rgba(20,40,70,.35)); animation: badgePop .5s ease; }
+.mascot-badge svg { width: 100%; height: 100%; display: block; }
+@keyframes badgePop { 0% { transform: scale(0) rotate(-40deg); } 75% { transform: scale(1.18) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+
+.mascot-wrap.mood-cheer { animation: moodCheer 1.1s ease-in-out infinite; }
+.mascot-wrap.mood-happy { animation: moodHappy 2.4s ease-in-out infinite; }
+.mascot-wrap.mood-think { animation: moodThink 2.8s ease-in-out infinite; }
+.mascot-wrap.mood-sad   { animation: moodSad 3s ease-in-out infinite; }
+@keyframes moodCheer { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+@keyframes moodHappy { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes moodThink { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes moodSad { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+
+/* Dokunma hissi: tüm düğmeler basılınca küçülür */
+.btn, .answer-btn, .avatar-opt, .shop-item .btn, .world-card, .level-node, .shape-tok {
+  transition: transform var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active, .answer-btn:active, .avatar-opt:active, .shop-item .btn:active { transform: scale(.95); }
+.world-card:active, .level-node:active { transform: scale(.97); }
+
+/* Cevap düğmeleri: üzerine gelince hafif büyüme (fare) */
+@media (hover: hover) {
+  .answer-btn:hover { transform: translateY(-3px) scale(1.03); }
+  .shop-item:hover { transform: translateY(-3px); }
+  .world-card:hover:not(.locked) { transform: translateY(-4px); }
+}
+
+/* Toplanan hazine/çıkartma: kazanılmış öğelere parıltı */
+.ts-slot.has .ts-art { filter: drop-shadow(0 0 8px rgba(255,210,61,.75)); }
+.album-slot.has .as-art { filter: drop-shadow(0 0 7px rgba(176,124,255,.7)); }
+
+/* Günlük seri alevi hafif nabız */
+.hint-pill.streak.on { animation: streakPulse 1.8s ease-in-out infinite; }
+@keyframes streakPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
