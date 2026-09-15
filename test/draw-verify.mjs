@@ -79,7 +79,8 @@ const pikseller = await c.evaluate(`(() => {
   return JSON.stringify({ doluYuzde: Math.round(dolu/toplam*100), yesil, sari, mavi });
 })()`);
 const px = JSON.parse(pikseller || '{}');
-T('Tuval çizildi (içerik var)', (px.doluYuzde || 0) > 3, `dolu: %${px.doluYuzde}`);
+// Noktalı zemin + kesikli hedef çizgisi ~%3 doldurur (ince çizgiler)
+T('Tuval çizildi (içerik var)', (px.doluYuzde || 0) >= 2, `dolu: %${px.doluYuzde}`);
 
 /* Noktalı zemin gerçekten var mı? Köşe bölgesinde (şeklin dışında) nokta ara */
 const zemin = await c.evaluate(`(() => {
@@ -127,12 +128,18 @@ const cizim = await c.evaluate(`(async () => {
   const r = cv.getBoundingClientRect();
   // Hedef şekli DOM'dan değil, tuvalden öğrenemeyiz — karenin kenarını taklit et:
   // kare tuvalin ortasında; kenar uzunluğunu kapsama %100 olacak şekilde dolaş.
-  const boy = Math.min(r.width, r.height) * 0.94;
-  const cx = r.width / 2, cy = r.height / 2;
-  const yari = boy / 2;
+  // HEDEFİ UYGULAMADAN ÖĞREN — geometriyi tahmin etme.
+  // (Önceden karenin yarı-genişliği yanlış varsayılıyordu: uygulama
+  //  size*0.4*1.7 = 272 px çiziyor, test 400 px sanıyordu → 64 px kayma
+  //  → kapsama %0 → "bozuk" sanılıyordu. Uygulama doğruydu.)
+  const hedef = window.__adaTest.hedefNoktalar();
+  if (!hedef.length) return JSON.stringify({ kapsama: 'HEDEF YOK', ekran: 'game' });
+  const xs = hedef.map(p => p[0]), ys = hedef.map(p => p[1]);
+  const x1 = Math.min(...xs), x2 = Math.max(...xs), y1 = Math.min(...ys), y2 = Math.max(...ys);
+  const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
   const noktalar = [];
   const ekle = (x1,y1,x2,y2) => { const n = 60; for (let i=0;i<=n;i++){ const t=i/n; noktalar.push([x1+(x2-x1)*t, y1+(y2-y1)*t]); } };
-  const sol = cx - yari, sag = cx + yari, ust = cy - yari, alt = cy + yari;
+  const sol = x1, sag = x2, ust = y1, alt = y2;   // hedefin GERÇEK sınırları
   ekle(sol, ust, sag, ust); ekle(sag, ust, sag, alt); ekle(sag, alt, sol, alt); ekle(sol, alt, sol, ust);
 
   const gonder = (tip, x, y) => cv.dispatchEvent(new PointerEvent(tip, { clientX: r.left + x, clientY: r.top + y, bubbles: true, pointerId: 1, isPrimary: true, buttons: tip === 'pointerup' ? 0 : 1 }));

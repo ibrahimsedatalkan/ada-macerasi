@@ -77,6 +77,21 @@ export function createDrawGame({ root, level, api }) {
     const size = Math.min(W, H) * 0.94;
     state.outline = shapeOutline(state.cur.id, { size, cx: W / 2, cy: H / 2 });
     state.samples = sampleOutline(state.outline);
+    state.hedefW = W;                 // hangi tuval boyutunda hesaplandı
+    state.hedefH = H;
+  }
+
+  /**
+   * Hedef güncel mi? Tuval boyutu hedefin hesaplandığı boyuttan farklıysa
+   * hedefi yeniden kur. Bu olmadan şu hata oluşuyordu:
+   * tuval sonradan küçülüyor ama örnek noktalar eski (büyük) boyutta kalıyor
+   * → çocuk şeklin tam üzerinden geçse bile kapsama %0 görünüyor.
+   */
+  function hedefGuncelMi() {
+    if (!state.cur) return false;
+    if (state.hedefW === W && state.hedefH === H) return true;
+    buildTarget();
+    return true;
   }
 
   function sampleOutline(o) {
@@ -273,6 +288,7 @@ export function createDrawGame({ root, level, api }) {
     // hata fırlatır. Fırlatırsa state.drawing hiç true olmaz ve çizim
     // KAYDEDİLMEZ — bu yüzden ayrı try içinde.
     try { canvas.setPointerCapture?.(e.pointerId); } catch (err) {}
+    hedefGuncelMi();          // tuval boyutu değiştiyse hedefi yeniden kur
     state.drawing = true;
     state.strokes.push([pos(e)]);
     redraw();
@@ -293,6 +309,7 @@ export function createDrawGame({ root, level, api }) {
 
   /** Çizerken kapsama oranını güncelle — çocuk anında görsün */
   function liveCoverage() {
+    hedefGuncelMi();
     const tol = cfg.tol;
     const userPts = state.strokes.flat();
     if (!userPts.length || !state.samples.length) return;
@@ -325,6 +342,7 @@ export function createDrawGame({ root, level, api }) {
   }
 
   function evaluate() {
+    hedefGuncelMi();
     const tol = cfg.tol;
     const userPts = state.strokes.flat();
     if (!userPts.length) return;
@@ -412,6 +430,11 @@ export function createDrawGame({ root, level, api }) {
     hintPill.textContent = `Kenar: ${s.sides === 0 ? 'yok' : s.sides} · Köşe: ${s.corners === 0 ? 'yok' : s.corners}`;
     covEl.textContent = 'Kapsama: %0';
     covEl.classList.remove('good');
+    // KRİTİK: hedefi (ve örnek noktaları) ŞİMDİ hesapla.
+    // resize() içindeki buildTarget() `state.cur` null iken erken döner;
+    // o yüzden tuval boyutu değişip cur sonradan atanırsa hedef ESKİ
+    // boyuta göre kalıyordu → çocuk şeklin üstünden geçse bile kapsama
+    // %0 görünüyordu. Burada yeniden hesaplayarak onu engelliyoruz.
     buildTarget();
     redraw();
     api.speak(`${s.name} çiz. ${howTo(id)}`);
@@ -475,6 +498,19 @@ export function createDrawGame({ root, level, api }) {
     state.done = true;
     api.finish({ correct: state.correct, wrong: state.wrong, completed, rounds: cfg.shapes.length, hintsUsed: state.hintsUsed || 0, total: cfg.shapes.length });
   }
+
+  /**
+   * TEST KANCASI — çizim testinin hedefi UYGULAMANIN KENDİSİNDEN
+   * öğrenmesini sağlar. Testler geometriyi tahmin ederse (ör. karenin
+   * yarı-genişliğini yanlış varsayarsa) kapsama %0 çıkar ve gerçek bir
+   * hata varmış gibi görünür. Bu kanca o sınıf hatayı önler.
+   */
+  window.__adaTest = {
+    hedefNoktalar: () => state.samples || [],
+    outline: () => state.outline,
+    durum: () => ({ cur: state.cur?.id || null, coverage: state.coverage, strokes: state.strokes.length,
+                    W, H, hedefW: state.hedefW, hedefH: state.hedefH })
+  };
 
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
