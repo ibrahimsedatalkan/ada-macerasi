@@ -40,13 +40,17 @@ await c.evaluate(`(() => {
 await c.goto(`${B}/index.html`, 2200);
 
 /* ---- 1) Haritada hazine şeridi ---- */
-const tStrip = await c.evaluate(`(() => JSON.stringify({
-  var: !!document.querySelector('.treasure-strip'),
-  slots: document.querySelectorAll('.ts-slot').length,
-  label: (document.querySelector('.ts-label')||{}).innerText || ''
-}))()`);
+const tStrip = await c.evaluate(`(async () => {
+  const C = await import('./js/collect.js');
+  return JSON.stringify({
+    var: !!document.querySelector('.treasure-strip'),
+    slots: document.querySelectorAll('.ts-slot').length,
+    beklenen: C.ALL_TREASURES.length,
+    label: (document.querySelector('.ts-label')||{}).innerText || ''
+  });
+})()`);
 const ts = JSON.parse(tStrip || '{}');
-T('Haritada hazine şeridi var (5 parça)', ts.var && ts.slots === 5, ts.label);
+T('Haritada hazine şeridi var (tüm adalar)', ts.var && ts.slots === ts.beklenen, `${ts.slots} slot / ${ts.beklenen} ada`);
 
 /* ---- 2) Dükkân açılıyor ---- */
 await c.clickByText('Dükkân', 'button', 1100);
@@ -87,13 +91,17 @@ T('Alınan ürün otomatik takıldı', Object.keys(ab.equipped || {}).length >= 
 await c.evaluate(`(() => { const b=[...document.querySelectorAll('button')].find(x=>/Haritaya dön/.test(x.textContent||'')); if(b) b.click(); return !!b; })()`);
 await c.sleep(800);
 await c.clickByText('Albüm', 'button', 1100);
-const album = await c.evaluate(`(() => JSON.stringify({
-  slots: document.querySelectorAll('.album-slot').length,
-  has: document.querySelectorAll('.album-slot.has').length,
-  title: (document.querySelector('h2')||{}).innerText || ''
-}))()`);
+const album = await c.evaluate(`(async () => {
+  const C = await import('./js/collect.js');
+  return JSON.stringify({
+    slots: document.querySelectorAll('.album-slot').length,
+    beklenen: C.STICKERS.length,
+    has: document.querySelectorAll('.album-slot.has').length,
+    title: (document.querySelector('h2')||{}).innerText || ''
+  });
+})()`);
 const al = JSON.parse(album || '{}');
-T('Albüm açıldı (16 çıkartma)', al.slots === 16, `${al.slots} slot, ${al.has} kazanılmış`);
+T('Albüm açıldı (tüm çıkartmalar)', al.slots === al.beklenen, `${al.slots} slot / ${al.beklenen} çıkartma`);
 
 /* ---- 5) Günlük seri ---- */
 const streak = await c.evaluate(`(async () => {

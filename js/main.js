@@ -250,7 +250,8 @@ function renderTreasureStrip() {
   const tamam = C.treasureComplete(profile);
   const wrap = el('div', { class: 'treasure-strip' + (tamam ? ' complete' : '') });
   wrap.append(el('div', { class: 'ts-label' },
-    tamam ? '🏆 Pofi tüm hazineyi topladı! Ada senin oldu.' : `Pofi'nin hazine sandığı — ${got.length}/5 parça`));
+    tamam ? 'Pofi tüm hazineyi topladı! Ada senin oldu.'
+          : `Pofi'nin hazine sandığı — ${got.length}/${C.ALL_TREASURES.length} parça`));
   const row = el('div', { class: 'ts-row' });
   WORLDS.forEach((w, i) => {
     const has = got.includes(w.id);

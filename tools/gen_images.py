@@ -44,6 +44,10 @@ SCENES = {
     "w5": ("Ejderha Kalesi", "A friendly medieval stone castle with towers and red banners on a rocky hill "
                              "at dusk, dramatic orange and violet sky, a distant dragon silhouette flying "
                              "far away, torches glowing, epic adventure mood, not frightening."),
+    "w6": ("Yıldız Adası", "A magical floating island among a starry night sky, glowing golden star-shaped "
+                           "crystals growing from the grass, a shimmering silver path of light, soft aurora "
+                           "ribbons in violet and teal above, calm sea of clouds below, dreamy and triumphant, "
+                           "not dark or scary."),
     # --- ekranlar ---
     "hero": ("Ana ekran", "A magical adventure world seen from a high viewpoint: five islands floating in a "
                           "turquoise ocean, one with a green meadow, one with a dense forest, one with glowing "

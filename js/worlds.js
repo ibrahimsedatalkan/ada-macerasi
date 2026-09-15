@@ -1,6 +1,6 @@
 /* ============================================================
    worlds.js — macera haritası ve bölüm tanımları
-   2. sınıf kazanımları: 1-5 çarpım tablosu, kare/dikdörtgen/
+   2. sınıf kazanımları: 1-10 çarpım tablosu, kare/dikdörtgen/
    üçgen/daire (+beşgen/altıgen), kenar-köşe, geometrik çizim.
    Zorluk sırayla artar: süre, seçenek sayısı, hayat sayısı,
    eksik çarpan soruları, karışık bölümler.
@@ -100,6 +100,33 @@ export const WORLDS = [
         cfg: { tables: [2, 3, 4, 5], mode: 'reverse', rounds: 9, options: 4, lives: 3, time: 16 } },
       { id: 'w5-l5', title: 'Büyük Final', type: 'boss', story: 'Her şey karıştı, son sınav!',
         cfg: { include: ['multiply', 'sides', 'tap'], tables: [2, 3, 4, 5], shapes: ['kare', 'dikdortgen', 'ucgen', 'daire', 'besgen', 'altigen'], rounds: 12, lives: 2, time: 150, timePerQ: 14, maxB: 10 } }
+    ]
+  },
+  {
+    id: 'w6',
+    name: 'Yıldız Adası',
+    emoji: '⭐',
+    mood: 'cheer',
+    intro: 'Büyük sayılar diyarı! 6, 7, 8, 9 ve 10’lar burada. Yıldızı hak et!',
+    levels: [
+      { id: 'w6-l1', title: "6'lar", type: 'multiply', story: "Altışar altışar yükseliyoruz.",
+        cfg: { tables: [6], mode: 'result', rounds: 8, options: 4, lives: 3, maxB: 10, maxBHard: 10 } },
+      { id: 'w6-l2', title: "7'ler", type: 'multiply', story: 'Yediler en zorudur, cesaret!',
+        cfg: { tables: [7], mode: 'result', rounds: 8, options: 4, lives: 3, maxB: 10, maxBHard: 10 } },
+      { id: 'w6-l3', title: "8'ler", type: 'multiply', story: 'Sekizer sekizer, iki kere iki kere iki!',
+        cfg: { tables: [8], mode: 'result', rounds: 8, options: 4, lives: 3, maxB: 10, maxBHard: 10 } },
+      { id: 'w6-l4', title: "9'lar", type: 'multiply', story: "Dokuzların hilesi: on katı eksi bir katı.",
+        cfg: { tables: [9], mode: 'result', rounds: 8, options: 4, lives: 3, maxB: 10, maxBHard: 10 } },
+      { id: 'w6-l5', title: "10'lar", type: 'multiply', story: 'Sonuna sıfır ekle, bu kadar kolay!',
+        cfg: { tables: [10], mode: 'result', rounds: 8, options: 4, lives: 3, maxB: 10, maxBHard: 10 } },
+      { id: 'w6-l6', title: 'Karışık 6-10', type: 'multiply', story: 'Beş tablo bir arada, dikkat!',
+        cfg: { tables: [6, 7, 8, 9, 10], mode: 'result', rounds: 10, options: 4, lives: 3, maxB: 10, maxBHard: 10, time: 20 } },
+      { id: 'w6-l7', title: 'Eksik Sayı Ustası', type: 'multiply', story: '6 × ? = 42 — eksik sayıyı bul.',
+        cfg: { tables: [6, 7, 8, 9], mode: 'missing', rounds: 10, options: 4, lives: 3, maxB: 10, maxBHard: 10, time: 18 } },
+      { id: 'w6-l8', title: 'Ters Çarpım Ustası', type: 'multiply', story: '? × 7 = 56 — baştaki sayı kaç?',
+        cfg: { tables: [6, 7, 8, 9], mode: 'reverse', rounds: 10, options: 4, lives: 3, maxB: 10, maxBHard: 10, time: 18 } },
+      { id: 'w6-l9', title: 'Yıldız Sınavı', type: 'boss', story: 'Tüm tablolar, tek sınav!',
+        cfg: { include: ['multiply', 'sides', 'tap'], tables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], shapes: ['kare', 'dikdortgen', 'ucgen', 'daire', 'besgen', 'altigen'], rounds: 14, lives: 2, time: 180, timePerQ: 14, maxB: 10, maxBHard: 10 } }
     ]
   }
 ];

@@ -114,7 +114,16 @@ export const STICKERS = [
   { id: 'st_nohelp',   name: 'Kendi Başına',    desc: 'İpuçsuz 10 soruyu doğru yap',   test: (p) => (p.stats.correctNoHint || 0) >= 10, art: starSticker('#58cf6a', '#34a94a') },
   { id: 'st_allday',   name: 'Her Gün Burada',  desc: '3 gün üst üste oyna',           test: (p) => (p.streak?.best || 0) >= 3, art: badgeSticker('☀', '#ffd23d') },
   { id: 'st_300c',     name: '300 Doğru',       desc: '300 doğru cevap ver',           test: (p) => p.stats.correct >= 300,    art: starSticker('#ff6f9c', '#ff5a5f') },
-  { id: 'st_allshapes', name: 'Geometri Ustası', desc: 'Tüm şekillerde ustalaş',       test: (p) => shapeMasteredAll(p),       art: badgeSticker('★', '#b07cff') }
+  { id: 'st_allshapes', name: 'Geometri Ustası', desc: 'Tüm şekillerde ustalaş',       test: (p) => shapeMasteredAll(p),       art: badgeSticker('★', '#b07cff') },
+  /* --- 6-10 tabloları (2. sınıfın ikinci yarısı) --- */
+  { id: 'st_t6',       name: 'Altılar Bitti',   desc: "6'lar tablosunu bitir",         test: (p) => tableMastered(p, '6'),     art: badgeSticker('6', '#ff9a3d') },
+  { id: 'st_t7',       name: 'Yediler Bitti',   desc: "7'ler tablosunu bitir",         test: (p) => tableMastered(p, '7'),     art: badgeSticker('7', '#3dbdff') },
+  { id: 'st_t8',       name: 'Sekizler Bitti',  desc: "8'ler tablosunu bitir",         test: (p) => tableMastered(p, '8'),     art: badgeSticker('8', '#58cf6a') },
+  { id: 'st_t9',       name: 'Dokuzlar Bitti',  desc: "9'lar tablosunu bitir",         test: (p) => tableMastered(p, '9'),     art: badgeSticker('9', '#b07cff') },
+  { id: 'st_t10',      name: 'Onlar Bitti',     desc: "10'lar tablosunu bitir",        test: (p) => tableMastered(p, '10'),    art: badgeSticker('10', '#ffd23d') },
+  { id: 'st_alltables', name: 'Tüm Tablolar',   desc: "1'den 10'a tüm tablolarda ustalaş", test: (p) => allTablesMastered(p),  art: starSticker('#ffd23d', '#f5b40b') },
+  { id: 'st_world6',   name: 'Yıldız Fatihi',   desc: 'Yıldız Adası’nı tamamla',       test: (p) => worldDone(p, 'w6'),        art: badgeSticker('★', '#ffe27a') },
+  { id: 'st_500c',     name: '500 Doğru',       desc: '500 doğru cevap ver',           test: (p) => p.stats.correct >= 500,    art: starSticker('#58cf6a', '#1c93d8') }
 ];
 
 function starSticker(c1, c2) {
@@ -144,6 +153,11 @@ function shapeMasteredAll(p) {
   const ids = Object.keys(p?.stats?.byShape || {});
   if (ids.length < 4) return false;
   return ids.every((k) => { const s = p.stats.byShape[k]; return s.c >= 4 && s.c / (s.c + s.w) >= 0.75; });
+}
+/** 1'den 10'a tüm tablolarda ustalık */
+function allTablesMastered(p) {
+  for (let t = 1; t <= 10; t++) if (!tableMastered(p, String(t))) return false;
+  return true;
 }
 function worldDone(p, worldId) {
   // Bir dünyaya ait tüm bölümlerde en az 1 yıldız
@@ -177,7 +191,11 @@ const TREASURE_ART = [
            <circle cx="50" cy="30" r="10" fill="#ffd23d" stroke="#23324d" stroke-width="4"/>
            <path d="M22 70 q28 14 56 0" stroke="#3dbdff" stroke-width="5" fill="none" stroke-linecap="round"/>`,
   /* w5 */ `<path d="M22 64 l5 -32 l16 13 l7 -23 l7 23 l16 -13 l5 32 z" fill="#ffd23d" stroke="#23324d" stroke-width="5" stroke-linejoin="round"/>
-           <circle cx="50" cy="34" r="5" fill="#ff5a5f" stroke="#23324d" stroke-width="3.5"/>`
+           <circle cx="50" cy="34" r="5" fill="#ff5a5f" stroke="#23324d" stroke-width="3.5"/>`,
+  /* w6 */ `<path d="M50 8 l13 27 l30 5 l-22 21 l5 30 l-26 -14 l-26 14 l5 -30 l-22 -21 l30 -5 z"
+             fill="#ffe27a" stroke="#23324d" stroke-width="5" stroke-linejoin="round"/>
+           <circle cx="50" cy="50" r="11" fill="#fff6d8" stroke="#23324d" stroke-width="4"/>
+           <path d="M50 44 v12 M44 50 h12" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/>`
 ];
 
 /** Hazine parçası — kazanılmadıysa soluk/soru işaretli */
@@ -190,8 +208,8 @@ export function treasureSVG(has, index) {
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 }
 
-/* ---------------- Hazine: 5 parça tamam mı? ---------------- */
-export const ALL_TREASURES = ['w1', 'w2', 'w3', 'w4', 'w5'];
+/* ---------------- Hazine: tüm parçalar tamam mı? ---------------- */
+export const ALL_TREASURES = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6'];
 export function treasureComplete(profile) {
   const got = profile?.treasures || [];
   return ALL_TREASURES.every((id) => got.includes(id));

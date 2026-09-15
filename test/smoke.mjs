@@ -36,7 +36,10 @@ await c.evaluate(`(() => {
 await c.clickByText('Maceraya başla');
 check('harita açıldı', (await c.evaluate('document.querySelector(".screen.active").dataset.screen')) === 'map');
 check('profil kaydedildi', (await c.evaluate('!!localStorage.getItem("ada.active.v2")')));
-check('5 ada listelendi', (await c.evaluate('document.querySelectorAll(".world-card").length')) === 5);
+{
+  const beklenen = await c.evaluate(`(async () => (await import('./js/worlds.js')).WORLDS.length)()`);
+  check(`tüm adalar listelendi (${beklenen})`, (await c.evaluate('document.querySelectorAll(".world-card").length')) === beklenen);
+}
 check('ilk ada açık', (await c.evaluate('!document.querySelectorAll(".world-card")[0].classList.contains("locked")')));
 check('ikinci ada kilitli', (await c.evaluate('document.querySelectorAll(".world-card")[1].classList.contains("locked")')));
 await c.screenshot(path.join(SHOTS, '02-map.png'));
@@ -87,13 +90,15 @@ check('ilk bölüm geçildi → 2. bölüm açıldı', levelLocks === 'false,fal
 await c.clickByText('Vazgeç', 'button', 200).catch(() => {});
 await c.evaluate('document.getElementById("dialog").hidden = true');
 
-/* w3'ü açmak için profili hazırla: tüm önceki bölümlere yıldız ver */
-await c.evaluate(`(() => {
+/* w3'ü açmak için profili hazırla: tüm önceki bölümlere yıldız ver (dinamik liste) */
+await c.evaluate(`(async () => {
+  const W = (await import('./js/worlds.js')).WORLDS;
   const k = 'ada.p.v2.2A.testoyuncu';
   const p = JSON.parse(localStorage.getItem(k));
-  const ids = ['w1-l1','w1-l2','w1-l3','w1-l4','w1-l5','w2-l1','w2-l2','w2-l3','w2-l4','w2-l5','w3-l1','w3-l2','w3-l3','w3-l4','w3-l5','w4-l1','w4-l2','w4-l3','w4-l4','w4-l5'];
   p.results = p.results || {};
-  ids.forEach(id => { p.results[id] = { stars: 3, best: 500, plays: 1 }; });
+  for (const w of W) for (const l of w.levels) p.results[l.id] = { stars: 3, best: 500, plays: 1 };
+  p.worldDoneIds = W.map(x => x.id);
+  p.treasures = W.map(x => x.id);
   localStorage.setItem(k, JSON.stringify(p));
 })()`);
 await c.goto(BASE + '/index.html', 1600);
