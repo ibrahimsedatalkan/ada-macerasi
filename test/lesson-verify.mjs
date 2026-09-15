@@ -132,7 +132,7 @@ const ses = await c.evaluate(`(async () => {
   const A = await import('./js/audio.js');
   const src = await (await fetch('js/audio.js')).text();
   // Varsayılan rate değerini kaynaktan doğrula
-  const m = /rate\\s*=\\s*(0\\.\\d+)/.exec(src);
+  const m = /speechRate\\s*=\\s*(0\\.\\d+)/.exec(src);
   const varsayilanRate = m ? Number(m[1]) : null;
   // Cümle bölme fonksiyonu çalışıyor mu? speak() çağrısını yakalayalım
   const soylenen = [];
@@ -144,10 +144,46 @@ const ses = await c.evaluate(`(async () => {
   return JSON.stringify({ varsayilanRate, parcaSayisi: soylenen.length, ornek: soylenen.map(x => x.text), rate: soylenen[0]?.rate });
 })()`);
 const se = JSON.parse(ses || '{}');
-T('Varsayılan konuşma hızı yavaş (≤0.70)', (se.varsayilanRate || 1) <= 0.70, `rate=${se.varsayilanRate}`);
+T('Varsayılan konuşma hızı dengeli (0.70–0.78)', (se.varsayilanRate || 1) >= 0.70 && (se.varsayilanRate || 1) <= 0.80, `rate=${se.varsayilanRate}`);
 T('Uzun metin cümlelere bölünerek okunuyor', (se.parcaSayisi || 0) >= 3,
   `${se.parcaSayisi} parça: ${JSON.stringify(se.ornek)}`);
-T('Konuşma hızı uygulanıyor', (se.rate || 1) <= 0.70, `uygulanan rate=${se.rate}`);
+T('Konuşma hızı uygulanıyor (0.70–0.78)', (se.rate || 1) >= 0.70 && (se.rate || 1) <= 0.80, `uygulanan rate=${se.rate}`);
+
+
+/* ---- 6) KONUŞMA HIZI AYARI (veli paneli) ---- */
+const hiz = await c.evaluate(`(async () => {
+  const A = await import('./js/audio.js');
+  const onceki = A.getSpeechRate();
+  A.setSpeechRate(0.9);
+  const sonra = A.getSpeechRate();
+  A.setSpeechRate(0.3);          // sınır testi: alt sınır 0.45
+  const altSinir = A.getSpeechRate();
+  A.setSpeechRate(5);            // üst sınır 1.3
+  const ustSinir = A.getSpeechRate();
+  A.setSpeechRate(onceki);
+  return JSON.stringify({ onceki, sonra, altSinir, ustSinir, geri: A.getSpeechRate() });
+})()`);
+const hz = JSON.parse(hiz || '{}');
+T('Hız ayarlanabiliyor', hz.sonra === 0.9, `${hz.onceki} → ${hz.sonra}`);
+T('Hız alt sınırı korunuyor (0.45)', hz.altSinir === 0.45, `0.3 verildi → ${hz.altSinir}`);
+T('Hız üst sınırı korunuyor (1.3)', hz.ustSinir === 1.3, `5 verildi → ${hz.ustSinir}`);
+
+await c.goto(`${B}/index.html`, 2000);
+await c.clickByText('Veli Paneli', 'button', 1400);
+const hizUI = await c.evaluate(`(() => {
+  const kutular = [...document.querySelectorAll('.advice-box')];
+  const k = kutular.find(x => /Konuşma hızı/.test(x.textContent||''));
+  if (!k) return JSON.stringify({ var: false });
+  return JSON.stringify({
+    var: true,
+    butonlar: [...k.querySelectorAll('button')].map(b => b.textContent.trim()),
+    secili: [...k.querySelectorAll('button.green')].map(b => b.textContent.trim())
+  });
+})()`);
+const hu = JSON.parse(hizUI || '{}');
+T('Veli panelinde konuşma hızı ayarı var', hu.var === true, (hu.butonlar||[]).join(' / '));
+T('Hız seçenekleri sunuluyor', (hu.butonlar || []).length >= 4, (hu.butonlar||[]).join(' / '));
+T('"Dene" butonu var (kulakla karşılaştırma)', (hu.butonlar||[]).some(b => /dene/i.test(b)), (hu.butonlar||[]).join(' / '));
 
 await c.screenshot('test/shots/lesson-final.png');
 console.log(`\n=== ${pass} geçti / ${fail} kaldı ===`);

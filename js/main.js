@@ -8,7 +8,7 @@
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
 import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle } from './ui.js';
-import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic } from './audio.js';
+import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import * as C from './collect.js';
 import { createSidesGame } from './games/sides.js';
@@ -74,6 +74,7 @@ function persistSettings() {
   if (settings.music) { if (!audio.music) startMusic(); } else if (audio.music) stopMusic();
   applyTextSize();
   applyFreeMode();
+  applySpeechSpeed();
   updateHud();
 }
 
@@ -85,6 +86,12 @@ function applyTextSize() {
 /** Serbest Mod — veli açarsa tüm bölümler kilitsiz açılır */
 function applyFreeMode() {
   S.setFreeMode(!!settings.freeMode);
+}
+
+/** Konuşma hızı — kayıtlı ayarı ses motoruna uygula */
+function applySpeechSpeed() {
+  const v = Number(settings.speechSpeed);
+  setSpeechRate(Number.isFinite(v) && v > 0 ? v : 0.72);
 }
 
 /**
@@ -958,6 +965,52 @@ function timeModeSection() {
 }
 
 /**
+ * Veli paneli: KONUŞMA HIZI
+ * Ses ne çok hızlı ne çok yavaş olmalı. Her çocuk farklı — veli
+ * "Dene" ile dinleyip kendisi seçer.
+ */
+function speechSpeedSection() {
+  const suanki = Number(settings.speechSpeed) || 0.72;
+  const secenekler = [
+    [0.58, 'Çok Yavaş'],
+    [0.66, 'Yavaş'],
+    [0.72, 'Normal'],
+    [0.82, 'Hızlı']
+  ];
+  // En yakın seçeneği işaretle
+  const enYakin = secenekler.reduce((a, b) => (Math.abs(b[0] - suanki) < Math.abs(a[0] - suanki) ? b : a))[0];
+
+  return el('div', { class: 'advice-box' },
+    el('h3', { style: { marginTop: '0' }, text: 'Konuşma hızı' }),
+    el('p', { class: 'small muted', style: { marginTop: '0' },
+      text: 'Ders ve ipuçları sesli okunur. Çocuğunuz yetiştiremiyorsa yavaşlatın, sıkılıyorsa hızlandırın.' }),
+    el('div', { class: 'btn-row' },
+      ...secenekler.map(([deger, ad]) => el('button', {
+        class: 'btn sm ' + (deger === enYakin ? 'green' : 'ghost'),
+        text: ad,
+        onClick: () => {
+          settings.speechSpeed = deger;
+          persistSettings();
+          renderParent();
+          // Seçilen hızla hemen örnek oku — kulakla karşılaştırsın
+          setTimeout(() => speak('Kare çiz. Dört eşit kenar. Sağa git, sonra aşağı.',
+            { force: true, key: 'speed-ornek-' + Date.now() }), 120);
+        }
+      }))
+    ),
+    el('div', { class: 'btn-row', style: { marginTop: '8px' } },
+      el('button', {
+        class: 'btn ghost sm', text: '🔊 Seçili hızı dene',
+        onClick: () => speak('Karenin dört kenarı vardır. Hepsi birbirine eşittir.',
+          { force: true, key: 'speed-dene-' + Date.now() })
+      })
+    ),
+    el('p', { class: 'small', style: { marginTop: '8px' },
+      text: `Şu anki hız: ${suanki.toFixed(2)} — "Normal" (0.72) önerilen dengedir.` })
+  );
+}
+
+/**
  * Veli paneli: SERBEST MOD
  * Çocuk okulda konuyu görmeden ilgili bölüme giremiyordu (kilit).
  * Öğretmen/veli bu anahtarı açınca tüm bölümler kilitsiz açılır.
@@ -1013,6 +1066,8 @@ function renderParent() {
     el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
 
     adviceSection(),
+
+    speechSpeedSection(),
 
     timeModeSection(),
 
@@ -1186,6 +1241,7 @@ function boot() {
   S.bindWorlds(WORLDS);
   applyTextSize();                       // kayıtlı büyük-yazı ayarını uygula
   applyFreeMode();                       // kayıtlı serbest mod ayarını uygula
+  applySpeechSpeed();                    // kayıtlı konuşma hızını uygula
   window.adaConfetti = confetti;
   bindHud();
   sparkles();

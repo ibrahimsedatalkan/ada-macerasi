@@ -107,6 +107,15 @@ let lastSpoken = '';
 let voicesReady = false;
 let trVoice = null;
 
+/* Konuşma hızı — veli panelinden ayarlanır.
+   0.62 çok yavaş, 0.78 çok hızlı bulundu → 0.72 denge noktası. */
+export let speechRate = 0.72;
+export function setSpeechRate(v) {
+  const n = Number(v);
+  speechRate = Math.max(0.45, Math.min(1.3, Number.isFinite(n) && n > 0 ? n : 0.72));
+}
+export function getSpeechRate() { return speechRate; }
+
 /* Bilinen iyi Türkçe sesler — öncelik sırasıyla denenir.
    Tarayıcı varsayılanı bazen anlaşılmaz oluyor (kalite farkı çok yüksek). */
 const IYI_SESLER = [
@@ -158,9 +167,10 @@ function cumlelereBol(t) {
  * @param {string} text
  * @param {{force?:boolean, rate?:number, key?:string, onDone?:Function}} opts
  */
-export function speak(text, { force = false, rate = 0.62, key = '', onDone = null } = {}) {
+export function speak(text, { force = false, rate = null, key = '', onDone = null } = {}) {
   if (!audio.voice && !force) return;
   if (!('speechSynthesis' in window)) return;
+  const hiz = Number.isFinite(rate) && rate > 0 ? rate : speechRate;
   const t = String(text || '').trim();
   const token = key || t;
   if (!t || (token === lastSpoken && !force)) return;
@@ -177,7 +187,7 @@ export function speak(text, { force = false, rate = 0.62, key = '', onDone = nul
     parcalar.forEach((cumle, i) => {
       const u = new SpeechSynthesisUtterance(cumle);
       u.lang = 'tr-TR';
-      u.rate = rate;          // yavaş
+      u.rate = hiz;           // ayarlanabilir hız (varsayılan 0.72)
       u.pitch = 1.02;         // çok tiz olmasın (anlaşılırlık)
       u.volume = 1;
       if (trVoice) u.voice = trVoice;

@@ -6,7 +6,7 @@
 import { el, clear, starsEl, shake } from '../ui.js';
 import { makeMultiplyQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
-import { resetSpeech } from '../audio.js';
+import { resetSpeech, getSpeechRate } from '../audio.js';
 import {
   pickAdaptiveTables, adaptiveMaxB, pushRecent, difficultyTier,
   initMissed, pushMissed, takeDueMissed, shouldReask
@@ -187,7 +187,7 @@ export function createMultiplyGame({ root, level, api }) {
   function replayQuestion() {
     if (!state.cur) return;
     resetSpeech();                                  // tekrar kilidini aç
-    api.speak(questionSpeech(state.cur), { force: true, rate: 0.7, key: 'replay' + state.i + '-' + Date.now() });
+    api.speak(questionSpeech(state.cur), { force: true, rate: Math.max(0.5, getSpeechRate() * 0.92), key: 'replay' + state.i + '-' + Date.now() });
   }
 
   /**

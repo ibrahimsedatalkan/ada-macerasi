@@ -7,7 +7,7 @@
 import { el, clear, shake } from '../ui.js';
 import { makeAddQuestion, questionSpeech } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
-import { resetSpeech } from '../audio.js';
+import { resetSpeech, getSpeechRate } from '../audio.js';
 import { pushRecent, pushMissed, takeDueMissed, shouldReask } from './adaptive.js';
 
 export function createAddSubGame({ root, level, api }) {
@@ -97,7 +97,7 @@ export function createAddSubGame({ root, level, api }) {
   function replayQuestion() {
     if (!state.cur) return;
     resetSpeech();
-    api.speak(questionSpeech(state.cur), { force: true, rate: 0.7, key: 'addreplay' + state.i + '-' + Date.now() });
+    api.speak(questionSpeech(state.cur), { force: true, rate: Math.max(0.5, getSpeechRate() * 0.92), key: 'addreplay' + state.i + '-' + Date.now() });
   }
 
   function startTimer() {
