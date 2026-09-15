@@ -16,6 +16,7 @@ import { createShapeHuntGame } from './games/shapehunt.js';
 import { createDrawGame } from './games/draw.js';
 import { createBossGame } from './games/boss.js';
 import { createDuel } from './duel.js';
+import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
 
@@ -86,6 +87,7 @@ const api = {
     if (a.correct) { journey.advance(); sfx('step'); } else { journey.stumble(); }
   },
   journeyProgress: (fraction) => journey?.setProgress(fraction),
+  saveProfile: () => { if (profile) S.saveProfile(profile); },
   finish: (result) => finishLevel(result)
 };
 
@@ -796,10 +798,42 @@ async function resetProfile() {
 }
 
 /* ---------------- 7) DÜELLO ---------------- */
-function renderDuel() {
+function renderDuel(mode) {
   const root = showScreen('duel');
   const container = el('div', { class: 'game-wrap' });
   root.append(container);
+
+  // Mod seçilmemişse: aynı cihaz mı, canlı mı?
+  if (!mode) {
+    container.append(
+      el('div', { class: 'duel-head' },
+        el('button', { class: 'btn sm ghost', text: '← Haritaya dön', onClick: () => { sfx('click'); renderMap(); } })
+      ),
+      el('div', { class: 'panel' },
+        el('h1', { text: 'Düello' }),
+        el('p', { class: 'small muted', text: 'Nasıl oynamak istersiniz?' }),
+        el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '14px' } },
+          el('button', { class: 'btn primary', text: 'Arkadaşınla canlı (oda kodu)', onClick: () => { sfx('click'); renderDuel('online'); } }),
+          el('button', { class: 'btn blue', text: 'Aynı cihazda 2 kişi', onClick: () => { sfx('click'); renderDuel('local'); } })
+        ),
+        el('p', { class: 'small muted', style: { textAlign: 'center' } , text: 'Canlı düelloda arkadaşın kendi cihazından aynı sorulara cevap verir.' })
+      )
+    );
+    speak('Düello! Arkadaşınla canlı mı, yoksa aynı cihazda mı oynamak istersin?');
+    return;
+  }
+
+  if (mode === 'online') {
+    const duel = createDuelOnline({
+      root: container,
+      api: Object.assign({}, api, { speak: (t) => speak(t) }),
+      onExit: (yerel) => { duel.destroy(); if (yerel === 'local') renderDuel('local'); else renderMap(); }
+    });
+    currentEngine = duel;
+    duel.start();
+    return;
+  }
+
   const duel = createDuel({
     root: container,
     api: Object.assign({}, api, { speak: (t) => speak(t) }),

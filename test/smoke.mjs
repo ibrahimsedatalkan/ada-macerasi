@@ -160,7 +160,9 @@ check('çizim sonrası ilerledi', !/Kapsama: %0/.test(after) || after.startsWith
 /* ---------- Düello ---------- */
 await c.goto(BASE + '/index.html', 1500);
 await c.clickByText('Düello');
-await c.sleep(400);
+await c.sleep(600);
+check('düello mod seçimi açıldı', (await c.evaluate('document.querySelector(".screen.active").dataset.screen')) === 'duel');
+await c.clickByText('Aynı cihazda 2 kişi', 'button', 800);
 check('düello kurulum ekranı', (await c.evaluate('document.querySelector(".screen.active").dataset.screen')) === 'duel');
 await c.evaluate(`document.querySelectorAll('[data-screen="duel"] input')[1].value = 'Arkadas'`);
 await c.clickByText('Başla!');
