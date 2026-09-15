@@ -16,6 +16,7 @@ import { createDrawGame } from './games/draw.js';
 import { createBossGame } from './games/boss.js';
 import { createDuel } from './duel.js';
 import * as online from './online.js';
+import { Journey, expectedSteps } from './journey.js';
 
 const ACTIVE_KEY = 'ada.active.v2';
 const ENGINE_BY_TYPE = {
@@ -30,6 +31,7 @@ let profile = null;
 let settings = S.loadSettings();
 let currentEngine = null;
 let currentLevel = null;
+let journey = null;
 let screenNow = 'login';
 
 /* ---------------- yardımcılar ---------------- */
@@ -76,7 +78,13 @@ const api = {
   sfx: (n) => sfx(n),
   confetti: (o) => confetti(o),
   toast: (m) => toast(m),
-  recordAnswer: (a) => { if (profile) S.recordAnswer(profile, a); },
+  recordAnswer: (a) => {
+    if (profile) S.recordAnswer(profile, a);
+    if (!journey) return;
+    if (currentLevel?.level?.type === 'draw') return;   // çizimde ilerleme kapsama oranına bağlı
+    if (a.correct) { journey.advance(); sfx('step'); } else { journey.stumble(); }
+  },
+  journeyProgress: (fraction) => journey?.setProgress(fraction),
   finish: (result) => finishLevel(result)
 };
 
@@ -279,8 +287,17 @@ function startLevel(world, level) {
     el('div', { class: 'grow' })
   );
   const stage = el('div', { class: 'game-wrap' });
+  if (journey) { journey.destroy(); journey = null; }
+  journey = new Journey({
+    steps: expectedSteps(level),
+    worldId: world.id,
+    avatar: profile?.avatar || '🦊',
+    goalLabel: world.goalLabel
+  });
+  const journeyHost = el('div', { class: 'journey-host' });
+  journey.mount(journeyHost);
   const wrap = el('div', { class: 'game-wrap' });
-  wrap.append(top, stage);
+  wrap.append(top, journeyHost, stage);
   root.append(wrap);
 
   const factory = ENGINE_BY_TYPE[level.type];
@@ -292,7 +309,13 @@ function startLevel(world, level) {
 
 async function quitLevel() {
   const ok = await confirmBox('Oyundan çıkmak istiyor musun? Bu bölümdeki ilerleme kaydedilmez.', { yes: 'Evet, çık', no: 'Devam et', title: 'Çıkış' });
-  if (ok) { stopSpeaking(); if (currentEngine?.destroy) currentEngine.destroy(); currentEngine = null; renderMap(); }
+  if (ok) {
+    stopSpeaking();
+    if (currentEngine?.destroy) currentEngine.destroy();
+    currentEngine = null;
+    if (journey) { journey.destroy(); journey = null; }
+    renderMap();
+  }
 }
 
 /* ---------------- 4) SONUÇ ---------------- */
@@ -319,6 +342,12 @@ function finishLevel(result) {
   const coins = (result.correct || 0) * 2 + stars * 6;
   S.addCoins(profile, coins);
   S.pushBoard(profile);
+  const completedRun = !!result.completed;
+  const perfectRun = (result.wrong || 0) === 0 && completedRun;
+  if (journey) {
+    journey.arrive({ completed: completedRun, perfect: perfectRun });
+    if (completedRun) { sfx('goalArrive'); if (perfectRun) setTimeout(() => sfx('star'), 500); }
+  }
   if (online.isConfigured()) {
     online.safe(() => online.pushProgress(profile, profile.token));
   }
@@ -372,6 +401,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
       )
     )
   );
+  if (journey?.root) panel.prepend(journey.root);
   root.append(panel);
 
   if (stars > 0) { confetti({ count: 120 + stars * 30, duration: 2400 }); sfx('win'); if (stars === 3) setTimeout(() => sfx('star'), 700); }

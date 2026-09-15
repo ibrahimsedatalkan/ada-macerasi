@@ -208,6 +208,9 @@ export function createDrawGame({ root, level, api }) {
     covEl.textContent = 'Kapsama: %' + Math.round(state.coverage * 100);
     redraw();
 
+    // Yolculuk şeridi: çizim ilerledikçe karakter hedefe yaklaşır
+    api.journeyProgress?.((state.i + state.coverage) / cfg.shapes.length);
+
     if (state.coverage >= cfg.pass) successShape();
     else if (state.coverage >= cfg.pass * 0.75) api.speak('Çok yakın, biraz daha devam et.');
     else api.speak('Şeklin üzerinden geç.');
@@ -216,6 +219,7 @@ export function createDrawGame({ root, level, api }) {
   function successShape() {
     if (state.done) return;
     state.correct++;
+    api.journeyProgress?.((state.i + 1) / cfg.shapes.length);
     api.recordAnswer({ correct: true, shape: state.cur.id });
     api.sfx('unlock');
     api.confetti({ count: 70, duration: 1600 });

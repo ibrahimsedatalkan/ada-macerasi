@@ -28,6 +28,26 @@ kayıt gerektirmez ve internetsiz de oynanır.
 Zorluk artışı: soru sayısı ↑, seçenek sayısı ↑, süre ↓, can ↓, "3 × ? = 12" (eksik çarpan)
 ve "? × 4 = 20" (ters çarpım) soruları, karışık bölümler.
 
+### 🧭 Yolculuk şeridi (hedefe ilerleme)
+
+Her bölümün üstünde canlı bir yol vardır: seçilen karakter yolun başında durur.
+
+- **Her doğru cevap** karakteri bir adım ilerletir ve önündeki engel (çalı, kaya,
+  kristal, kırık tahta, kapı) parçalanır.
+- **Yanlış cevap** ilerlemeyi geri almaz; karakter sadece sendeler (motivasyon korunur)
+  ama can azalır ve o engel yolda kalır.
+- **Yolun ortasındaki BÜYÜK ENGEL** yıkılınca "Yol açıldı!" mesajı gelir — hedefe
+  yaklaştığını net gösterir.
+- **Bölüm sonunda** hedef açılır: hazine sandığı kapağı kalkar, kulenin kapısı açılır,
+  kristal parlar, köprünün eksik tahtaları yerine oturur. Ulaşılamayan engeller kırmızı
+  işaretli kalır ("Kalan engeller yolda kaldı").
+- **Çizim bölümlerinde** ilerleme cevap sayısına değil, **çizimin kapsama oranına**
+  bağlıdır: kalem ilerledikçe karakter de hedefe yaklaşır.
+
+Bölüm tipine göre yolun uzunluğu: çarpım/kenar-köşe = soru sayısı, şekil avı = toplam
+şekil sayısı, ejderha = soru sayısının ~1,4 katı (tek soruda birden çok doğru olabildiği için),
+çizim = şekil sayısı × 3.
+
 ---
 
 ## 2. Dosya yapısı

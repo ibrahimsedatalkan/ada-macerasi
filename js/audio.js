@@ -83,6 +83,9 @@ const SFX = {
   win: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone({ freq: f, dur: 0.24, type: 'triangle', gain: 0.16, delay: i * 0.13 })); },
   lose: () => { [494, 415, 330, 262].forEach((f, i) => tone({ freq: f, dur: 0.26, type: 'sine', gain: 0.13, delay: i * 0.16 })); },
   tick: () => tone({ freq: 880, dur: 0.05, type: 'square', gain: 0.05 }),
+  step: () => tone({ freq: 540, dur: 0.06, type: 'triangle', gain: 0.06 }),
+  crack: () => { noise({ dur: 0.24, gain: 0.15, hp: 200 }); tone({ freq: 190, glide: 70, dur: 0.3, type: 'square', gain: 0.07 }); },
+  goalArrive: () => { [659, 784, 988, 1319].forEach((f, i) => tone({ freq: f, dur: 0.22, type: 'triangle', gain: 0.15, delay: i * 0.1 })); noise({ dur: 0.3, gain: 0.08, hp: 900 }); },
   roar: () => { tone({ freq: 110, glide: 60, dur: 0.7, type: 'sawtooth', gain: 0.12 }); noise({ dur: 0.6, gain: 0.08, hp: 200 }); }
 };
 
