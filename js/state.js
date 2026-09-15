@@ -12,6 +12,16 @@ const BOARD_KEY = 'ada.board.v2';
 export const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐙', '🦄', '🐝', '🐢', '🦁', '🐨', '🐧'];
 export const WORLD_EMOJI = { w1: '🌱', w2: '🌳', w3: '💎', w4: '🌈', w5: '🐉' };
 
+/** Emoji → üretilmiş karakter görseli eşlemesi (assets/avatars/<slug>.jpg) */
+export const AVATAR_SLUGS = {
+  '🦊': 'fox', '🐼': 'panda', '🐯': 'tiger', '🐸': 'frog', '🦉': 'owl', '🐙': 'octopus',
+  '🦄': 'unicorn', '🐝': 'bee', '🐢': 'turtle', '🦁': 'lion', '🐨': 'koala', '🐧': 'penguin'
+};
+
+export function avatarSlug(emoji) {
+  return AVATAR_SLUGS[emoji] || 'fox';
+}
+
 function read(key, fallback) {
   try {
     const raw = localStorage.getItem(key);

@@ -3,7 +3,7 @@
    Puan = 100 + hız bonusu. Kazanana taç.
    ============================================================ */
 
-import { el, clear, starsHTML, randInt, toast } from './ui.js';
+import { el, clear, starsHTML, avatarHTML, randInt, toast } from './ui.js';
 import { shapeSVG, SHAPES } from './shapes.js';
 import { makeMultiplyQuestion, makeSidesQuestion, makeTapQuestion, questionSpeech } from './games/questions.js';
 
@@ -36,16 +36,8 @@ export function createDuel({ root, api, onExit }) {
 
     const row1 = el('div', { class: 'avatar-grid', style: { maxWidth: '340px' } });
     const row2 = el('div', { class: 'avatar-grid', style: { maxWidth: '340px' } });
-    const mkAv = (list, set, get) => (row) => {
-      clear(row);
-      for (const a of list) {
-        const b = el('button', { class: 'avatar-opt', type: 'button', text: a, ariaPressed: get() === a });
-        b.addEventListener('click', () => { api.sfx('tap'); set(a); mkAv(list, set, get)(row); });
-        row.append(b);
-      }
-    };
-    const build1 = () => { clear(row1); avatars1.forEach((a) => { const b = el('button', { class: 'avatar-opt', type: 'button', text: a, ariaPressed: a1 === a }); b.addEventListener('click', () => { api.sfx('tap'); a1 = a; build1(); }); row1.append(b); }); };
-    const build2 = () => { clear(row2); avatars2.forEach((a) => { const b = el('button', { class: 'avatar-opt', type: 'button', text: a, ariaPressed: a2 === a }); b.addEventListener('click', () => { api.sfx('tap'); a2 = a; build2(); }); }); };
+    const build1 = () => { clear(row1); avatars1.forEach((a) => { const b = el('button', { class: 'avatar-opt', type: 'button', html: avatarHTML(a, { size: 52 }), ariaPressed: a1 === a }); b.addEventListener('click', () => { api.sfx('tap'); a1 = a; build1(); }); row1.append(b); }); };
+    const build2 = () => { clear(row2); avatars2.forEach((a) => { const b = el('button', { class: 'avatar-opt', type: 'button', html: avatarHTML(a, { size: 52 }), ariaPressed: a2 === a }); b.addEventListener('click', () => { api.sfx('tap'); a2 = a; build2(); }); row2.append(b); }); };
     build1(); build2();
 
     const panel = el('div', { class: 'panel' },
@@ -98,7 +90,8 @@ export function createDuel({ root, api, onExit }) {
   function drawScores() {
     clear(headerEl);
     const side = (i) => el('div', { class: 'duel-side' + (state.turn === i && state.phase === 'play' ? ' active' : '') },
-      el('div', { class: 'ds-name', text: `${state.players[i].avatar} ${state.players[i].name}` }),
+      el('div', { class: 'ds-avatar', html: avatarHTML(state.players[i].avatar, { size: 46 }) }),
+      el('div', { class: 'ds-name', text: state.players[i].name }),
       el('div', { class: 'ds-score', text: String(state.players[i].score) }),
       el('div', { class: 'small muted', text: `Tur ${Math.min(state.round, ROUNDS)}/${ROUNDS} · ${state.players[i].correct} doğru` })
     );
@@ -129,7 +122,7 @@ export function createDuel({ root, api, onExit }) {
     clear(answerBox);
     qBox.append(
       el('div', { style: { textAlign: 'center' } },
-        el('div', { html: `<div style="font-size:60px">${p.avatar}</div>` }),
+        el('div', { class: 'duel-handoff', html: avatarHTML(p.avatar, { size: 96 }) }),
         el('h2', { class: 'center', text: `Sıra: ${p.name}` }),
         el('p', { class: 'center', text: 'Hazır olduğunda dokun. Telefonu arkadaşına ver!' }),
         el('button', { class: 'btn primary tap-hint', text: 'Hazırım!', onClick: () => { state.phase = 'play'; renderQuestion(); } })
@@ -253,9 +246,9 @@ export function createDuel({ root, api, onExit }) {
     const panel = el('div', { class: 'panel narrow' },
       el('h1', { class: 'center', text: '🏆 Düello Sonucu' }),
       el('div', { class: 'duel-scores', style: { margin: '14px 0' } },
-        el('div', { class: 'duel-side' }, el('div', { class: 'ds-name', text: `${a.avatar} ${a.name}` }), el('div', { class: 'ds-score', text: String(a.score) }), el('div', { class: 'small muted', text: `${a.correct} doğru` })),
+        el('div', { class: 'duel-side' }, el('div', { class: 'ds-avatar', html: avatarHTML(a.avatar, { size: 46 }) }), el('div', { class: 'ds-name', text: a.name }), el('div', { class: 'ds-score', text: String(a.score) }), el('div', { class: 'small muted', text: `${a.correct} doğru` })),
         el('div', { class: 'vs', text: 'VS' }),
-        el('div', { class: 'duel-side' }, el('div', { class: 'ds-name', text: `${b.avatar} ${b.name}` }), el('div', { class: 'ds-score', text: String(b.score) }), el('div', { class: 'small muted', text: `${b.correct} doğru` }))
+        el('div', { class: 'duel-side' }, el('div', { class: 'ds-avatar', html: avatarHTML(b.avatar, { size: 46 }) }), el('div', { class: 'ds-name', text: b.name }), el('div', { class: 'ds-score', text: String(b.score) }), el('div', { class: 'small muted', text: `${b.correct} doğru` }))
       ),
       el('h2', { class: 'center', text: winner ? `🥇 ${winner.name} kazandı!` : '🤝 Berabere!' }),
       el('p', { class: 'center', text: 'İkiniz de harika oynadınız. Tekrar deneyin, daha hızlı olun!' }),

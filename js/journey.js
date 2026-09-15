@@ -6,7 +6,7 @@
    Çizim bölümlerinde ilerleme kapsama oranına bağlıdır.
    ============================================================ */
 
-import { el } from './ui.js';
+import { el, avatarHTML } from './ui.js';
 
 const THEMES = {
   w1: { obstacle: 'cali', big: 'kaya', goal: 'sandik', label: 'Hazine Sandığı', ground: 'linear-gradient(180deg,#e6fbd6,#a9e08c)', sky: '#eaf9ff' },
@@ -100,7 +100,7 @@ export class Journey {
     this.big = el('div', { class: 'j-big', html: OBSTACLES[t.big]() });
     this.track.append(this.big);
 
-    this.walker = el('div', { class: 'j-walker', text: this.avatar, style: { left: '8%' } });
+    this.walker = el('div', { class: 'j-walker', html: avatarHTML(this.avatar, { size: 40 }), style: { left: '8%' } });
     this.track.append(this.walker);
 
     this.goal = el('div', { class: 'j-goal', dataset: { goal: t.goal }, html: GOALS[t.goal]() });

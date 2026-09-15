@@ -7,7 +7,7 @@
 
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
-import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, randInt, shuffle } from './ui.js';
+import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, randInt, shuffle } from './ui.js';
 import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import { createSidesGame } from './games/sides.js';
@@ -50,7 +50,7 @@ function updateHud() {
   document.getElementById('hud-stars').textContent = '★ ' + stars;
   document.getElementById('hud-coins').textContent = '● ' + (profile?.coins || 0);
   document.getElementById('hud-nick').textContent = profile?.nick || 'Oyuncu';
-  document.getElementById('hud-avatar').textContent = profile?.avatar || '🦊';
+  document.getElementById('hud-avatar').innerHTML = avatarHTML(profile?.avatar || '🦊', { size: 28 });
   document.getElementById('btn-sound').setAttribute('aria-pressed', String(!!settings.sound));
   document.getElementById('btn-voice').setAttribute('aria-pressed', String(!!settings.voice));
   document.getElementById('btn-music').setAttribute('aria-pressed', String(!!settings.music));
@@ -93,7 +93,7 @@ function renderLogin() {
   const root = showScreen('login');
   const panel = el('div', { class: 'panel narrow' },
     el('div', { style: { display: 'flex', gap: '14px', alignItems: 'center' } },
-      el('div', { html: mascot('cheer', 92) }),
+      el('div', { html: mascotHTML(92) }),
       el('div', {},
         el('h1', { text: 'Ada Macerası' }),
         el('p', { text: 'Sayılar ve şekiller diyarında maceraya hoş geldin!' })
@@ -109,7 +109,7 @@ function renderLogin() {
   const buildAvatars = () => {
     clear(avatarGrid);
     for (const a of S.AVATARS) {
-      const b = el('button', { class: 'avatar-opt', type: 'button', text: a, ariaPressed: avatar === a });
+      const b = el('button', { class: 'avatar-opt', type: 'button', html: avatarHTML(a, { size: 64 }), ariaPressed: avatar === a });
       b.addEventListener('click', () => { sfx('tap'); avatar = a; buildAvatars(); });
       avatarGrid.append(b);
     }
@@ -208,6 +208,10 @@ function renderMap() {
       !unlocked ? el('div', { class: 'wc-lock', text: '🔒' }) : el('span')
     );
     grid.append(card);
+    card.classList.add('photo');
+    card.style.backgroundImage = `linear-gradient(180deg, rgba(8,20,38,.10) 22%, rgba(8,20,38,.86)), url('assets/bg/${w.id}.jpg')`;
+    card.style.backgroundSize = 'cover';
+    card.style.backgroundPosition = 'center';
   });
 
   root.append(head, grid);
@@ -247,22 +251,26 @@ function openWorld(world) {
     grid.append(node);
   });
 
-  const body = el('div', {},
-    el('div', { style: { display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '10px' } },
-      el('div', { html: mascot(world.mood, 74) }),
-      el('div', {}, el('h2', { text: `${world.emoji} ${world.name}` }), el('p', { class: 'small', text: world.intro }))
-    ),
-    grid
+  const banner = el('div', { class: 'dialog-banner' },
+    el('h2', { text: `${world.emoji} ${world.name}` }),
+    el('p', { class: 'small', text: world.intro })
   );
+  banner.style.backgroundImage = `linear-gradient(180deg, rgba(8,20,38,.10), rgba(8,20,38,.82)), url('assets/bg/${world.id}.jpg')`;
+
+  const body = el('div', {}, banner, grid);
   const close = dialog(body);
 }
 
 function openLevelIntro(world, level) {
   const topics = levelTopics(level);
+  const banner = el('div', { class: 'dialog-banner' },
+    el('h2', { text: `${world.emoji} ${level.title}` }),
+    el('p', { class: 'small', text: level.story || '' })
+  );
+  banner.style.backgroundImage = `linear-gradient(180deg, rgba(8,20,38,.12), rgba(8,20,38,.80)), url('assets/bg/${world.id}.jpg')`;
   const body = el('div', { class: 'center' },
-    el('div', { html: mascot(world.mood, 110), style: { marginBottom: '6px' } }),
-    el('h2', { text: level.title }),
-    el('p', { text: level.story || '' }),
+    banner,
+    el('div', { html: mascotHTML(104), style: { marginBottom: '6px' } }),
     el('div', { class: 'hint-pill', text: topics.join(' · ') }),
     el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '16px' } },
       el('button', { class: 'btn primary', text: '🚀 Başla!', onClick: () => { close(); startLevel(world, level); } }),
@@ -378,7 +386,7 @@ function renderResult({ world, level, result, stars, score, coins, improved, unl
 
   const panel = el('div', { class: 'panel' },
     el('div', { class: 'result-hero' },
-      el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascot(mood, 120) })),
+      el('div', { style: { display: 'flex', justifyContent: 'center' } }, el('div', { html: mascotHTML(120) })),
       el('h1', { text: stars > 0 ? 'Bölüm tamam!' : 'Tekrar deneyelim' }),
       el('p', { class: 'small', text: `${world.emoji} ${world.name} · ${level.title}` }),
       starLine,
@@ -561,14 +569,17 @@ function openProfileDialog() {
   const build = () => {
     clear(grid);
     for (const a of S.AVATARS) {
-      const b = el('button', { class: 'avatar-opt', type: 'button', text: a, ariaPressed: profile.avatar === a });
+      const b = el('button', { class: 'avatar-opt', type: 'button', html: avatarHTML(a, { size: 64 }), ariaPressed: profile.avatar === a });
       b.addEventListener('click', () => { sfx('tap'); profile.avatar = a; S.saveProfile(profile); build(); updateHud(); });
       grid.append(b);
     }
   };
   build();
   const body = el('div', { class: 'center' },
-    el('h2', { text: `${profile.avatar} ${profile.nick}` }),
+    el('div', { class: 'profile-head' },
+      el('div', { html: avatarHTML(profile.avatar, { size: 40 }) }),
+      el('h2', { text: profile.nick })
+    ),
     el('p', { class: 'small', text: `Sınıf ${profile.classCode} · ★ ${S.totalStars(profile)} · ● ${profile.coins}` }),
     el('div', { class: 'field' }, el('label', { text: 'Karakter değiştir' }), grid),
     el('div', { class: 'btn-row', style: { justifyContent: 'center' } },
@@ -591,6 +602,23 @@ function bindHud() {
   document.getElementById('hud-stars').addEventListener('click', () => toast(`Toplam ${profile ? S.totalStars(profile) : 0} yıldız`));
 }
 
+/** Ortam görsellerini önceden yükle (ilk bölümde arka plan boş kalmasın) */
+function preloadArt() {
+  const ids = ['hero', ...WORLDS.map((w) => w.id)];
+  for (const id of ids) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = `assets/bg/${id}.jpg`;
+  }
+  for (const slug of Object.values(S.AVATAR_SLUGS)) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = `assets/avatars/${slug}.jpg`;
+  }
+  const pofi = new Image();
+  pofi.src = 'assets/mascot/pofi.jpg';
+}
+
 function sparkles() {
   const box = document.getElementById('sparkles');
   if (!box) return;
@@ -611,6 +639,7 @@ function boot() {
   window.adaConfetti = confetti;
   bindHud();
   sparkles();
+  preloadArt();
   document.addEventListener('pointerdown', () => unlockAudio(), { once: true });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') stopSpeaking(); });
 

@@ -47,6 +47,18 @@ body[data-world="w3"] { --sky-1:#5d6bd0; --sky-2:#a9b6ff; --hill-1:#4a4f9e; --hi
 body[data-world="w4"] { --sky-1:#ffc9e6; --sky-2:#fff0f8; --hill-1:#ffb0c9; --hill-2:#e07ba7; --accent:#ff6f9c; --sea:#ffd6ea; }
 body[data-world="w5"] { --sky-1:#7c4a63; --sky-2:#d9a0a0; --hill-1:#6b3145; --hill-2:#3f1c2b; --accent:#ff5a5f; --sea:#a05a6a; }
 
+/* Gerçekçi (üretilmiş) ortam görselleri — dünya başına */
+.scene { background-size: cover; background-position: center; background-repeat: no-repeat; }
+body[data-world="w1"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.06), rgba(12,28,48,.30)), url('../assets/bg/w1.jpg'); }
+body[data-world="w2"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.06), rgba(12,28,48,.30)), url('../assets/bg/w2.jpg'); }
+body[data-world="w3"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.04), rgba(8,10,40,.34)), url('../assets/bg/w3.jpg'); }
+body[data-world="w4"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.08), rgba(40,20,50,.26)), url('../assets/bg/w4.jpg'); }
+body[data-world="w5"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.04), rgba(20,10,30,.34)), url('../assets/bg/w5.jpg'); }
+body[data-view="login"] .scene,
+body[data-view="map"] .scene { background-image: linear-gradient(180deg, rgba(255,255,255,.06), rgba(12,28,48,.34)), url('../assets/bg/hero.jpg'); }
+/* Fotoğraf arka plan varken düz vektör dekorları gizle */
+.scene .sun, .scene .cloud, .scene .hill, .scene .sea, .scene .ground { display: none; }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body {
@@ -160,6 +172,17 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 
 /* ---------- Avatar seçici ---------- */
 .avatar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 10px; }
+.ava-img { object-fit: cover; display: block; border-radius: 50%; }
+.avatar-opt { padding: 0; overflow: hidden; }
+.avatar-opt .ava-img { width: 100%; height: 100%; border-radius: var(--r-md); }
+.hud-avatar img { width: 28px; height: 28px; }
+.profile-head { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.profile-head img { width: 40px; height: 40px; }
+.mascot-img { display: block; margin: 0 auto; border-radius: var(--r-lg);
+  box-shadow: 0 0 0 4px #fff, 0 6px 0 rgba(35,50,77,.18), 0 10px 22px rgba(20,40,70,.18); }
+.j-walker img { width: 100%; height: 100%; }
+.ds-avatar img { width: 46px; height: 46px; margin: 0 auto 2px; }
+.duel-handoff img { width: 96px; height: 96px; margin: 0 auto; }
 .avatar-opt { aspect-ratio: 1; border-radius: var(--r-md); border: 3px solid var(--line-strong); background: var(--paper-2);
   font-size: clamp(26px, 5vw, 34px); cursor: pointer; display: grid; place-items: center; transition: transform var(--t-fast); }
 .avatar-opt[aria-pressed="true"] { border-color: var(--accent); background: #fff7ec; transform: translateY(-3px) scale(1.04); }
@@ -175,6 +198,21 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 .world-card .wc-desc { font-size: 14px; color: var(--ink-soft); font-family: "Nunito", var(--font); font-weight: 600; }
 .world-card.locked { filter: grayscale(.85) blur(.4px); opacity: .62; cursor: not-allowed; }
 .world-card .wc-lock { position: absolute; top: 12px; right: 14px; font-size: 22px; }
+.world-card.photo { color: #fff; }
+.world-card.photo .wc-name,
+.world-card.photo .wc-desc,
+.world-card.photo .small { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.62); }
+.world-card.photo .wc-emoji { filter: drop-shadow(0 2px 6px rgba(0,0,0,.55)); font-size: 34px; }
+.world-card.photo .wc-prog { background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.55); }
+.world-card.photo .wc-prog i { background: linear-gradient(90deg, var(--yellow), #fff); }
+.world-card.photo.locked { filter: grayscale(.8) brightness(.72); }
+
+/* Diyalog üst görseli (ada manzarası) */
+.dialog-banner { border: 3px solid var(--ink); border-radius: var(--r-md); background-size: cover;
+  background-position: center; min-height: 118px; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 14px 16px; margin-bottom: 14px; overflow: hidden; }
+.dialog-banner h2, .dialog-banner p { color: #fff; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+.dialog-banner p { color: rgba(255,255,255,.95); }
 .wc-prog { height: 10px; border-radius: 999px; background: var(--paper-2); border: 2px solid var(--line); overflow: hidden; margin-top: 10px; }
 .wc-prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow)); }
 
@@ -202,8 +240,13 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 .timer-bar.dragon { max-width: 620px; margin: 0 auto; }
 .timer-bar.dragon i { background: linear-gradient(90deg, #ff5a5f, #ff9a3d); transition: width .3s ease; }
 .question { text-align: center; font-size: clamp(34px, 8vw, 74px); font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Fotoğraf zemin üzerinde soru okunabilirliği: hafif beyaz zemin */
+.game-wrap > .question { align-self: center; max-width: 94%; background: rgba(255,255,255,.80);
+  border-radius: var(--r-lg); padding: 4px 26px; box-shadow: 0 3px 0 rgba(35,50,77,.16); }
 .question .q-mark { color: var(--accent); }
 .q-hint { text-align: center; font-size: clamp(15px, 2.4vw, 20px); color: var(--ink-soft); font-family: "Nunito", var(--font); font-weight: 700; }
+.game-wrap > .q-hint { align-self: center; background: rgba(255,255,255,.72); border-radius: 999px; padding: 2px 16px; }
+.lives { text-shadow: 0 1px 0 #fff, 0 0 10px rgba(255,255,255,.85); }
 .answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
 .answer-btn { position: relative; min-height: clamp(88px, 16vh, 132px); border-radius: var(--r-lg); border: 3px solid var(--ink);
   background: var(--paper); box-shadow: 0 6px 0 var(--ink); font: inherit; font-size: clamp(30px, 6vw, 50px); font-weight: 700;

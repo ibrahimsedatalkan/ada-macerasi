@@ -56,6 +56,13 @@ Bölüm tipine göre yolun uzunluğu: çarpım/kenar-köşe = soru sayısı, şe
 ada-macerasi/
 ├── index.html              # tek sayfa iskeleti (sahne, HUD, ekranlar)
 ├── css/style.css           # görsel sistem (renk, tipografi, bileşenler)
+├── assets/
+│   ├── bg/                 # üretilmiş gerçekçi ortam görselleri (w1..w5 + hero, ~150 KB/adet JPEG)
+│   ├── avatars/            # 12 karakter portresi (512×512, ~25 KB/adet)
+│   └── mascot/             # maskot Pofi (kutlama/karşılama ekranları)
+├── tools/
+│   ├── gen_images.py       # ortam görsellerini üretir (OpenAI Images API, gpt-image-1)
+│   └── optimize_images.py  # PNG → web JPEG (uv run --with pillow)
 ├── js/
 │   ├── main.js             # akış: giriş → harita → bölüm → oyun → sonuç
 │   ├── worlds.js           # 5 ada × 5 bölüm müfredat verisi
@@ -189,7 +196,30 @@ export function createGame({ root, level, api }) {
 
 ---
 
-## 8. Bilinen sınırlar
+## 8. Görselleri yeniden üretme
+
+Ortam ve karakter görselleri yapay zekâ ile üretildi ve repoda hazır duruyor; değiştirmek istersen:
+
+```bash
+# yeni görsel üret (OpenAI Images API — ücretlidir)
+python3 tools/gen_images.py w1 w5              # iki ortam
+python3 tools/gen_images.py av:fox po:pofi     # karakter + maskot
+python3 tools/gen_images.py --list             # tüm anahtarlar
+python3 tools/gen_images.py --all --quality=high
+
+# üretilen PNG'leri web için optimize et (JPEG'e çevirir, küçültür)
+uv run --with pillow python tools/optimize_images.py
+```
+
+- Üretim boyutları: ortamlar 1536×1024, karakterler 1024×1024 (kalite: `low|medium|high`).
+- Optimizasyon: ortamlar 1600 px JPEG (~150 KB), karakterler 512 px JPEG (~25 KB).
+- Kaynak PNG'ler `assets/_source/` altına taşınır ve `.gitignore` ile yayına girmez.
+- Karakter eşlemesi `js/state.js` içindeki `AVATAR_SLUGS` ile yapılır; görsel yüklenemezse
+  otomatik olarak emoji'ye düşer (oyun asla bozulmaz).
+
+---
+
+## 9. Bilinen sınırlar
 
 - Sesli anlatım tarayıcının Türkçe sesine bağlıdır; bazı cihazlarda robotik olabilir.
 - Sınıf tablosu ve ilerleme cihaz bazlıdır (Aşama 2'ye kadar).

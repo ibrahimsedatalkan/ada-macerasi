@@ -2,6 +2,21 @@
    ui.js — DOM yardımcıları, yıldızlar, konfeti, maskot, diyalog
    ============================================================ */
 
+import { avatarSlug } from './state.js';
+
+/** Karakter görseli (üretilmiş). Yüklenemezse emoji'ye düşer. */
+export function avatarHTML(emoji, { size = 40, cls = '' } = {}) {
+  const slug = avatarSlug(emoji);
+  return `<img class="ava-img ${cls}" src="assets/avatars/${slug}.jpg" alt="" width="${size}" height="${size}" `
+    + `loading="lazy" decoding="async" onerror="this.onerror=null;this.replaceWith(document.createTextNode('${emoji}'))">`;
+}
+
+/** Maskot görseli (üretilmiş). Yüklenemezse SVG maskota düşer. */
+export function mascotHTML(size = 150) {
+  return `<img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `
+    + `decoding="async" onerror="this.onerror=null;this.outerHTML='${mascot('happy', size).replace(/'/g, '&#39;').replace(/\n/g, '')}'">`;
+}
+
 export function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
