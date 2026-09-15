@@ -575,3 +575,37 @@ input:focus, select:focus { outline: 3px solid var(--blue); outline-offset: 1px;
 /* Günlük seri alevi hafif nabız */
 .hint-pill.streak.on { animation: streakPulse 1.8s ease-in-out infinite; }
 @keyframes streakPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+/* ---------- Büyük yazı (erişilebilirlik) ---------- */
+.icon-btn.txt { font-weight: 900; font-size: 15px; letter-spacing: -.02em; }
+body.big-text { font-size: 118%; }
+body.big-text .hint-body, body.big-text .hint-tip, body.big-text .as-desc,
+body.big-text .ts-name, body.big-text .si-name, body.big-text .small { font-size: 1.12em; }
+body.big-text .question { font-size: clamp(42px, 9vw, 82px); }
+body.big-text .answer-btn { font-size: 1.16em; min-height: 68px; }
+body.big-text .btn { font-size: 1.06em; }
+body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
+
+/* Soru kartı tekrar dinleme için dokunulabilir */
+.question { cursor: pointer; user-select: none; }
+.question:active { transform: scale(.985); }
+
+/* ---------- Veli paneli: eylem önerileri ---------- */
+.advice-box { background: rgba(255,255,255,.94); border: 3px solid var(--line-strong);
+  border-radius: var(--r-lg); padding: 16px 18px; box-shadow: var(--shadow-1);
+  margin: 14px 0 20px; display: grid; gap: 10px; }
+.advice-card { border-radius: var(--r-md); padding: 10px 14px; border-left: 7px solid var(--line-strong);
+  background: var(--paper-2); display: grid; gap: 4px; }
+.advice-card.tip-acil    { border-left-color: var(--red);    background: #fff2f3; }
+.advice-card.tip-onemli  { border-left-color: var(--orange); background: #fff7ec; }
+.advice-card.tip-iyi     { border-left-color: var(--green-deep); background: #f1fff4; }
+.advice-card.tip-bilgi   { border-left-color: var(--blue);   background: #f2f9ff; }
+.adv-head { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: clamp(15px,2.2vw,17px); }
+.adv-ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 900; font-size: 13px; background: var(--ink); color: #fff; flex: none; }
+.advice-card.tip-acil .adv-ico { background: var(--red); }
+.advice-card.tip-onemli .adv-ico { background: var(--orange-deep); }
+.advice-card.tip-iyi .adv-ico { background: var(--green-deep); }
+.advice-card.tip-bilgi .adv-ico { background: var(--blue-deep); }
+.adv-neden { font-size: clamp(13px,1.9vw,15px); color: var(--ink-soft); }
+.adv-eylem { font-size: clamp(13px,2vw,16px); font-weight: 700; color: var(--ink); line-height: 1.45; }

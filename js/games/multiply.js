@@ -33,7 +33,17 @@ export function createMultiplyGame({ root, level, api }) {
     class: 'btn ghost sm tap-hint', text: '💡 Nasıl düşünmeliyim?',
     onClick: () => nextHint()
   });
-  const hintRow = el('div', { class: 'btn-row', style: { justifyContent: 'center' } }, hintBtn);
+  // Soruyu kaçıran çocuk tekrar dinleyebilsin (7 yaş için kritik)
+  const replayBtn = el('button', {
+    class: 'btn ghost sm', text: '🔊 Soruyu tekrar dinle',
+    onClick: () => { api.sfx('tap'); replayQuestion(); }
+  });
+  const hintRow = el('div', { class: 'btn-row', style: { justifyContent: 'center' } }, replayBtn, hintBtn);
+
+  // Soru kartına dokunmak da tekrar okur (çocuklar için doğal)
+  qEl.addEventListener('click', () => { api.sfx('tap'); replayQuestion(); });
+  qEl.style.cursor = 'pointer';
+  qEl.title = 'Tekrar dinlemek için dokun';
 
   root.append(bar, qEl, hintEl, visualEl, answersEl, hintRow);
 
@@ -171,6 +181,13 @@ export function createMultiplyGame({ root, level, api }) {
     for (const b of answersEl.children) {
       if (Number(b.textContent) === state.cur.answer) b.classList.add('correct');
     }
+  }
+
+  /** Soruyu tekrar sesli oku — çocuk kaçırdıysa dinleyebilsin */
+  function replayQuestion() {
+    if (!state.cur) return;
+    resetSpeech();                                  // tekrar kilidini aç
+    api.speak(questionSpeech(state.cur), { force: true, rate: 0.7, key: 'replay' + state.i + '-' + Date.now() });
   }
 
   /**

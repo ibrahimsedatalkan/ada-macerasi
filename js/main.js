@@ -19,6 +19,7 @@ import { createDuel } from './duel.js';
 import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
+import { buildAdvice, adviceToText } from './advice.js';
 
 const ACTIVE_KEY = 'ada.active.v2';
 const ENGINE_BY_TYPE = {
@@ -59,6 +60,7 @@ function updateHud() {
   document.getElementById('btn-sound').setAttribute('aria-pressed', String(!!settings.sound));
   document.getElementById('btn-voice').setAttribute('aria-pressed', String(!!settings.voice));
   document.getElementById('btn-music').setAttribute('aria-pressed', String(!!settings.music));
+  document.getElementById('btn-bigtext').setAttribute('aria-pressed', String(!!settings.bigText));
 }
 
 function persistSettings() {
@@ -66,7 +68,13 @@ function persistSettings() {
   audio.sound = settings.sound;
   audio.voice = settings.voice;
   if (settings.music) { if (!audio.music) startMusic(); } else if (audio.music) stopMusic();
+  applyTextSize();
   updateHud();
+}
+
+/** Büyük yazı ayarı — görme güçlüğü olan çocuklar için (ölçek %18 büyür) */
+function applyTextSize() {
+  document.body.classList.toggle('big-text', !!settings.bigText);
 }
 
 function setActive(nick, classCode) {
@@ -79,7 +87,7 @@ function clearActive() { try { localStorage.removeItem(ACTIVE_KEY); } catch (e) 
 
 const api = {
   get profile() { return profile; },
-  speak: (t) => speak(t),
+  speak: (t, opts) => speak(t, opts),
   sfx: (n) => sfx(n),
   confetti: (o) => confetti(o),
   toast: (m) => toast(m),
@@ -741,6 +749,36 @@ function masteryRows(map, labelFn, order) {
   return rows.length ? rows : [el('p', { class: 'small muted', text: 'Henüz veri yok.' })];
 }
 
+/** Veli paneli: veriyi "şunu yap" tavsiyesine çeviren bölüm */
+function adviceSection() {
+  const oneriler = buildAdvice(profile);
+  const ikon = { acil: '!', onemli: '▲', iyi: '★', bilgi: 'i' };
+  const kartlar = oneriler.map((a) => el('div', { class: 'advice-card tip-' + a.tip },
+    el('div', { class: 'adv-head' },
+      el('span', { class: 'adv-ico', text: ikon[a.tip] || 'i' }),
+      el('b', { text: a.baslik })
+    ),
+    el('div', { class: 'adv-neden', text: a.neden }),
+    el('div', { class: 'adv-eylem', text: '👉 ' + a.eylem })
+  ));
+
+  return el('div', { class: 'advice-box' },
+    el('h3', { style: { marginTop: '0' }, text: 'Ne yapmalı? — kişiye özel öneriler' }),
+    ...kartlar,
+    el('div', { class: 'btn-row', style: { marginTop: '10px' } },
+      el('button', {
+        class: 'btn ghost sm', text: 'Önerileri kopyala',
+        onClick: () => {
+          const t = adviceToText(profile, oneriler);
+          try { navigator.clipboard?.writeText(t); toast('Öneriler kopyalandı'); }
+          catch (e) { toast('Kopyalanamadı'); }
+          sfx('tap');
+        }
+      })
+    )
+  );
+}
+
 function renderParent() {
   const root = showScreen('parent');
   const st = profile.stats;
@@ -751,7 +789,7 @@ function renderParent() {
     const got = S.worldStars(profile, w);
     const max = w.levels.length * 3;
     return el('div', { class: 'mastery-row' },
-      el('div', { text: `${w.emoji} ${w.name}` }),
+      el('div', { text: w.name }),
       el('div', { class: 'mastery-bar' }, el('i', { style: { width: Math.round((got / max) * 100) + '%' } })),
       el('div', { class: 'muted', text: `★ ${got}/${max}` })
     );
@@ -760,6 +798,8 @@ function renderParent() {
   const panel = el('div', { class: 'panel wide' },
     el('h1', { text: '👨‍👩‍👦 Veli / Öğretmen Paneli' }),
     el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
+
+    adviceSection(),
 
     el('h3', { text: 'Çarpım tablosu ustalığı' }),
     el('div', { class: 'mastery', style: { marginBottom: '18px' } }, ...masteryRows(st.byTable || {}, (k) => `${k}'ler`, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])),
@@ -884,6 +924,12 @@ function bindHud() {
   document.getElementById('btn-sound').addEventListener('click', () => { settings.sound = !settings.sound; persistSettings(); sfx('click'); });
   document.getElementById('btn-voice').addEventListener('click', () => { settings.voice = !settings.voice; persistSettings(); if (settings.voice) speak('Sesli anlatım açık.'); });
   document.getElementById('btn-music').addEventListener('click', () => { settings.music = !settings.music; persistSettings(); if (settings.music) { unlockAudio(); startMusic(); } else stopMusic(); });
+  document.getElementById('btn-bigtext').addEventListener('click', () => {
+    settings.bigText = !settings.bigText;
+    persistSettings();
+    sfx('click');
+    speak(settings.bigText ? 'Yazılar büyütüldü.' : 'Yazılar normal boyutta.');
+  });
   document.getElementById('hud-stars').addEventListener('click', () => toast(`Toplam ${profile ? S.totalStars(profile) : 0} yıldız`));
 }
 
@@ -921,6 +967,7 @@ function boot() {
   audio.sound = settings.sound;
   audio.voice = settings.voice;
   S.bindWorlds(WORLDS);
+  applyTextSize();                       // kayıtlı büyük-yazı ayarını uygula
   window.adaConfetti = confetti;
   bindHud();
   sparkles();
