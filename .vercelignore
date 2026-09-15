@@ -1,0 +1,8 @@
+# Vercel'e gitmeyecek dosyalar
+test/
+node_modules/
+.vercel/
+*.log
+.DS_Store
+README.md
+.git/
