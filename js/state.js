@@ -139,6 +139,7 @@ export function migrate(p) {
   p.stats.byShape = p.stats.byShape || {};
   p.stats.recent = p.stats.recent || [];      // adaptif zorluk için son cevaplar
   p.missed = p.missed || [];                  // aralıklı tekrar kuyruğu
+  p.lessonsSeen = p.lessonsSeen || [];        // görülen dersler (ders ekranı)
   return p;
 }
 
@@ -204,7 +205,7 @@ export function deleteProfile(nick, code) {
 }
 
 /* ---------------- Ayarlar (cihaz bazlı) ---------------- */
-export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false, timeMode: 'normal' });
+export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false, timeMode: 'normal', freeMode: false });
 
 export function loadSettings() {
   return Object.assign(defaultSettings(), read(SETTINGS_KEY, {}));
@@ -226,8 +227,17 @@ export function hasStars(profile, levelId) {
   return getResult(profile, levelId).stars > 0;
 }
 
-/** Bölüm açık mı? İlk bölüm her zaman açık; sonrası bir önceki bölümden ≥1 yıldız ister. */
+/* ---------------- Serbest Mod (veli kontrolü) ----------------
+   Çocuk okulda konuyu henüz görmediyse kilitli bölüme takılıyordu.
+   Veli panelinden açılır: tüm bölümler kilit kontrolü olmadan açılır. */
+let freeModeOn = false;
+export function setFreeMode(v) { freeModeOn = !!v; }
+export function getFreeMode() { return freeModeOn; }
+
+/** Bölüm açık mı? İlk bölüm her zaman açık; sonrası bir önceki bölümden ≥1 yıldız ister.
+    Serbest Mod açıksa kilit kontrolü atlanır. */
 export function isLevelUnlocked(profile, world, levelIndex) {
+  if (freeModeOn) return true;
   if (levelIndex === 0) {
     // Dünya kilidi: önceki dünyanın son bölümünden en az 1 yıldız
     const wi = worldsIndexOf(world.id);
@@ -241,6 +251,7 @@ export function isLevelUnlocked(profile, world, levelIndex) {
 }
 
 export function isWorldUnlocked(profile, world) {
+  if (freeModeOn) return true;
   const wi = worldsIndexOf(world.id);
   if (wi <= 0) return true;
   const prev = worldsRef[wi - 1];

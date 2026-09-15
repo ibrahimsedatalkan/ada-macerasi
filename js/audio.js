@@ -95,15 +95,48 @@ export function sfx(name) {
   if (fn) { try { fn(); } catch (e) { /* sessiz geç */ } }
 }
 
-/* ---------------- Türkçe sesli anlatım ---------------- */
+/* ---------------- Türkçe sesli anlatım ----------------
+   TASARIM KARARI: 7 yaş çocuk için en önemli iki şey
+     1) YAVAŞ konuşma (rate 0.62)
+     2) CÜMLE ARASI DURAKLAMA — tek blok hâlinde okunursa anlaşılmıyor.
+   Bu yüzden metin cümlelere bölünür ve her cümle AYRI söylenir;
+   motor cümleler arasına doğal nefes payı koyar.
+--------------------------------------------------------- */
+
 let lastSpoken = '';
 let voicesReady = false;
+let trVoice = null;
 
-// Sesler tarayıcıda gecikmeli yüklenir (özellikle Chrome/Android).
-// İlk çağrıda liste boş olabilir — hazır olunca işaretle.
+/* Bilinen iyi Türkçe sesler — öncelik sırasıyla denenir.
+   Tarayıcı varsayılanı bazen anlaşılmaz oluyor (kalite farkı çok yüksek). */
+const IYI_SESLER = [
+  /google.*türkçe/i, /google.*turkish/i,   // Chrome / Android — en net
+  /microsoft.*(emel|tolga)/i,              // Windows — doğal
+  /yelda/i, /filiz/i,                      // iOS / macOS
+  /türkçe/i, /turkish/i, /tr[-_]TR/i
+];
+
+function pickTurkishVoice() {
+  try {
+    const list = window.speechSynthesis.getVoices() || [];
+    if (!list.length) return null;
+    const trler = list.filter((v) => /tr([-_]TR)?$/i.test(v.lang) || /tr[-_]TR/i.test(v.lang));
+    if (!trler.length) return null;
+    for (const rx of IYI_SESLER) {
+      const bulunan = trler.find((v) => rx.test(v.name));
+      if (bulunan) return bulunan;
+    }
+    // yerel (offline) ses genelde daha akıcı
+    return trler.find((v) => v.localService) || trler[0];
+  } catch (e) { return null; }
+}
+
 function markVoicesReady() {
   try {
-    if (window.speechSynthesis.getVoices().length) voicesReady = true;
+    if (window.speechSynthesis.getVoices().length) {
+      voicesReady = true;
+      trVoice = pickTurkishVoice();
+    }
   } catch (e) {}
 }
 if ('speechSynthesis' in window) {
@@ -112,38 +145,56 @@ if ('speechSynthesis' in window) {
 }
 export function warmUpVoices() { markVoicesReady(); }
 
+/** Metni cümlelere böl — her cümle ayrı okunur, aralarına nefes payı girer */
+function cumlelereBol(t) {
+  return String(t || '')
+    .split(/(?<=[.?!;])\s+|\s*[—–]\s*/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 1);
+}
+
 /**
- * Metni Türkçe seslendir.
- * rate: 7 yaş çocuk için yavaş (0.78). Kelimeler arası nefes payı bırakır.
+ * Metni Türkçe seslendir — CÜMLE CÜMLE, yavaş.
  * @param {string} text
- * @param {{force?:boolean, rate?:number, key?:string}} opts
- *   force → aynı metin olsa bile tekrar oku
- *   key   → tekrar kontrolü için kullanılacak kimlik (yeni soru = yeni key)
+ * @param {{force?:boolean, rate?:number, key?:string, onDone?:Function}} opts
  */
-export function speak(text, { force = false, rate = 0.78, key = '' } = {}) {
+export function speak(text, { force = false, rate = 0.62, key = '', onDone = null } = {}) {
   if (!audio.voice && !force) return;
   if (!('speechSynthesis' in window)) return;
-  const t = String(text || '').slice(0, 180);
+  const t = String(text || '').trim();
   const token = key || t;
   if (!t || (token === lastSpoken && !force)) return;
   lastSpoken = token;
+
   try {
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = 'tr-TR';
-    u.rate = rate;        // yavaş — çocuk anlayabilsin
-    u.pitch = 1.06;
-    u.volume = 1;
-    // Cümle sonlarında duraklama: TTS motoruna nefes payı
-    u.text = t.replace(/([.?!])\s*/g, '$1 ');
-    const voices = window.speechSynthesis.getVoices() || [];
-    const tr = voices.find((x) => /tr(-|_)?TR/i.test(x.lang));
-    if (tr) u.voice = tr;
-    // Sesler henüz yüklenmediyse, yüklenince tekrar dene
-    if (!tr && !voicesReady) {
-      try { window.speechSynthesis.addEventListener('voiceschanged', () => { markVoicesReady(); try { window.speechSynthesis.speak(u); } catch (e) {} }, { once: true }); } catch (e) {}
+    if (!trVoice) trVoice = pickTurkishVoice();
+
+    const parcalar = cumlelereBol(t).slice(0, 6);   // çok uzun metni sınırla
+    if (!parcalar.length) return;
+
+    let son = 0;
+    parcalar.forEach((cumle, i) => {
+      const u = new SpeechSynthesisUtterance(cumle);
+      u.lang = 'tr-TR';
+      u.rate = rate;          // yavaş
+      u.pitch = 1.02;         // çok tiz olmasın (anlaşılırlık)
+      u.volume = 1;
+      if (trVoice) u.voice = trVoice;
+      if (i === parcalar.length - 1 && typeof onDone === 'function') u.onend = () => onDone();
+      window.speechSynthesis.speak(u);   // motor sıraya koyar, aralara nefes payı ekler
+      son = i;
+    });
+
+    // Sesler henüz yüklenmediyse: hazır olunca Türkçe sesi bağla ve tekrar dene
+    if (!trVoice && !voicesReady) {
+      try {
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+          markVoicesReady();
+          if (trVoice) speak(t, { force: true, rate, key: token });
+        }, { once: true });
+      } catch (e) {}
     }
-    window.speechSynthesis.speak(u);
   } catch (e) { /* sesli anlatım desteklenmiyor */ }
 }
 

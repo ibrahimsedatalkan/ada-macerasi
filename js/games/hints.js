@@ -170,8 +170,14 @@ export function techniqueFor(q) {
 }
 
 /** Sesli okunacak kısa ipucu metni (cevabı içermez) */
+/**
+ * KONUŞULAN ipucu — KISA tutulur.
+ * Uzun açıklama (t.teach) ekranda yazılı kalır; kulağa yalnızca
+ * "ne yapmalıyım" cümlesi gider. 7 yaş için uzun metin anlaşılmıyor.
+ */
 export function techniqueSpeech(q) {
   const t = techniqueFor(q);
   if (!t) return '';
-  return `${t.name}. ${t.teach}`;
+  const kisa = (t.countHint || '').trim();
+  return kisa ? `${t.name}. ${kisa}` : t.name;
 }

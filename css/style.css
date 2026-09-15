@@ -618,3 +618,33 @@ body.big-text .ln-title, body.big-text .wc-name { font-size: 1.14em; }
 .hint-pill.good { background: linear-gradient(180deg,#dcf7e4,#a9e9bb); border-color: var(--green-deep);
   color: #16512a; font-weight: 900; }
 .draw-stage { touch-action: none; }
+
+/* ============================================================
+   DERSLER — alıştırmadan önce anlatım
+   ============================================================ */
+.lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
+.lesson-card { border: 3px solid var(--line-strong); border-radius: var(--r-lg); background: var(--paper);
+  padding: 14px 12px; display: grid; gap: 6px; justify-items: center; cursor: pointer; font: inherit;
+  color: var(--ink); box-shadow: 0 4px 0 rgba(35,50,77,.14); transition: transform var(--t-fast); }
+.lesson-card:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(35,50,77,.14); }
+.lesson-card.intro { background: linear-gradient(180deg,#eaf6ff,#d5ecff); }
+.lc-art { display: grid; place-items: center; min-height: 78px; font-size: 46px; }
+.lc-title { font-weight: 900; font-size: clamp(15px,2.4vw,19px); }
+.lc-sub { font-size: clamp(12px,1.8vw,14px); color: var(--ink-soft); text-align: center; }
+.lc-state { font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 999px;
+  background: var(--paper-2); border: 2px solid var(--line); }
+.lc-state.ok { background: #dcf7e4; border-color: var(--green-deep); color: #16512a; }
+
+/* Slayt görünümü */
+.lesson-panel { text-align: center; }
+.lesson-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+.lesson-dots .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--paper-2);
+  border: 2px solid var(--line-strong); display: inline-block; }
+.lesson-dots .dot.on { background: var(--blue-deep); transform: scale(1.2); }
+.lesson-stage { display: grid; place-items: center; gap: 8px; min-height: 210px;
+  background: var(--paper-2); border: 3px solid var(--line); border-radius: var(--r-lg); padding: 14px; }
+.lesson-shape svg { max-width: 100%; height: auto; }
+.lesson-emoji { font-size: clamp(38px,7vw,64px); letter-spacing: 6px; }
+.lesson-meta { font-weight: 800; color: var(--ink-soft); font-size: clamp(13px,2vw,17px); }
+.lesson-h { font-weight: 900; font-size: clamp(19px,3.2vw,28px); margin-top: 14px; color: var(--ink); }
+.lesson-p { font-size: clamp(15px,2.6vw,21px); line-height: 1.5; margin-top: 6px; color: var(--ink); max-width: 640px; margin-inline: auto; }

@@ -21,6 +21,8 @@ import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
 import { buildAdvice, adviceToText } from './advice.js';
+import { SHAPE_LESSONS, GEO_INTRO, dersKey, practiceLevelFor } from './lessons.js';
+import { shapeSVG, SHAPES } from './shapes.js';
 
 const ACTIVE_KEY = 'ada.active.v2';
 const ENGINE_BY_TYPE = {
@@ -71,12 +73,18 @@ function persistSettings() {
   audio.voice = settings.voice;
   if (settings.music) { if (!audio.music) startMusic(); } else if (audio.music) stopMusic();
   applyTextSize();
+  applyFreeMode();
   updateHud();
 }
 
 /** Büyük yazı ayarı — görme güçlüğü olan çocuklar için (ölçek %18 büyür) */
 function applyTextSize() {
   document.body.classList.toggle('big-text', !!settings.bigText);
+}
+
+/** Serbest Mod — veli açarsa tüm bölümler kilitsiz açılır */
+function applyFreeMode() {
+  S.setFreeMode(!!settings.freeMode);
 }
 
 /**
@@ -214,6 +222,7 @@ function renderMap() {
     el('div', { class: 'grow', style: { flex: '1' } }),
     streakChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
+    el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
     el('button', { class: 'btn sm purple', text: '📖 Albüm', onClick: () => renderAlbum() }),
     el('button', { class: 'btn sm blue', text: '⚔️ Düello', onClick: () => renderDuel() }),
@@ -772,6 +781,121 @@ function masteryRows(map, labelFn, order) {
   return rows.length ? rows : [el('p', { class: 'small muted', text: 'Henüz veri yok.' })];
 }
 
+/* ============================================================
+   DERSLER — alıştırmadan ÖNCE anlatım
+   Kilitli DEĞİL: çocuk konuyu okulda görmeden de açabilir.
+   ============================================================ */
+
+function renderLessons() {
+  const root = showScreen('lessons');
+  const gorulen = profile?.lessonsSeen || [];
+  const kartlar = [];
+
+  // Giriş dersi
+  kartlar.push(el('button', { class: 'lesson-card intro', onClick: () => renderLesson('geo') },
+    el('div', { class: 'lc-art', text: '📐' }),
+    el('div', { class: 'lc-title', text: GEO_INTRO.title }),
+    el('div', { class: 'lc-sub', text: 'Kenar ve köşe nedir?' }),
+    el('div', { class: 'lc-state' + (gorulen.includes(dersKey('geo')) ? ' ok' : ''), text: gorulen.includes(dersKey('geo')) ? 'Görüldü' : 'Yeni' })
+  ));
+
+  for (const [id, ders] of Object.entries(SHAPE_LESSONS)) {
+    const s = SHAPES[id];
+    const gor = gorulen.includes(dersKey(id));
+    kartlar.push(el('button', { class: 'lesson-card', onClick: () => renderLesson(id) },
+      el('div', { class: 'lc-art', html: shapeSVG(id, 74) }),
+      el('div', { class: 'lc-title', text: ders.title }),
+      el('div', { class: 'lc-sub', text: s.sides === 0 ? 'Kenarı ve köşesi yok' : `${s.sides} kenar · ${s.corners} köşe` }),
+      el('div', { class: 'lc-state' + (gor ? ' ok' : ''), text: gor ? 'Görüldü' : 'Yeni' })
+    ));
+  }
+
+  root.append(el('div', { class: 'panel wide' },
+    el('h2', { class: 'page-title', text: 'Dersler' }),
+    el('p', { class: 'page-sub', text: 'Alıştırmaya başlamadan önce konuyu buradan öğren. Bölüm kilidi gerekmez.' }),
+    el('div', { class: 'lesson-grid' }, ...kartlar),
+    el('div', { class: 'btn-row', style: { marginTop: '16px' } },
+      el('button', { class: 'btn ghost sm', text: '🗺️ Haritaya dön', onClick: () => renderMap() })
+    )
+  ));
+  speak('Dersler. Bir şekil seç, önce öğren sonra çiz.');
+}
+
+/** Slayt slayt ders anlatımı */
+function renderLesson(shapeId) {
+  const root = showScreen('lesson');
+  const ders = shapeId === 'geo' ? GEO_INTRO : SHAPE_LESSONS[shapeId];
+  const slaytlar = ders.slides;
+  let i = 0;
+
+  const ilerleme = el('div', { class: 'lesson-dots' });
+  const sahne = el('div', { class: 'lesson-stage' });
+  const baslik = el('div', { class: 'lesson-h' });
+  const metin = el('div', { class: 'lesson-p' });
+  const sesBtn = el('button', { class: 'btn sm blue', text: '🔊 Tekrar dinle', onClick: () => konus() });
+  const geriBtn = el('button', { class: 'btn ghost sm', text: '◀ Geri', onClick: () => { i = Math.max(0, i - 1); ciz(); } });
+  const ileriBtn = el('button', { class: 'btn primary', text: 'İleri ▶', onClick: () => { if (i < slaytlar.length - 1) { i++; ciz(); } else dene(); } });
+
+  function konus() {
+    if (!slaytlar[i]) return;
+    speak(slaytlar[i].ses || slaytlar[i].metin, { force: true, key: 'ders-' + shapeId + '-' + i + '-' + Date.now() });
+  }
+
+  function ciz() {
+    const s = slaytlar[i];
+    clear(sahne); clear(ilerleme);
+    // Slayt noktaları
+    slaytlar.forEach((_, k) => ilerleme.append(el('span', { class: 'dot' + (k === i ? ' on' : '') })));
+    // Görsel: şekil varsa büyük SVG, yoksa emoji
+    if (shapeId === 'geo') {
+      sahne.append(el('div', { class: 'lesson-emoji', text: i === 0 ? '🔷 🔺 ⚪' : i === 1 ? '📏' : '🔢' }));
+    } else {
+      sahne.append(el('div', { class: 'lesson-shape', html: shapeSVG(shapeId, 180) }));
+      const sh = SHAPES[shapeId];
+      sahne.append(el('div', { class: 'lesson-meta', text: sh.sides === 0 ? 'Kenar yok · Köşe yok' : `Kenar: ${sh.sides} · Köşe: ${sh.corners}` }));
+    }
+    baslik.textContent = s.baslik;
+    metin.textContent = s.metin;
+    geriBtn.style.visibility = i === 0 ? 'hidden' : '';
+    ileriBtn.textContent = i === slaytlar.length - 1 ? '✏️ Şimdi dene!' : 'İleri ▶';
+    konus();
+  }
+
+  /** Slaytlar bitince ilgili alıştırmayı aç — KİLİDİ ATLAYARAK */
+  function dene() {
+    markLessonSeen(shapeId);
+    if (shapeId === 'geo') { renderLessons(); return; }
+    const hedef = practiceLevelFor(shapeId, WORLDS);
+    if (!hedef) { renderLessons(); return; }
+    if (journey) { journey.destroy(); journey = null; }
+    startLevel(hedef.world, hedef.level);   // kilit kontrolü yok
+  }
+
+  root.append(el('div', { class: 'panel wide lesson-panel' },
+    ilerleme,
+    sahne,
+    baslik,
+    metin,
+    el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '14px' } }, geriBtn, sesBtn, ileriBtn),
+    el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '10px' } },
+      el('button', { class: 'btn ghost sm', text: '📚 Ders listesi', onClick: () => renderLessons() }),
+      el('button', { class: 'btn ghost sm', text: '🗺️ Haritaya dön', onClick: () => renderMap() })
+    )
+  ));
+  ciz();
+}
+
+/** Ders görüldü olarak işaretle (veli paneli ve çıkartmalar için) */
+function markLessonSeen(shapeId) {
+  if (!profile) return;
+  profile.lessonsSeen = profile.lessonsSeen || [];
+  const k = dersKey(shapeId);
+  if (!profile.lessonsSeen.includes(k)) {
+    profile.lessonsSeen.push(k);
+    S.saveProfile(profile);
+  }
+}
+
 /** Veli paneli: veriyi "şunu yap" tavsiyesine çeviren bölüm */
 function adviceSection() {
   const oneriler = buildAdvice(profile);
@@ -833,6 +957,41 @@ function timeModeSection() {
   );
 }
 
+/**
+ * Veli paneli: SERBEST MOD
+ * Çocuk okulda konuyu görmeden ilgili bölüme giremiyordu (kilit).
+ * Öğretmen/veli bu anahtarı açınca tüm bölümler kilitsiz açılır.
+ */
+function freeModeSection() {
+  const acik = !!settings.freeMode;
+  return el('div', { class: 'advice-box' },
+    el('h3', { style: { marginTop: '0' }, text: 'Serbest Mod (bölüm kilidi)' }),
+    el('p', { class: 'small muted', style: { marginTop: '0' },
+      text: 'Normalde bir bölümü açmak için öncekinin bitirilmesi gerekir. Çocuk okulda henüz görmediği bir konuya çalışmak isterse bu kilidi açın.' }),
+    el('div', { class: 'btn-row' },
+      el('button', {
+        class: 'btn sm ' + (acik ? 'green' : 'ghost'),
+        text: acik ? 'Serbest Mod: AÇIK' : 'Serbest Modu Aç',
+        onClick: () => {
+          settings.freeMode = !settings.freeMode;
+          persistSettings();
+          sfx('tap');
+          toast(settings.freeMode ? 'Tüm bölümler açıldı' : 'Bölüm kilidi geri açıldı');
+          renderParent();
+        }
+      }),
+      el('button', {
+        class: 'btn ghost sm', text: '📚 Derslere git',
+        onClick: () => renderLessons()
+      })
+    ),
+    el('p', { class: 'small', style: { marginTop: '8px' },
+      text: acik
+        ? 'Açık: çocuk istediği bölüme doğrudan girebilir. Yıldızlar yine kazanılarak toplanır.'
+        : 'Kapalı: bölümler sırayla açılır (önerilen). Ders ekranı her zaman açıktır.' })
+  );
+}
+
 function renderParent() {
   const root = showScreen('parent');
   const st = profile.stats;
@@ -856,6 +1015,8 @@ function renderParent() {
     adviceSection(),
 
     timeModeSection(),
+
+    freeModeSection(),
 
     el('h3', { text: 'Çarpım tablosu ustalığı' }),
     el('div', { class: 'mastery', style: { marginBottom: '18px' } }, ...masteryRows(st.byTable || {}, (k) => `${k}'ler`, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])),
@@ -1024,6 +1185,7 @@ function boot() {
   audio.voice = settings.voice;
   S.bindWorlds(WORLDS);
   applyTextSize();                       // kayıtlı büyük-yazı ayarını uygula
+  applyFreeMode();                       // kayıtlı serbest mod ayarını uygula
   window.adaConfetti = confetti;
   bindHud();
   sparkles();
