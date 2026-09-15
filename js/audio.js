@@ -193,7 +193,10 @@ function dosyaCal(yol, { rate = null, key = '' } = {}) {
     const a = new Audio(yol);
     // speechRate (0.72 normal) -> makul dinleme hızı aralığı
     const hiz = Number.isFinite(rate) && rate > 0 ? rate : speechRate;
-    a.playbackRate = Math.max(0.75, Math.min(1.2, hiz + 0.16));
+    // HIZ EŞLEMESİ: ses dosyaları DOĞAL hızda üretilir, hız tamamen buradan
+    // ayarlanır. 0.72 (Normal) = 1.00 = doğal hız. Böylece iki yavaşlatma
+    // üst üste binmez (eski hata: dosya -10% + playbackRate 0.88 = ~%21 yavaş).
+    a.playbackRate = Math.max(0.80, Math.min(1.25, hiz / 0.72));
     a.volume = 1;
     aktifSes = a;
     sonSesYolu = key || yol;
@@ -242,7 +245,7 @@ function calVeBekle(yol) {
     try {
       if (aktifSes) { aktifSes.pause(); }
       const a = new Audio(yol);
-      a.playbackRate = Math.max(0.75, Math.min(1.2, speechRate + 0.16));
+      a.playbackRate = Math.max(0.80, Math.min(1.25, speechRate / 0.72));
       aktifSes = a;
       a.onended = () => cozum(true);
       a.onerror = () => cozum(false);

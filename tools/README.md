@@ -76,3 +76,55 @@ python3 tools/tts.py edge           # yeni cümleleri üret (var olanları atlar
 - `edge-tts`: `/home/hermes/.hermes/hermes-agent/venv/bin/edge-tts`
 - `ffmpeg`: PCM→MP3 dönüşümü (Gemini çıktısı ham PCM gelir)
 - `GEMINI_API_KEY`: `~/.hermes/.env` (yalnız Gemini için)
+
+
+---
+
+## ⚠️ HIZ: iki yavaşlatmayı üst üste bindirme
+
+**Yaşanan hata:** Konuşma anlaşılmayacak kadar yavaşladı. Sebep iki ayrı
+yavaşlatmanın birleşmesiydi:
+
+| Katman | Değer | Etki |
+|--------|-------|------|
+| Dosya üretimi | `--rate=-10%` | Yavaşlatma **dosyaya gömüldü** |
+| Oynatma | `playbackRate = 0.88` | Üstüne ikinci yavaşlatma |
+| **Toplam** | | **~%21 yavaş** |
+
+**Kural: hızı TEK yerde ayarla.** Ya dosyaya göm (üretimde), ya oynatmada
+uygula — ikisini birden yapma.
+
+**Bizim tercihimiz: oynatmada.** Dosyalar **doğal hızda** üretilir
+(`EDGE_HIZ = "+2%"`, yani neredeyse nötr), hız tamamen Veli Paneli
+ayarından gelir:
+
+```js
+// audio.js
+playbackRate = clamp(ayar / 0.72, 0.80, 1.25)
+//  0.58 (Çok Yavaş) → 0.81
+//  0.66 (Yavaş)     → 0.92
+//  0.72 (Normal)    → 1.00  ← doğal hız
+//  0.82 (Hızlı)     → 1.14
+```
+
+Böylece "Normal" **tam olarak doğal hız** olur ve ayar gerçekten çalışır.
+
+> Bu kural `test/speed-verify.mjs` ile korunuyor: üretim hızının nötr
+> olduğunu, eşlemenin monoton arttığını ve dosyaların doğal hızda
+> olduğunu (karakter/saniye oranı) doğrular.
+
+## Ton (neşeli) hakkında sınır
+
+edge-tts'in **duygu motoru yoktur** — Microsoft'un `cheerful` gibi
+`mstts:express-as` stilleri **Azure Speech aboneliği** ister; ücretsiz
+Edge uç noktası reddeder (`text must be str`).
+
+Neşe yalnızca **perde/hız/ses** ile taklit edilir:
+
+```bash
+--pitch=+18Hz --rate=+2% --volume=+10%   # hafif neşeli (seçilen)
+```
+
+**Gerçek duygu kontrolü için Gemini TTS gerekir** (doğal dille:
+"neşeli ve heyecanlı konuş, oyun sunucusu gibi"). Kota açılınca
+`python3 tools/tts.py gemini` ile geçilir.

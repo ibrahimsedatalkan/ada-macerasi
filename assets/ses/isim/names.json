@@ -13,7 +13,7 @@
  "alp": "assets/ses/isim/alp.mp3",
  "nehir": "assets/ses/isim/nehir.mp3",
  "can": "assets/ses/isim/can.mp3",
- "i-pek": "assets/ses/isim/i-pek.mp3",
+ "ipek": "assets/ses/isim/ipek.mp3",
  "emir": "assets/ses/isim/emir.mp3",
  "selin": "assets/ses/isim/selin.mp3",
  "kaan": "assets/ses/isim/kaan.mp3",
@@ -29,6 +29,5 @@
  "kagan": "assets/ses/isim/kagan.mp3",
  "ali": "assets/ses/isim/ali.mp3",
  "yigit": "assets/ses/isim/yigit.mp3",
- "yigit-efe": "assets/ses/isim/yigit-efe.mp3",
- "ipek": "assets/ses/isim/ipek.mp3"
+ "yigit-efe": "assets/ses/isim/yigit-efe.mp3"
 }

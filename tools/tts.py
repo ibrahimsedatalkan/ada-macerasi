@@ -34,8 +34,11 @@ EDGE_BIN = "/home/hermes/.hermes/hermes-agent/venv/bin/edge-tts"
 
 # --- Sağlayıcı ayarları ---
 EDGE_SES = "tr-TR-EmelNeural"
-EDGE_HIZ = "-10%"
-EDGE_TON = "+4Hz"
+# Seçilen ton (kullanıcı onayladı): hafif neşeli, DOĞAL hız.
+# Hız dosyaya gömülmez — tamamen Veli Paneli ayarına bırakılır.
+EDGE_HIZ = "+2%"
+EDGE_TON = "+18Hz"
+EDGE_HACIM = "+10%"
 
 GEMINI_MODEL = "gemini-2.5-flash-preview-tts"   # 3.1 kotası daha çabuk doluyor
 GEMINI_SES = "Aoede"
@@ -60,11 +63,12 @@ def slug(ad: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-") or "isim"
 
 
-def uret_edge(metin: str, cikti: pathlib.Path, hiz=EDGE_HIZ, ton=EDGE_TON) -> bool:
+def uret_edge(metin: str, cikti: pathlib.Path, hiz=EDGE_HIZ, ton=EDGE_TON,
+              hacim=EDGE_HACIM) -> bool:
     cikti.parent.mkdir(parents=True, exist_ok=True)
     r = subprocess.run(
         [EDGE_BIN, "--voice", EDGE_SES, f"--rate={hiz}", f"--pitch={ton}",
-         "--text", metin, "--write-media", str(cikti)],
+         f"--volume={hacim}", "--text", metin, "--write-media", str(cikti)],
         capture_output=True, timeout=120,
     )
     return r.returncode == 0 and cikti.exists() and cikti.stat().st_size > 500
@@ -153,7 +157,7 @@ def main():
                 isim_man[s] = f"assets/ses/isim/{s}.mp3"
                 continue
             try:
-                ok = (uret_edge(ad, yol, "-18%", "+5Hz") if a.saglayici == "edge"
+                ok = (uret_edge(ad, yol, "+0%", "+16Hz") if a.saglayici == "edge"
                       else uret_fn(ad, yol))
                 if ok:
                     isim_man[s] = f"assets/ses/isim/{s}.mp3"
