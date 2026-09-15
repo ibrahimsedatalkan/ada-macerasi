@@ -52,7 +52,10 @@ function updateHud() {
   document.getElementById('hud-stars').textContent = '★ ' + stars;
   document.getElementById('hud-coins').textContent = '● ' + (profile?.coins || 0);
   document.getElementById('hud-nick').textContent = profile?.nick || 'Oyuncu';
-  document.getElementById('hud-avatar').innerHTML = avatarHTML(profile?.avatar || '🦊', { size: 28 });
+  // HUD avatarı da giydirilmiş hâlde — çocuk aksesuarını her ekranda görsün
+  document.getElementById('hud-avatar').innerHTML = profile
+    ? C.avatarDressed(profile, { size: 30, avatarHTML })
+    : avatarHTML('🦊', { size: 28 });
   document.getElementById('btn-sound').setAttribute('aria-pressed', String(!!settings.sound));
   document.getElementById('btn-voice').setAttribute('aria-pressed', String(!!settings.voice));
   document.getElementById('btn-music').setAttribute('aria-pressed', String(!!settings.music));

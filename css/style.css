@@ -107,7 +107,9 @@ body {
   border-radius: 999px; padding: 6px 14px 6px 6px; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
   box-shadow: 0 3px 0 var(--line-strong); transition: transform var(--t-fast); }
 .hud-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-strong); }
-.hud-avatar { font-size: 22px; line-height: 1; }
+.hud-avatar { font-size: 22px; line-height: 1; display: inline-flex; align-items: center; }
+.hud-avatar .dress-wrap { width: 30px; height: 30px; }
+.hud-avatar .dress-avatar { border-radius: 50%; overflow: hidden; }
 .hud-nick { max-width: 26vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hud-stats { display: flex; gap: 8px; margin-left: auto; }
 .hud-stat { background: rgba(255,255,255,.95); border: 2px solid var(--line-strong); border-radius: 999px; padding: 6px 12px;
