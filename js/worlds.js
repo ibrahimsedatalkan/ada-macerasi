@@ -79,8 +79,16 @@ export const WORLDS = [
         cfg: { shapes: ['ucgen'], tol: 26, pass: 0.72 } },
       { id: 'w4-l4', title: 'Daireyi Çiz', type: 'draw', story: 'Yuvarlak ve pürüzsüz.',
         cfg: { shapes: ['daire'], tol: 28, pass: 0.70 } },
-      { id: 'w4-l5', title: 'Küçük Sihirbaz', type: 'draw', story: 'Üç şekli arka arkaya çiz!',
-        cfg: { shapes: ['kare', 'ucgen', 'daire'], tol: 28, pass: 0.72 } }
+      { id: 'w4-l5', title: 'Beşgeni Çiz', type: 'draw', story: 'Beş kenar, beş köşe.',
+        cfg: { shapes: ['besgen'], tol: 28, pass: 0.70 } },
+      { id: 'w4-l6', title: 'Altıgeni Çiz', type: 'draw', story: 'Altı kenar, altı köşe.',
+        cfg: { shapes: ['altigen'], tol: 28, pass: 0.70 } },
+      { id: 'w4-l7', title: 'Dörtgenler', type: 'draw', story: 'Kare ve dikdörtgeni arka arkaya çiz.',
+        cfg: { shapes: ['kare', 'dikdortgen'], tol: 26, pass: 0.74 } },
+      { id: 'w4-l8', title: 'Üçgen ve Daire', type: 'draw', story: 'Köşeli ve yuvarlak şekil.',
+        cfg: { shapes: ['ucgen', 'daire'], tol: 26, pass: 0.74 } },
+      { id: 'w4-l9', title: 'Küçük Sihirbaz', type: 'draw', story: 'Altı şekli arka arkaya çiz — usta ol!',
+        cfg: { shapes: ['kare', 'ucgen', 'daire', 'dikdortgen', 'besgen', 'altigen'], tol: 28, pass: 0.70 } }
     ]
   },
   {
