@@ -1,7 +1,7 @@
 /* Geometrik çizim oyunu testleri — öğretim araçları çalışıyor mu? */
 import { connect, result } from './cdp.mjs';
 
-const B = 'http://127.0.0.1:8123';
+const B = process.env.BASE || 'http://127.0.0.1:8123';
 const c = await connect();
 await c.viewport(1280, 980);
 await c.initErrors();
