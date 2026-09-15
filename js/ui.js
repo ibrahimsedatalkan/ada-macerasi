@@ -53,9 +53,20 @@ const MOOD_BADGE = {
  */
 export function mascotHTML(size = 150, mood = 'happy') {
   const badge = MOOD_BADGE[mood];
-  return `<span class="mascot-wrap mood-${mood}" style="width:${size}px;height:${size}px;">
-    <img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `
-    + `decoding="async" onerror="this.onerror=null;this.outerHTML='${mascot(mood, size).replace(/'/g, '&#39;').replace(/\n/g, '')}'">`
+  /**
+   * Yedek SVG'yi HTML niteliğine gömerken tırnakları KAÇIRMAK zorunlu.
+   * Kaçırılmazsa nitelik SVG içindeki ilk " işaretinde biter ve SVG kodu
+   * sayfada HAM METİN olarak görünür (ekranda "kod" olarak çıkıyordu).
+   */
+  const yedek = mascot(mood, size)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/\s*\n\s*/g, ' ')
+    .trim();
+  return `<span class="mascot-wrap mood-${mood}" style="width:${size}px;height:${size}px;">`
+    + `<img class="mascot-img" src="assets/mascot/pofi.jpg" alt="Pofi" width="${size}" height="${size}" `
+    + `decoding="async" onerror="this.onerror=null;this.outerHTML='${yedek}'">`
     + (badge ? `<span class="mascot-badge">${badge}</span>` : '')
     + `</span>`;
 }
