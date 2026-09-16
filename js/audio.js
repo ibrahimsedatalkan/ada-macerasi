@@ -216,6 +216,63 @@ function dosyaCal(yol, { rate = null, key = '' } = {}) {
   } catch (e) { return false; }
 }
 
+/* ---------------- Parçalı okuma ----------------
+   Rastgele üretilen sorular (toplama/çıkarma) tek bir kayıt olamaz.
+   Parçalar önceden kaydedilmiş; burada sırayla çalınır.
+   Parçanın dosyası yoksa o parça tarayıcı sesiyle okunur. */
+let seqIptal = 0;
+
+/**
+ * Parçaları sırayla oku. Her parça: { metin } ya da düz metin.
+ * Dönen Promise tüm parçalar bitince çözülür.
+ */
+export async function speakSeq(parcalar, { rate = null, gap = 90 } = {}) {
+  const benim = ++seqIptal;
+  if (!audio.voice || !Array.isArray(parcalar) || !parcalar.length) return false;
+  if (!('speechSynthesis' in window)) return false;
+
+  const liste = parcalar.map((p) => (typeof p === 'string' ? p : p?.metin)).filter(Boolean).map((s) => String(s).trim());
+  if (!liste.length) return false;
+
+  const m = await preloadSpeech();
+  lastSpoken = liste.join(' ');
+  konusmaKis();                    // müzik kısılsın
+
+  for (let i = 0; i < liste.length; i++) {
+    if (benim !== seqIptal) return true;      // daha yeni bir konuşma başladı
+    const t = liste[i];
+    const dosya = m[t];
+    if (dosya) {
+      const ok = await dosyaCal(dosya, { rate });
+      if (ok) { await bekle(gap); continue; }  // dosya çalındı → sonraki parça
+    }
+    // Dosya yok ya da çalınamadı → tarayıcı sesi (tek parça, kısa)
+    await tarayiciOku(t, rate);
+    await bekle(gap);
+  }
+  return true;
+}
+
+function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+/** Tarayıcı sesiyle tek parça oku (Promise döner) */
+function tarayiciOku(t, rate) {
+  return new Promise((cozum) => {
+    try {
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = 'tr-TR';
+      u.rate = Number.isFinite(rate) && rate > 0 ? rate : speechRate;
+      u.pitch = 1.02;
+      const v = trVoice;   // yoksa tarayıcı kendi Türkçe sesini seçer
+      if (v) u.voice = v;
+      u.onend = () => cozum(true);
+      u.onerror = () => cozum(false);
+      window.speechSynthesis.speak(u);
+      setTimeout(() => cozum(true), 2500);      // güvenlik
+    } catch (e) { cozum(false); }
+  });
+}
+
 /** Çalan sesi durdur */
 export function stopSpeech() {
   if (aktifSes) { try { aktifSes.pause(); } catch (e) {} aktifSes = null; }

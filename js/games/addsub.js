@@ -5,7 +5,7 @@
    ============================================================ */
 
 import { el, clear, shake, elemandanPatlama, ekranSars, hitStop, komboYazisi } from '../ui.js';
-import { makeAddQuestion, questionSpeech } from './questions.js';
+import { makeAddQuestion, questionSpeech, questionSpeechParts } from './questions.js';
 import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech, getSpeechRate } from '../audio.js';
 import { muzikYogunluk } from '../music.js';
@@ -92,14 +92,24 @@ export function createAddSubGame({ root, level, api }) {
       answersEl.append(b);
     }
 
-    api.speak(questionSpeech(q), { force: true, key: 'add' + state.i });
+    // PARÇALI OKUMA: sayılar rastgele üretildiği için tam cümle kaydı yok.
+    // Parçalar (sayı + operatör + sayı + "kaç eder?") önceden kayıtlı.
+    const parcalar = questionSpeechParts(q);
+    if (parcalar && api.speakSeq) {
+      resetSpeech();
+      api.speakSeq(parcalar);
+    } else {
+      api.speak(questionSpeech(q), { force: true, key: 'add' + state.i });
+    }
     startTimer();
   }
 
   function replayQuestion() {
     if (!state.cur) return;
     resetSpeech();
-    api.speak(questionSpeech(state.cur), { force: true, rate: Math.max(0.5, getSpeechRate() * 0.92), key: 'addreplay' + state.i + '-' + Date.now() });
+    const parcalar = questionSpeechParts(state.cur);
+    if (parcalar && api.speakSeq) api.speakSeq(parcalar);
+    else api.speak(questionSpeech(state.cur), { force: true, rate: Math.max(0.5, getSpeechRate() * 0.92), key: 'addreplay' + state.i + '-' + Date.now() });
   }
 
   function startTimer() {

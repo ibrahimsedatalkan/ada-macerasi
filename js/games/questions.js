@@ -60,6 +60,44 @@ export function numericOptions(answer, { count = 4, min = 0, max = 100, pool = [
   return shuffle([...set]).slice(0, count);
 }
 
+/* ---------------- Sayı sözcükleri ----------------
+   Toplama/çıkarma sorularında sayılar RASTGELE üretilir (1-100 arası
+   binlerce kombinasyon) — hepsini önceden kaydetmek imkânsız.
+   Çözüm: sayıları PARÇA parça kaydedip cümleyi birleştirmek.
+   0-100 arası sayı sözcükleri + operatörler önceden üretildi. */
+const BIRLER = ['', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı', 'yedi', 'sekiz', 'dokuz'];
+const ONLAR = ['', 'on', 'yirmi', 'otuz', 'kırk', 'elli', 'altmış', 'yetmiş', 'seksen', 'doksan'];
+
+/** Türkçe sayı sözcüğü (0-100) — Python üreticisiyle AYNI algoritma */
+export function sayiMetni(n) {
+  n = Math.round(Number(n) || 0);
+  if (n === 0) return 'sıfır';
+  if (n === 100) return 'yüz';
+  if (n < 10) return BIRLER[n];
+  if (n < 100) {
+    const o = Math.floor(n / 10), b = n % 10;
+    return (ONLAR[o] + (b ? ' ' + BIRLER[b] : '')).trim();
+  }
+  return String(n);
+}
+
+/**
+ * Sorunun SES PARÇALARI — ses dosyası olan kısa parçalara böler.
+ * addsub: ["yirmi üç", "artı", "sekiz", "kaç eder?"]
+ * Bu sayede rastgele üretilen her toplama sorusu doğal sesle okunur.
+ */
+export function questionSpeechParts(q) {
+  if (!q) return null;
+  if (q.kind === 'addsub') {
+    return [sayiMetni(q.a), q.mode === 'add' ? 'artı' : 'eksi', sayiMetni(q.b), 'kaç eder?'];
+  }
+  if (q.kind === 'multiply' && q.mode !== 'result' && q.a != null && q.b != null) {
+    // Eksik/ters modda da parçalara bölebiliriz
+    if (q.mode === 'missing') return ['bir', 'çarpı', 'kaç', 'eder'];
+    if (q.mode === 'reverse') return ['kaç', 'çarpı', 'bir', 'eder'];
+  }
+  return null;
+}
 /* ---------------- Tekrar önleyici ----------------
    Aynı sorunun arka arkaya gelmesini engeller. Son 4 soru hatırlanır. */
 const RECENT_MAX = 4;

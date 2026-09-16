@@ -193,6 +193,7 @@ function clearActive() { try { localStorage.removeItem(ACTIVE_KEY); } catch (e) 
 const api = {
   get profile() { return profile; },
   speak: (t, opts) => speak(t, opts),
+  speakSeq: (parcalar, opts) => speakSeq(parcalar, opts),
   sfx: (n) => sfx(n),
   confetti: (o) => confetti(o),
   toast: (m) => toast(m),
