@@ -19,6 +19,7 @@ import { createDrawGame } from './games/draw.js';
 import { createBossGame } from './games/boss.js';
 import { createDuel } from './duel.js';
 import { createAddSubGame } from './games/addsub.js';
+import { createTogetherGame } from './games/together.js';
 import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
@@ -490,6 +491,7 @@ function renderMap() {
     gorevChip(),
     zorlukChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
+    el('button', { class: 'btn sm green', text: '🤝 Birlikte Oyna', onClick: () => birlikteBaslat() }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
     el('button', { class: 'btn sm purple', text: '🏆 Trofeler', onClick: () => renderTrophies() }),
@@ -1008,6 +1010,48 @@ function geriSayim(container, bitti) {
     else if (n === 0) { goster('BAŞLA!', true); sfx('unlock'); }
     else { clearInterval(t); kat.remove(); bitti(); }
   }, 700);
+}
+
+/**
+ * BİRLİKTE OYNA — harita üzerinden doğrudan başlar.
+ * Bölüm kilidi YOK (veli istediği an başlatabilir), can/süre YOK.
+ */
+function birlikteBaslat(ayar = {}) {
+  if (!profile) return renderLogin();
+  // Velinin seçebileceği konu: çarpım tabloları veya toplama/çıkarma
+  const konular = [
+    { id: '1-3', ad: '1-3 tabloları', cfg: { kind: 'multiply', tables: [1, 2, 3], turns: 6 } },
+    { id: '4-5', ad: '4-5 tabloları', cfg: { kind: 'multiply', tables: [4, 5], turns: 6 } },
+    { id: '6-7', ad: '6-7 tabloları', cfg: { kind: 'multiply', tables: [6, 7], turns: 6 } },
+    { id: '8-10', ad: '8-9-10 tabloları', cfg: { kind: 'multiply', tables: [8, 9, 10], turns: 6 } },
+    { id: 'toplama', ad: "Toplama (20'ye kadar)", cfg: { kind: 'addsub', mode: 'add', turns: 6 } },
+    { id: 'cikarma', ad: "Çıkarma (20'ye kadar)", cfg: { kind: 'addsub', mode: 'sub', turns: 6 } }
+  ];
+  if (!ayar.cfg) {
+    dialog(el('div', { class: 'center' },
+      el('h2', { text: '🤝 Birlikte Oyna' }),
+      el('p', { class: 'muted', text: 'Çocuğunuzla sırayla oynayın. Ekranda size "ne soracağınızı" söyleyen bir kılavuz olacak.' }),
+      el('p', { class: 'small muted', text: 'Süre yok, can yok. Amaç hız değil — anlamak ve birlikte düşünmek.' }),
+      el('div', { class: 'tg-konu-grid' },
+        ...konular.map((k) => el('button', {
+          class: 'tg-konu', text: k.ad,
+          onClick: () => { close(); birlikteBaslat({ cfg: k.cfg, ad: k.ad }); }
+        }))
+      )
+    ));
+    return;
+  }
+  // Oyunu başlat
+  const stage = showScreen('game');
+  updateHud();
+  currentLevel = { world: { id: 'together', name: 'Birlikte Oyna' }, level: { id: 'tg', title: ayar.ad || 'Birlikte', type: 'together', cfg: ayar.cfg } };
+  muzikModu('play');
+  try { ortamDurdur(); } catch (e) {}
+  geriSayim(stage, () => {
+    currentEngine = createTogetherGame({ root: stage, level: { type: 'together', cfg: ayar.cfg }, api });
+    currentEngine.start();
+  });
+  api._stage = stage;
 }
 
 function startLevel(world, level) {
