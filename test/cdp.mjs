@@ -49,7 +49,10 @@ export async function connect(port = 9222) {
       await evaluate(`(() => {
         window.__hizliMod = true;
         try { sessionStorage.setItem('ada_hizli', '1'); } catch (e) {}
-        const a = document.querySelector('.acilis'); if (a) a.remove();
+        // Açılış ekranı DOKUNMA bekler; yalnız silmek boot'u durdurur
+        // (promise çözülmez). Bu yüzden önce TIKLA, sonra sil.
+        const a = document.querySelector('.acilis');
+        if (a) { try { a.click(); } catch (e) {} a.remove(); }
         return true;
       })()`);
     } catch (e) {}

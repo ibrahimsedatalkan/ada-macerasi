@@ -13,6 +13,9 @@ echo
 
 for f in $DOSYALAR; do
   ad=$(basename "$f" .mjs)
+  # İZOLASYON: paketler aynı tarayıcı deposunu paylaşır. Her paketten önce
+  # bilinen temiz duruma dön — yoksa sıralama sonucu değiştirir.
+  node test/reset-state.mjs >/dev/null 2>&1
   cikti=$(node "$f" 2>&1)
   satir=$(echo "$cikti" | grep -oE "=== [0-9]+ geçti / [0-9]+ kaldı ===" | tail -1)
   gec=$(echo "$satir" | grep -oE "^=== [0-9]+" | grep -oE "[0-9]+")
