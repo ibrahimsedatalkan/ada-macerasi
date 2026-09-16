@@ -57,6 +57,13 @@ export async function connect(port = 9222) {
       })()`);
     } catch (e) {}
 
+    // ── UYGULAMA HAZIR MI? (yoklamalı bekleme) ──────────────────────
+    // NEDEN: Sabit waitMs, toplu çalıştırmada yavaşlayan makinede
+    // yetmiyordu; testler uygulama daha boot etmeden sorgu yapıp
+    // düşüyordu (pedagoji 7, mobil-harita 3, diyalog 2 test böyle
+    // kaybediliyordu — tek başına hepsi geçiyordu).
+    // Artık ekran DOM'a gelene kadar bekleriz; süre değil KOŞUL belirler.
+    await bekleKosul(`!!document.querySelector('.screen.active, .acilis, .vault')`, 15000);
   };
 
   const clickSelector = async (sel, waitMs = 350) => {
