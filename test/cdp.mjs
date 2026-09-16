@@ -99,11 +99,33 @@ export async function connect(port = 9222) {
 
   const errors = async () => (await evaluate('JSON.stringify(window.__errs||[])')) || '[]';
 
+  /**
+   * Koşul sağlanana kadar bekle (sabit sleep yerine).
+   * NEDEN: toplu çalıştırmada makine yüklenince sabit beklemeler yetmiyor
+   * ve testler dalgalı sonuç veriyordu. Bu yardımcı koşulu yoklar.
+   * @param {Function} kosul  — true dönen ifade (sayfada çalışır)
+   * @param {number} maxMs    — en fazla bekleme
+   * @param {number} adimMs   — yoklama aralığı
+   */
+  const bekleKosul = async (kosul, maxMs = 8000, adimMs = 150) => {
+    const bas = Date.now();
+    while (Date.now() - bas < maxMs) {
+      try { if (await evaluate(`(() => { try { return !!(${kosul}); } catch (e) { return false; } })()`)) return true; }
+      catch (e) {}
+      await sleep(adimMs);
+    }
+    return false;
+  };
+
+  /** Belirtilen ekran aktif olana kadar bekle */
+  const bekleEkran = (ad, maxMs = 8000) =>
+    bekleKosul(`document.querySelector('.screen.active')?.dataset.screen === ${JSON.stringify(ad)}`, maxMs);
+
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
-  return { send, evaluate, goto, clickSelector, clickByText, screenshot, mouse, viewport, sleep, initErrors, errors, consoleMsgs, events, ws };
+  return { send, evaluate, goto, clickSelector, clickByText, screenshot, mouse, viewport, sleep, initErrors, errors, consoleMsgs, events, ws, bekleKosul, bekleEkran };
 }
 
 export const result = (name, ok, detail = '') => {

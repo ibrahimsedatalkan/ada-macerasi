@@ -19,8 +19,11 @@ await c.evaluate(`(() => {
   if (i[1]) { i[1].value = '2I'; i[1].dispatchEvent(new Event('input',{bubbles:true})); }
   return true;
 })()`);
-await c.sleep(350);
-await c.clickByText('Maceraya başla', 'button', 1600);
+await c.bekleKosul(`document.querySelector('input[type="text"]')?.value.length > 0`, 3000);
+await c.sleep(200);
+await c.clickByText('Maceraya başla', 'button', 400);
+await c.bekleEkran('map', 9000);
+await c.sleep(200);
 
 /* ---- 1) HİÇBİR ŞEY AÇILMAMIŞKEN ders ekranı erişilebilir mi? ---- */
 const baslangic = await c.evaluate(`(() => JSON.stringify({
