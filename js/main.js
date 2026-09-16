@@ -20,6 +20,7 @@ import { createBossGame } from './games/boss.js';
 import { createDuel } from './duel.js';
 import { createAddSubGame } from './games/addsub.js';
 import { createTogetherGame } from './games/together.js';
+import { createEndlessGame } from './games/endless.js';
 import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
@@ -290,6 +291,39 @@ function hedefliCalisma(takil) {
     )
   ));
   api._stage = stage;
+}
+
+/**
+ * SONSUZ MACERA — 45 bölüm bitince de oynanacak bir şey olsun.
+ * Zorluk çocuğa göre otomatik ayarlanır (akış dengesi). Rekor tablosu YOK;
+ * çocuk yalnız KENDİ rekoruyla karşılaştırılır (ustalık odaklı geri bildirim).
+ */
+function sonsuzBaslat() {
+  if (!profile) return renderLogin();
+  const rekor = profile.rekor || 0;
+  dialog(el('div', { class: 'center' },
+    el('div', { style: { fontSize: '46px' }, text: '♾️' }),
+    el('h2', { text: 'Sonsuz Macera' }),
+    el('p', { class: 'muted', text: 'Karışık sorular, bitmez. Doğru yaptıkça zorlaşır, zorlandıkça kolaylaşır.' }),
+    rekor > 0 ? el('p', { class: 'hint-title', text: `🔥 Kendi rekorun: ${rekor} doğru` }) : null,
+    el('p', { class: 'small muted', text: '3 canın var. Canlar bitince özet göreceksin — istediğin an Bitir diyebilirsin.' }),
+    el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
+      el('button', { class: 'btn green', text: 'Başla', onClick: () => {
+        close();
+        const stage = showScreen('game');
+        updateHud();
+        currentLevel = { world: { id: 'sonsuz', name: 'Sonsuz Macera' }, level: { id: 'sonsuz', title: 'Sonsuz', type: 'endless', cfg: {} } };
+        muzikModu('play');
+        try { ortamDurdur(); } catch (e) {}
+        geriSayim(stage, () => {
+          currentEngine = createEndlessGame({ root: stage, level: { type: 'endless', cfg: {} }, api });
+          currentEngine.start();
+        });
+        api._stage = stage;
+      } }),
+      el('button', { class: 'btn ghost sm', text: 'Vazgeç', onClick: () => close() })
+    )
+  ));
 }
 
 function applyFreeMode() {
@@ -586,6 +620,7 @@ function renderMap() {
     zorlukChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
     el('button', { class: 'btn sm green', text: '🤝 Birlikte Oyna', onClick: () => birlikteBaslat() }),
+    el('button', { class: 'btn sm purple', text: '♾️ Sonsuz Macera', onClick: () => sonsuzBaslat() }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
     el('button', { class: 'btn sm purple', text: '🏆 Trofeler', onClick: () => renderTrophies() }),
@@ -1358,6 +1393,29 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
       : `💡 ${result.hintsUsed} kez ipucu aldın. İpucu kötü değil! Ama bir dahaki sefere önce kendi başına dene.`)
     : '💡 Hiç ipucu kullanmadın — harika!';
 
+  /**
+   * SONSUZ MOD SONUÇ BLOĞU — kendi rekoruyla karşılaştırma.
+   * PEDAGOJİK: Sosyal karşılaştırma değil, ÖZ karşılaştırma. Çocuk
+   * yalnız kendi önceki performansıyla yarışır; bu ustalık odaklı
+   * (mastery) geri bildirimdir ve özgüveni korur.
+   */
+  const sonsuzBlok = result.sonsuz ? (() => {
+    const onceki = result.oncekiRekor || 0;
+    const simdi = result.correct || 0;
+    const fark = simdi - onceki;
+    let mesaj, ton;
+    if (onceki === 0) { mesaj = 'İlk sonsuz denemen! İşte başlangıç noktan.'; ton = 'ilk'; }
+    else if (fark > 0) { mesaj = `Yeni rekorun! ${onceki} → ${simdi} (+${fark}). Harika ilerleme!`; ton = 'rekor'; }
+    else if (fark === 0) { mesaj = `Rekorunu yakaladın (${simdi}). İstikrarlısın!`; ton = 'esit'; }
+    else { mesaj = `${simdi} doğru — kendi rekorun ${onceki}. ${Math.abs(fark)} eksik, yaklaşıyorsun!`; ton = 'yakin'; }
+    return el('div', { class: 'sonsuz-blok ton-' + ton },
+      el('div', { class: 'sb-baslik', text: '♾️ Sonsuz Macera' }),
+      el('div', { class: 'sb-buyuk', text: `${simdi} doğru` }),
+      el('div', { class: 'sb-mesaj', text: mesaj }),
+      onceki > 0 ? el('div', { class: 'sb-rekor', text: `🔥 Kendi rekorun: ${Math.max(onceki, simdi)}` }) : null
+    );
+  })() : null;
+
   const learnBox = el('div', { class: 'learn-box' },
     el('div', { class: 'lb-baslik', text: '📚 Ne öğrendin?' }),
     el('div', { class: 'lb-metin', text: ogrenmeSatiri }),
@@ -1379,6 +1437,7 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
       el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,
       rankBox,
+      sonsuzBlok,
       learnBox,
       el('h2', { text: msg }),
       el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '8px' } },
