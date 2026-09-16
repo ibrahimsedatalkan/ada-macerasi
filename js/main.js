@@ -675,14 +675,14 @@ function renderMap() {
     gorevChip(),
     zorlukChip(),
     el('div', { class: 'hint-pill', text: `★ ${stars} / ${maxS}` }),
-    el('button', { class: 'btn sm green', text: '🤝 Birlikte Oyna', onClick: () => birlikteBaslat() }),
-    el('button', { class: 'btn sm purple', text: '♾️ Sonsuz Macera', onClick: () => sonsuzBaslat() }),
+    el('button', { class: 'btn sm green', text: '🤝 Birlikte', onClick: () => birlikteBaslat() }),
+    el('button', { class: 'btn sm purple', text: '♾️ Sonsuz', onClick: () => sonsuzBaslat() }),
     el('button', { class: 'btn sm blue', text: '📚 Dersler', onClick: () => renderLessons() }),
     el('button', { class: 'btn sm yellow', text: '🎁 Dükkân', onClick: () => renderShop() }),
     el('button', { class: 'btn sm purple', text: '🏆 Trofeler', onClick: () => renderTrophies() }),
     el('button', { class: 'btn sm blue', text: '⚔️ Düello', onClick: () => renderDuel() }),
-    el('button', { class: 'btn sm green', text: '🏅 Sınıf Tablosu', onClick: () => renderBoard() }),
-    el('button', { class: 'btn sm ghost', text: '👨‍👩‍👦 Veli Paneli', onClick: () => renderParent() }),
+    el('button', { class: 'btn sm green', text: '🏅 Sınıf', onClick: () => renderBoard() }),
+    el('button', { class: 'btn sm ghost', text: '👨‍👩‍👦 Veli', onClick: () => renderParent() }),
     el('button', { class: 'btn sm ghost', text: '🔄 Oyuncu', onClick: () => { clearActive(); profile = null; renderLogin(); } })
   );
 
@@ -720,7 +720,11 @@ function renderMap() {
     card.style.backgroundPosition = 'center';
   });
 
-  root.append(head, treasureStrip, grid);
+  // SIRA ÖNEMLİ: ada listesi hazine sandığından ÖNCE gelir.
+  // Ada seçmek ana eylemdir; hazine sandığı ikincil (koleksiyon) içeriktir.
+  // Önceki sırada (head → hazine → adalar) telefonda adalar ekranın
+  // altına itiliyordu ve kullanıcı ulaşamıyordu.
+  root.append(head, grid, treasureStrip);
   try { ortamDurdur(); } catch (e) {}          // ada atmosferi bitti
   oyunSuresiKontrol();                          // ekran süresi nazikliği
   if (muzikCaliyor()) muzikModu('menu'); else muzikBaslat('menu');
@@ -1224,7 +1228,7 @@ function birlikteBaslat(ayar = {}) {
   ];
   if (!ayar.cfg) {
     dialog(el('div', { class: 'center' },
-      el('h2', { text: '🤝 Birlikte Oyna' }),
+      el('h2', { text: '🤝 Birlikte' }),
       el('p', { class: 'muted', text: 'Çocuğunuzla sırayla oynayın. Ekranda size "ne soracağınızı" söyleyen bir kılavuz olacak.' }),
       el('p', { class: 'small muted', text: 'Süre yok, can yok. Amaç hız değil — anlamak ve birlikte düşünmek.' }),
       el('div', { class: 'tg-konu-grid' },
@@ -1475,7 +1479,7 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
     else if (fark === 0) { mesaj = `Rekorunu yakaladın (${simdi}). İstikrarlısın!`; ton = 'esit'; }
     else { mesaj = `${simdi} doğru — kendi rekorun ${onceki}. ${Math.abs(fark)} eksik, yaklaşıyorsun!`; ton = 'yakin'; }
     return el('div', { class: 'sonsuz-blok ton-' + ton },
-      el('div', { class: 'sb-baslik', text: '♾️ Sonsuz Macera' }),
+      el('div', { class: 'sb-baslik', text: '♾️ Sonsuz' }),
       el('div', { class: 'sb-buyuk', text: `${simdi} doğru` }),
       el('div', { class: 'sb-mesaj', text: mesaj }),
       onceki > 0 ? el('div', { class: 'sb-rekor', text: `🔥 Kendi rekorun: ${Math.max(onceki, simdi)}` }) : null
