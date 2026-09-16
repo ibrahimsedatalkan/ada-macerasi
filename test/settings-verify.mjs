@@ -56,6 +56,18 @@ await c.evaluate(`(() => {
 await c.sleep(300);
 await c.clickByText('Maceraya başla', 'button', 1300);
 
+/* PEDAGOJİK NOT: Varsayılan zorluk artık "kolay" ve KOLAY ZORLUKTA SÜRE
+   KAPALIDIR (7 yaş için zaman kaygısını önlemek amacıyla yapılan düzeltme).
+   Süre modunu anlamlı biçimde test edebilmek için zorluğu "zor"a alıyoruz —
+   kolay zorlukta süre çubuğu zaten gösterilmez. */
+await c.evaluate(`(() => {
+  const a = JSON.parse(localStorage.getItem('ada.settings.v2') || '{}');
+  a.difficulty = 'zor';
+  localStorage.setItem('ada.settings.v2', JSON.stringify(a));
+  return true;
+})()`);
+await c.goto(`${B}/index.html`, 2200);
+
 /* ---- 1) Zaman baskısı ayarı panelde var mı? ---- */
 await c.clickByText('Veli Paneli', 'button', 1200);
 const panel = await c.evaluate(`(() => {
@@ -79,6 +91,7 @@ T('Normal modda hızlı bölümde süre çubuğu var', nt.var && nt.gorunur, JSO
 
 /* ---- 3) "Kapalı" seç → süre çubuğu KAYBOLUR ---- */
 await c.clickByText('Veli Paneli', 'button', 1200);
+
 await c.evaluate(`(() => {
   const kutular = [...document.querySelectorAll('.advice-box')];
   const zaman = kutular.find(k => /Zaman baskısı/.test(k.textContent||''));
@@ -132,7 +145,9 @@ const buyukKayit = await c.evaluate(`(() => JSON.parse(localStorage.getItem('ada
 T('Büyük yazı ayarı kaydedildi', buyukKayit === true, String(buyukKayit));
 
 // Sayfa yenilenince ayar hatırlanıyor mu?
-await c.goto(`${B}/index.html`, 1800);
+// (Açılış ekranı tıklamayla çözülüyor → boot biraz daha uzun sürüyor)
+await c.goto(`${B}/index.html`, 2600);
+await c.sleep(700);
 const kalici = await c.evaluate(`(() => document.body.classList.contains('big-text'))()`);
 T('Büyük yazı yenilemede hatırlanıyor', kalici === true, String(kalici));
 
