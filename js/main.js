@@ -1537,7 +1537,13 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
         el('button', { class: 'btn primary', text: '🔁 Tekrar oyna', onClick: () => { sfx('click'); startLevel(world, level); } }),
         nextLevel && stars > 0 && S.isLevelUnlocked(profile, world, world.levels.indexOf(nextLevel))
           ? el('button', { class: 'btn green', text: '➡️ Sonraki bölüm', onClick: () => { sfx('click'); openLevelIntro(world, nextLevel); renderMapSilently(); } })
-          : el('span'),
+          // BAĞIMSIZ MODLAR (Birlikte Oyna, Sonsuz Macera, Hedefli Çalışma) bir
+          // ada bölümü değildir; "sonraki bölüm" yoktur. Kullanıcı "ilerlemiyor,
+          // diğerine geçmiyor" dediği için burada İLERİ GİTME yolu sunuyoruz:
+          // Birlikte Oyna → başka konu seç, diğerleri → yeni tur.
+          : world.id === 'together'
+            ? el('button', { class: 'btn green', text: '🔄 Başka konu', onClick: () => { sfx('click'); renderMap(); setTimeout(() => birlikteBaslat({}), 120); } })
+            : el('button', { class: 'btn green', text: '🔄 Yeni tur', onClick: () => { sfx('click'); startLevel(world, level); } }),
         el('button', { class: 'btn ghost', text: '🗺️ Harita', onClick: () => { sfx('click'); renderMap(); } })
       )
     )

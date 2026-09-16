@@ -18,7 +18,7 @@
    sen yaparsın") bu modun temelidir.
    ============================================================ */
 
-import { el, clear, starsEl, elemandanPatlama, komboYazisi } from '../ui.js';
+import { el, clear, starsEl, elemandanPatlama, komboYazisi, shuffle } from '../ui.js';
 import { makeMultiplyQuestion, makeAddQuestion, questionSpeech, questionSpeechParts, sayiMetni } from './questions.js';
 import { techniqueFor } from './hints.js';
 import { resetSpeech } from '../audio.js';
@@ -155,11 +155,15 @@ export function createTogetherGame({ root, level, api }) {
       el('div', { class: 'tg-soru-metin', text: q.prompt || (q.a + ' ' + (q.mode === 'sub' ? '−' : '+') + ' ' + q.b + ' = ?') })
     );
 
-    // Şıklar
+    // Şıklar — KARIŞTIRILIR.
+    // ÖNCEKİ HATA: burada `.sort((a,b)=>a-b)` vardı; şıklar küçükten büyüğe
+    // sıralanıyordu (ör. 12,15,18,21). Çarpım cevabı genelde ortadaki değer
+    // olduğu için DOĞRU CEVAP HEP 2. ŞIKTA kalıyordu — çocuk matematik
+    // yapmadan hep ikinciye basıp %100 alabiliyordu. (Kullanıcı bildirdi.)
     clear(answersEl);
     const secenekler = q.options && q.options.length ? q.options
       : [q.answer, q.answer + 1, Math.max(1, q.answer - 1), q.answer + 2];
-    [...new Set(secenekler)].slice(0, 4).sort((a, b) => a - b).forEach((opt) => {
+    shuffle([...new Set(secenekler)].slice(0, 4)).forEach((opt) => {
       const btn = el('button', { class: 'answer-btn', text: String(opt) });
       btn.addEventListener('click', () => cevapla(opt, btn));
       answersEl.append(btn);
