@@ -109,7 +109,12 @@ await c.evaluate(`(() => {
   localStorage.setItem(k, JSON.stringify(p));
 })()`);
 await c.goto(`${B}/index.html`, 2100);
-await c.clickByText('Veli Paneli', 'button', 1300);
+await c.clickByText('Veli Paneli', 'button', 600);
+// YOKLAMALI BEKLEME: toplu çalıştırmada makine yavaşlıyor ve sabit sleep
+// yetmiyordu (önceki paketlerden sonra 3 test bu yüzden düşüyordu).
+await c.bekleKosul(`document.querySelectorAll('.advice-card').length > 0 ||
+                    document.querySelectorAll('.advice-box').length > 0`, 9000);
+await c.bekleEkran('parent', 6000);
 const panel = await c.evaluate(`(() => JSON.stringify({
   kutu: !!document.querySelector('.advice-box'),
   kart: document.querySelectorAll('.advice-card').length,
