@@ -733,10 +733,20 @@ function renderMap() {
   }
   // ZORLUK SEÇİMİ — konsollar gibi ilk oyunda bir kez sorulur.
   // (Test hızlı modunda atlanır; zorluk-verify bunu ayrıca test eder.)
+  //
+  // ÖNEMLİ: Diyalog yalnızca HARİTA ekranındayken açılır. Aksi hâlde çocuk
+  // bölüme başlamışken (brifing/sahne/oyun) araya giriyor ve akışı kesiyordu
+  // — bu gerçek bir UX hatasıydı (testte de yakalandı).
   if (!settings.zorlukSecildi && !window.__hizliMod) {
     settings.zorlukSecildi = true;
     persistSettings();
-    setTimeout(() => zorlukSecimi(true), 2400);
+    setTimeout(() => {
+      const ekran = document.querySelector('.screen.active')?.dataset.screen;
+      if (ekran !== 'map') return;              // oyun başladıysa gösterme
+      const acikDiyalog = document.getElementById('dialog') && !document.getElementById('dialog').hidden;
+      if (acikDiyalog) return;                  // başka diyalog varsa üstüne binme
+      zorlukSecimi(true);
+    }, 2400);
   }
 
   if (!Object.keys(profile.results || {}).length) {

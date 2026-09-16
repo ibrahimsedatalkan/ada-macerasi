@@ -1,7 +1,7 @@
 /* CANLIDA geometrik çizim öğretimi çalışıyor mu? */
 import { connect, result } from './cdp.mjs';
 
-const LIVE = process.env.LIVE_URL || 'https://temporary-flying-reef-9ra71vr.vercel.app';
+const LIVE = process.env.LIVE_URL || 'https://ibrahimsedatalkan.github.io/ada-macerasi';
 const c = await connect();
 await c.viewport(1280, 980);
 await c.initErrors();

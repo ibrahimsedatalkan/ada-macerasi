@@ -152,7 +152,7 @@ const baslaClick = await c.evaluate(`(() => {
   return !!b;
 })()`);
 console.log('   başla:', baslaClick);
-await c.sleep(1900);
+await c.sleep(3800);   // sahne + geri sayım (3-2-1) atlatılıyor
 
 const oyun = await c.evaluate(`(() => {
   const q = document.querySelector('.question')?.innerText.replace(/\\s+/g,' ').trim() || '';
