@@ -125,7 +125,7 @@ function zorlukSecimi(ilkKez = false) {
       el('div', { class: 'zk-aciklama', text: z.aciklama })
     ));
 
-  dialog(el('div', { class: 'center zorluk-dialog' },
+  const close = dialog(el('div', { class: 'center zorluk-dialog' },
     el('h2', { text: ilkKez ? 'Zorluk seç' : 'Zorluk' }),
     el('p', { class: 'muted', text: ilkKez
       ? 'Bu ayarı sonra Veli Paneli\'nden değiştirebilirsin.'
@@ -153,7 +153,7 @@ function oyunSuresiKontrol() {
   if (gecen >= dk && !sureUyarisiVerildi) {
     sureUyarisiVerildi = true;
     const kapali = settings.gunlukSureKilit;
-    dialog(el('div', { class: 'center' },
+    const close = dialog(el('div', { class: 'center' },
       el('div', { style: { fontSize: '52px' }, text: '🌟' }),
       el('h2', { text: 'Bugün çok çalıştın!' }),
       el('p', { class: 'hint-title', text: `${Math.round(gecen)} dakika oynadın.` }),
@@ -246,7 +246,11 @@ function hataOruntusuSection() {
       el('button', {
         class: 'btn green sm',
         text: `🎯 Sadece takıldığı ${takil.length} soruyu çalıştır`,
-        onClick: () => { close(); hedefliCalisma(takil); }
+        // DİKKAT: burada kapatma çağrısı YAPILMAZ — veli paneli bir EKRAN
+        // (showScreen('parent')), diyalog değil. Önceden kapatma çağrısı
+        // yazılmıştı; ui.js'ten import edilmediği için tarayıcının yerleşik
+        // window.close() fonksiyonuna gidiyordu (sessizce başarısız).
+        onClick: () => hedefliCalisma(takil)
       })
     ));
   }
@@ -268,7 +272,7 @@ function hedefliCalisma(takil) {
     world: { id: 'hedef', name: 'Hedefli Çalışma' },
     level: { id: 'hedef', title: 'Takıldığın sorular', type: 'multiply', cfg: {} }
   };
-  dialog(el('div', { class: 'center' },
+  const close = dialog(el('div', { class: 'center' },
     el('div', { style: { fontSize: '48px' }, text: '🎯' }),
     el('h2', { text: 'Hedefli Çalışma' }),
     el('p', { class: 'hint-title', text: adlar }),
@@ -301,7 +305,7 @@ function hedefliCalisma(takil) {
 function sonsuzBaslat() {
   if (!profile) return renderLogin();
   const rekor = profile.rekor || 0;
-  dialog(el('div', { class: 'center' },
+  const close = dialog(el('div', { class: 'center' },
     el('div', { style: { fontSize: '46px' }, text: '♾️' }),
     el('h2', { text: 'Sonsuz Macera' }),
     el('p', { class: 'muted', text: 'Karışık sorular, bitmez. Doğru yaptıkça zorlaşır, zorlandıkça kolaylaşır.' }),
@@ -809,7 +813,7 @@ function checkStickers({ sessiz = false } = {}) {
     yeni.forEach((st, k) => setTimeout(() => trophyPopup(st), k * 1100));
     speak(`${meta.ad} trofe kazandın: ${ilk.name}!`, { force: true });
     setTimeout(() => {
-      dialog(el('div', { class: 'center trophy-dialog tier-' + tier },
+      const close = dialog(el('div', { class: 'center trophy-dialog tier-' + tier },
         el('div', { class: 'td-medal', html: C.trophySVG(tier, 92) }),
         el('h2', { text: meta.ad.toUpperCase() + ' TROFE' }),
         el('p', { class: 'hint-title', text: ilk.name }),
@@ -1227,7 +1231,7 @@ function birlikteBaslat(ayar = {}) {
     { id: 'cikarma', ad: "Çıkarma (20'ye kadar)", cfg: { kind: 'addsub', mode: 'sub', turns: 6 } }
   ];
   if (!ayar.cfg) {
-    dialog(el('div', { class: 'center' },
+    const close = dialog(el('div', { class: 'center' },
       el('h2', { text: '🤝 Birlikte Oyna' }),
       el('p', { class: 'muted', text: 'Çocuğunuzla sırayla oynayın. Ekranda size "ne soracağınızı" söyleyen bir kılavuz olacak.' }),
       el('p', { class: 'small muted', text: 'Süre yok, can yok. Amaç hız değil — anlamak ve birlikte düşünmek.' }),
