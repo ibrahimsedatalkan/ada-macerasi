@@ -9,6 +9,7 @@ import { techniqueFor, techniqueSpeech } from './hints.js';
 import { resetSpeech, getSpeechRate } from '../audio.js';
 import { muzikYogunluk } from '../music.js';
 import { titretKombo } from '../his.js';
+import { sayaciAc, sayaciKapat } from './manipulatives.js';
 import {
   pickAdaptiveTables, adaptiveMaxB, pushRecent, difficultyTier,
   initMissed, pushMissed, takeDueMissed, shouldReask
@@ -40,7 +41,26 @@ export function createMultiplyGame({ root, level, api }) {
     class: 'btn ghost sm', text: '🔊 Soruyu tekrar dinle',
     onClick: () => { api.sfx('tap'); replayQuestion(); }
   });
-  const hintRow = el('div', { class: 'btn-row', style: { justifyContent: 'center' } }, replayBtn, hintBtn);
+  // DOKUNARAK SAYMA — somut işlemler dönemi için (7 yaş).
+  // İpucu YÖNTEM öğretir; bu araç SOMUTLAŞTIRIR. İkisi farklı ihtiyaç.
+  const sayacBtn = el('button', {
+    class: 'btn ghost sm tap-sayac', text: '🔵 Dokunarak say',
+    onClick: () => { api.sfx('tap'); sayaciToggle(); }
+  });
+  let sayacAcik = false;
+  function sayaciToggle() {
+    if (sayacAcik) { sayaciKapat(); sayacAcik = false; sayacBtn.textContent = '🔵 Dokunarak say'; return; }
+    if (!state.cur || state.cur.mode !== 'result') return;
+    sayacAcik = true;
+    sayacBtn.textContent = '🔵 Sayacı kapat';
+    state.usedHint = true;                    // yardım aldı sayılır (dürüst ölçüm)
+    sayaciAc(state.cur, root, () => {
+      // Çocuk toplamı kendi sayarak buldu → soyut cümle gösterildi.
+      // Cevap şıklarından seçmesi için sayaç açık kalsın.
+    });
+  }
+
+  const hintRow = el('div', { class: 'btn-row', style: { justifyContent: 'center' } }, replayBtn, hintBtn, sayacBtn);
 
   // Soru kartına dokunmak da tekrar okur (çocuklar için doğal)
   qEl.addEventListener('click', () => { api.sfx('tap'); replayQuestion(); });
@@ -96,6 +116,7 @@ export function createMultiplyGame({ root, level, api }) {
     state.locked = false;
     state.hintStep = 0;
     resetSpeech();
+    if (sayacAcik) { sayaciKapat(); sayacAcik = false; sayacBtn.textContent = '🔵 Dokunarak say'; }   // yeni soruda sayacı kapat
     hintBtn.textContent = '💡 Nasıl düşünmeliyim?';
 
     qEl.innerHTML = state.cur.prompt.replace('?', '<span class="q-mark">?</span>').replace('×', '<span class="q-mark">×</span>');
