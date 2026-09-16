@@ -3,6 +3,25 @@
 # Kullanım:  bash test/run-all.sh
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
+
+# ── EŞZAMANLI ÇALIŞMA KİLİDİ ─────────────────────────────────────
+# Tüm paketler AYNI tarayıcıyı paylaşır. İki paket aynı anda çalışırsa
+# birbirlerinin durumunu bozar ve sonuçlar değişken olur (yaşandı:
+# 5 kopya aynı anda çalışıp yanıltıcı sonuç üretti).
+KILIT_DOSYA="/tmp/ada-test.lock"
+if [ -e "$KILIT_DOSYA" ]; then
+  eski_pid=$(cat "$KILIT_DOSYA" 2>/dev/null || echo "")
+  if [ -n "$eski_pid" ] && kill -0 "$eski_pid" 2>/dev/null; then
+    echo "❌ Başka bir test paketi çalışıyor (PID $eski_pid)."
+    echo "   Aynı tarayıcıyı paylaştıkları için sonuçlar güvenilmez olur."
+    echo "   Bitmesini bekleyin ya da: kill $eski_pid"
+    exit 1
+  fi
+  rm -f "$KILIT_DOSYA"   # bayat kilit
+fi
+echo $$ > "$KILIT_DOSYA"
+trap 'rm -f "$KILIT_DOSYA"' EXIT INT TERM
+
 DOSYALAR=$(ls test/*-verify.mjs 2>/dev/null | sort)
 TOPLAM_GEC=0; TOPLAM_KAL=0; PAKET=0; BASARISIZ=""
 
