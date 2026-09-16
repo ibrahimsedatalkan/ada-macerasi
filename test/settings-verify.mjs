@@ -82,6 +82,7 @@ T('Üç seçenek sunuluyor (Kapalı/Normal/Sıkı)', (pn.butonlar || []).length 
 
 /* ---- 2) Normal modda süre çubuğu VAR (w1-l5 = Hız Turu, time:14) ---- */
 await bolumBaslat('w1-l5');
+await c.bekleKosul(`!!document.querySelector('.timer-bar')`, 6000);
 const normalTimer = await c.evaluate(`(() => {
   const t = document.querySelector('.timer-bar');
   return JSON.stringify({ var: !!t, gorunur: t ? t.style.display !== 'none' : false });
@@ -99,7 +100,7 @@ await c.evaluate(`(() => {
   if (b) b.click();
   return !!b;
 })()`);
-await c.sleep(500);
+await c.bekleKosul(`JSON.parse(localStorage.getItem('ada.settings.v2')||'{}').timeMode === 'off'`, 5000);
 const kayitli = await c.evaluate(`(() => JSON.parse(localStorage.getItem('ada.settings.v2')||'{}').timeMode)()`);
 T('Ayar kaydedildi (timeMode=off)', kayitli === 'off', String(kayitli));
 
@@ -120,7 +121,7 @@ await c.evaluate(`(() => {
   if (b) b.click();
   return !!b;
 })()`);
-await c.sleep(500);
+await c.bekleKosul(`JSON.parse(localStorage.getItem('ada.settings.v2')||'{}').timeMode === 'tight'`, 5000);
 const sikıKayit = await c.evaluate(`(() => JSON.parse(localStorage.getItem('ada.settings.v2')||'{}').timeMode)()`);
 T('Sıkı mod kaydedildi', sikıKayit === 'tight', String(sikıKayit));
 
