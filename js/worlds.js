@@ -15,7 +15,7 @@ export const WORLDS = [
     intro: 'Pofi çayırda hazine sandığını arıyor. Çarpımları bilirsen yol açılır!',
     levels: [
       { id: 'w1-l1', title: "1'ler", type: 'multiply', story: 'Bir kere bir, hep bir!',
-        cfg: { tables: [1], mode: 'result', rounds: 6, options: 3, lives: 3 } },
+        cfg: { tables: [1], mode: 'result', rounds: 6, options: 3, lives: 3, maxB: 10, maxBHard: 10 } },
       { id: 'w1-l2', title: "2'ler", type: 'multiply', story: 'İkişer ikişer sayalım.',
         cfg: { tables: [2], mode: 'result', rounds: 7, options: 3, lives: 3 } },
       { id: 'w1-l3', title: "3'ler", type: 'multiply', story: 'Üçer üçer zıplayalım.',
@@ -34,7 +34,7 @@ export const WORLDS = [
     intro: 'Ormanın şekilleri karıştı! 4 ve 5 çarpımlarıyla onları yerlerine koy.',
     levels: [
       { id: 'w2-l1', title: "4'ler", type: 'multiply', story: "Dört ayaklı dostlar 4'er sayıyor.",
-        cfg: { tables: [4], mode: 'result', rounds: 7, options: 3, lives: 3 } },
+        cfg: { tables: [4], mode: 'result', rounds: 7, options: 3, lives: 3, maxB: 10, maxBHard: 10 } },
       { id: 'w2-l2', title: "5'ler", type: 'multiply', story: 'Beşer beşer yukarı!',
         cfg: { tables: [5], mode: 'result', rounds: 7, options: 3, lives: 3 } },
       { id: 'w2-l3', title: 'Kare ve Üçgen Avı', type: 'shapehunt', story: 'Şekilleri doğru sepete sürükle.',
@@ -53,7 +53,7 @@ export const WORLDS = [
     intro: 'Kristaller kenar ve köşe sayıyor. Sayabilir misin?',
     levels: [
       { id: 'w3-l1', title: 'Kenarları Say', type: 'sides', story: 'Kaç kenarı var?',
-        cfg: { ask: 'kenar', shapes: ['kare', 'dikdortgen', 'ucgen'], rounds: 6, lives: 3 } },
+        cfg: { ask: 'kenar', shapes: ['kare', 'dikdortgen', 'ucgen'], rounds: 6, lives: 3, maxB: 10, maxBHard: 10 } },
       { id: 'w3-l2', title: 'Köşeleri Say', type: 'sides', story: 'Kaç köşesi var?',
         cfg: { ask: 'kose', shapes: ['kare', 'dikdortgen', 'ucgen', 'besgen'], rounds: 6, lives: 3 } },
       { id: 'w3-l3', title: 'Kenar mı Köşe mi?', type: 'sides', story: 'Karışık sorular geliyor!',

@@ -47,7 +47,7 @@ function dragonSVG(hpRatio, mood = 'angry', size = 160) {
 export function createBossGame({ root, level, api }) {
   const cfg = Object.assign({
     include: ['multiply'], tables: [2, 3], shapes: ['kare', 'ucgen'],
-    rounds: 9, lives: 3, time: 110, timePerQ: 15, maxB: 5
+    rounds: 9, lives: 3, time: 110, timePerQ: 15, maxB: 10
   }, level.cfg);
   const hp0 = Math.max(4, Math.ceil(cfg.rounds * 0.7));
   const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, hp: hp0, hp0, locked: false, cur: null, timer: null, t0: 0, over: false };

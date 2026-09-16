@@ -16,7 +16,7 @@ import {
 } from './adaptive.js';
 
 export function createMultiplyGame({ root, level, api }) {
-  const cfg = Object.assign({ tables: [2], mode: 'result', rounds: 7, options: 4, lives: 3, time: 0, maxB: 5, maxBHard: 10 }, level.cfg);
+  const cfg = Object.assign({ tables: [2], mode: 'result', rounds: 7, options: 4, lives: 3, time: 0, maxB: 10, maxBHard: 10 }, level.cfg);
   const state = { i: 0, correct: 0, wrong: 0, lives: cfg.lives, streak: 0, best: 0, locked: false, timer: null, tLeft: 0, t0: 0, cur: null, hintStep: 0 , hintsUsed: 0 };
   let destroyed = false;
 
