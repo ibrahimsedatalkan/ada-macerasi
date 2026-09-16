@@ -326,6 +326,62 @@ function sonsuzBaslat() {
   ));
 }
 
+/**
+ * VELİ PANELİ: SINIF SUNUCUSU
+ *
+ * Online düello ve ortak sınıf listesi bir sunucu gerektirir. Sunucu
+ * adresi localStorage'da tutulur (online.js). Buradan girilir ki veli
+ * tarayıcı konsolu açmak zorunda kalmasın.
+ *
+ * HTTPS kuralı: oyun GitHub Pages'te (https) çalışır; tarayıcı http
+ * adresine istek atmayı ENGELLER (mixed content). Sunucu da https
+ * olmalı (alan adı + sertifika ya da tünel).
+ */
+function sunucuSection() {
+  const mevcut = (() => { try { return localStorage.getItem('ada.api') || ''; } catch (e) { return ''; } })();
+  const girdi = el('input', {
+    type: 'url', class: 'input', placeholder: 'https://sunucum.example.com',
+    value: mevcut, style: { width: '100%' }
+  });
+  const durum = el('p', { class: 'small muted', text: mevcut ? `Bağlı: ${mevcut}` : 'Sunucu ayarlı değil — oyun çevrimdışı çalışıyor.' });
+  const testEl = el('p', { class: 'small' });
+
+  const kaydet = async () => {
+    const url = girdi.value.trim().replace(/\/+$/, '');
+    if (!url) { try { localStorage.removeItem('ada.api'); } catch (e) {} durum.textContent = 'Sunucu kaldırıldı — çevrimdışı.'; testEl.textContent = ''; return; }
+    if (!/^https:\/\//i.test(url)) {
+      testEl.className = 'small hata-metin';
+      testEl.textContent = '⚠️ Adres https:// ile başlamalı. Tarayıcı, https sayfadan http adrese istek atmayı engeller (mixed content).';
+      return;
+    }
+    try { localStorage.setItem('ada.api', url); } catch (e) {}
+    durum.textContent = `Kaydedildi: ${url}`;
+    // Sağlık ucunu sına
+    testEl.className = 'small';
+    testEl.textContent = 'Sınanıyor...';
+    try {
+      const r = await fetch(url + '/api/health', { cache: 'no-store' });
+      const d = await r.json();
+      testEl.className = 'small';
+      testEl.textContent = d.ok ? `✅ Sunucu çalışıyor (${d.servis} v${d.surum}, ${d.oda} açık oda)` : '⚠️ Beklenmeyen cevap.';
+    } catch (e) {
+      testEl.className = 'small hata-metin';
+      testEl.textContent = '⚠️ Sunucuya ulaşılamadı. Adresi ve CORS ayarını kontrol edin.';
+    }
+  };
+
+  return el('div', { class: 'advice-block' },
+    el('div', { class: 'advice-h', text: '🌐 Sınıf sunucusu (online düello)' }),
+    el('p', { class: 'small muted', text: 'Arkadaşlarla canlı düello ve ortak sınıf listesi için sunucu adresi. Boş bırakılırsa oyun tamamen çevrimdışı çalışır — hiçbir özellik kaybolmaz.' }),
+    girdi,
+    el('div', { class: 'btn-row', style: { marginTop: '8px' } },
+      el('button', { class: 'btn green sm', text: '💾 Kaydet ve sına', onClick: kaydet }),
+      el('button', { class: 'btn ghost sm', text: '🗑️ Kaldır', onClick: () => { girdi.value = ''; kaydet(); } })
+    ),
+    durum, testEl
+  );
+}
+
 function applyFreeMode() {
   S.setFreeMode(!!settings.freeMode);
 }
@@ -1875,6 +1931,8 @@ function renderParent() {
     adviceSection(),
 
     hataOruntusuSection(),
+
+    sunucuSection(),
 
     speechSpeedSection(),
 

@@ -1086,3 +1086,9 @@ body { padding-left: var(--safe-l); padding-right: var(--safe-r); }
 .sb-mesaj { font-weight: 800; font-size: clamp(13px,2.3vw,16px); color: var(--ink); line-height: 1.45; }
 .sb-rekor { margin-top: 5px; font-size: clamp(12px,2.1vw,14px); font-weight: 800; color: var(--ink-soft); }
 .streak-pill { background: linear-gradient(180deg,#fff1e6,#ffdcc2); border-color: #d97a00; font-weight: 900; }
+
+/* Sunucu ayarı (veli paneli) */
+.input { font: inherit; padding: 10px 12px; border: 3px solid var(--line-strong);
+  border-radius: var(--r-md); background: #fff; color: var(--ink); min-height: 44px; }
+.input:focus { outline: 4px solid #ffd23d; outline-offset: 1px; }
+.hata-metin { color: #b3261e; font-weight: 800; }

@@ -24,6 +24,26 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PORT = Number(process.env.PORT) || (process.argv.includes('--port') ? Number(process.argv[process.argv.indexOf('--port') + 1]) : 8787);
 const HOST = process.env.HOST || '127.0.0.1';
 
+/* CORS — oyun GitHub Pages'te (https) çalışır, sunucu başka bir adreste.
+   Tarayıcı farklı kaynaktan gelen isteği CORS başlığı olmadan REDDEDER.
+   Varsayılan: GitHub Pages + yerel geliştirme. Canlıda ALLOWED_ORIGINS
+   ortam değişkeniyle kendi alan adınızı ekleyin (virgülle ayrılmış). */
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
+  'https://ibrahimsedatalkan.github.io,http://127.0.0.1:8123,http://localhost:8123')
+  .split(',').map((x) => x.trim()).filter(Boolean);
+
+function corsHeaders(req) {
+  const origin = req?.headers?.origin || '';
+  const izinli = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': izinli,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, x-app-password, x-token',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin'
+  };
+}
+
 /* ---------------- Veri katmanı (tek JSON dosyası) ---------------- */
 let db = { accounts: {}, progress: {}, duels: {} };
 let writeTimer = null;
@@ -63,14 +83,14 @@ function hashPin(pin, salt) {
 }
 function newToken() { return crypto.randomBytes(24).toString('base64url'); }
 
-function json(res, code, obj) {
+function json(res, code, obj, req = null) {
   const body = JSON.stringify(obj);
-  res.writeHead(code, {
+  res.writeHead(code, Object.assign({
     'Content-Type': 'application/json; charset=utf-8',
     'Content-Length': Buffer.byteLength(body),
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff'
-  });
+  }, corsHeaders(req || res.__req)));
   res.end(body);
 }
 
@@ -132,6 +152,24 @@ function pruneRooms() {
 
 /* ---------------- API ---------------- */
 async function handleApi(req, res, url) {
+  // json() çağrılarının hepsi CORS başlığı alsın diye isteği bağla
+  res.__req = req;
+  const yol0 = url.pathname;
+
+  /* Tarayıcı ön kontrolü (preflight): JSON gönderen isteklerde önce
+     OPTIONS gelir. Cevap verilmezse tarayıcı asıl isteği HİÇ göndermez. */
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, corsHeaders(req));
+    return res.end();
+  }
+
+  /* Sağlık ucu — yayında olduğunu doğrulamak ve izlemek için */
+  if (yol0 === '/api/health') {
+    return json(res, 200, {
+      ok: true, servis: 'ada-macerasi', surum: '1.0',
+      oda: rooms.size, zaman: new Date().toISOString()
+    });
+  }
   const p = url.pathname;
   const ip = req.socket.remoteAddress || '?';
   if (!rateLimit(ip)) return json(res, 429, { error: 'Çok fazla istek, biraz bekle.' });
@@ -284,12 +322,12 @@ async function handleApi(req, res, url) {
     const code = String(url.searchParams.get('roomCode') || '').toUpperCase();
     const room = rooms.get(code);
     if (!room) return json(res, 404, { error: 'Oda yok.' });
-    res.writeHead(200, {
+    res.writeHead(200, Object.assign({
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no'
-    });
+    }, corsHeaders(req)));
     res.write(`data: ${JSON.stringify({ type: 'hello', code, players: room.players })}\n\n`);
     room.clients.add(res);
     const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch (e) {} }, 20000);
