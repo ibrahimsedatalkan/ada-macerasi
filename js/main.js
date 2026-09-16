@@ -104,7 +104,7 @@ export const ZORLUKLAR = {
  * İlk oyunda otomatik açılır; sonra Veli Paneli'nden değiştirilir.
  */
 function zorlukSecimi(ilkKez = false) {
-  const simdi = settings.difficulty || 'normal';
+  const simdi = settings.difficulty || 'kolay';
   const secenekler = Object.entries(ZORLUKLAR).map(([id, z]) =>
     el('button', {
       class: 'zorluk-kart' + (id === simdi ? ' secili' : ''),
@@ -132,6 +132,69 @@ function zorlukSecimi(ilkKez = false) {
     ilkKez ? el('span') : el('div', { class: 'btn-row', style: { justifyContent: 'center' } },
       el('button', { class: 'btn ghost sm', text: 'Kapat', onClick: () => close() }))
   ));
+}
+
+/**
+ * EKRAN SÜRESİ NAZİKLİĞİ — pedagojik sınır
+ *
+ * 7 yaş için sınırsız ekran süresi uygun değil (dikkat süresi ~20-25 dk).
+ * Sert kilit KURMUYORUZ (çocuk engellenmiş hissetmesin, kavga çıkmasın);
+ * bunun yerine veliye ve çocuğa nazik bir hatırlatma yapılır ve
+ * VELİ PANELİ'nden günlük süre sınırı ayarlanabilir.
+ */
+let oyunBasladi = Date.now();
+let sureUyarisiVerildi = false;
+
+function oyunSuresiKontrol() {
+  const dk = settings.gunlukSure || 30;          // varsayılan 30 dk
+  const gecen = (Date.now() - oyunBasladi) / 60000;
+  if (gecen >= dk && !sureUyarisiVerildi) {
+    sureUyarisiVerildi = true;
+    const kapali = settings.gunlukSureKilit;
+    dialog(el('div', { class: 'center' },
+      el('div', { style: { fontSize: '52px' }, text: '🌟' }),
+      el('h2', { text: 'Bugün çok çalıştın!' }),
+      el('p', { class: 'hint-title', text: `${Math.round(gecen)} dakika oynadın.` }),
+      el('p', { class: 'muted', text: 'Beyin, öğrendiklerini dinlenirken pekiştirir. Şimdi ara vermek iyi gelir — yarın devam edebilirsin!' }),
+      el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
+        kapali
+          ? el('button', { class: 'btn green', text: 'Tamam, kapatıyorum', onClick: () => { close(); renderLogin(); } })
+          : el('button', { class: 'btn green', text: 'Tamam!', onClick: () => close() }),
+        kapali ? null : el('button', { class: 'btn ghost sm', text: '5 dakika daha', onClick: () => { close(); oyunBasladi = Date.now() - ((dk - 5) * 60000); sureUyarisiVerildi = false; } })
+      )
+    ));
+  }
+}
+
+/**
+ * Veli paneli: GÜNLÜK SÜRE (pedagojik sınır)
+ * 7 yaş dikkat süresi ~20-25 dk. Sert kilit isteğe bağlı.
+ */
+function sureSection() {
+  const dk = settings.gunlukSure || 30;
+  const kilit = !!settings.gunlukSureKilit;
+
+  const dkBtn = (n) => el('button', {
+    class: 'btn sm' + (dk === n ? ' green' : ' ghost'),
+    text: n + ' dk',
+    onClick: () => { settings.gunlukSure = n; persistSettings(); sfx('tap'); renderParent(); }
+  });
+
+  return el('div', { class: 'advice-block' },
+    el('div', { class: 'advice-h', text: '⏱️ Günlük oyun süresi' }),
+    el('p', { class: 'small muted', text: '7 yaş için önerilen: 20-30 dakika. Bu süre dolunca çocuğa nazik bir hatırlatma çıkar.' }),
+    el('div', { class: 'btn-row' }, dkBtn(15), dkBtn(20), dkBtn(30), dkBtn(45), dkBtn(60)),
+    el('div', { class: 'btn-row', style: { marginTop: '8px' } },
+      el('button', {
+        class: 'btn sm' + (kilit ? ' red' : ' ghost'),
+        text: kilit ? '🔒 Süre dolunca kilitle (AÇIK)' : '🔓 Süre dolunca kilitle (kapalı)',
+        onClick: () => { settings.gunlukSureKilit = !kilit; persistSettings(); sfx('tap'); renderParent(); }
+      })
+    ),
+    el('p', { class: 'small muted', text: kilit
+      ? 'Süre dolunca oyun kapanır. (Sert sınır — çocuğunuzla önceden konuşmanız önerilir.)'
+      : 'Süre dolunca yalnızca hatırlatma çıkar, oyun devam eder. Önerilen budur.' })
+  );
 }
 
 function applyFreeMode() {
@@ -472,6 +535,7 @@ function renderMap() {
 
   root.append(head, treasureStrip, grid);
   try { ortamDurdur(); } catch (e) {}          // ada atmosferi bitti
+  oyunSuresiKontrol();                          // ekran süresi nazikliği
   if (muzikCaliyor()) muzikModu('menu'); else muzikBaslat('menu');
   muzikYogunluk(1);
 
@@ -1116,6 +1180,52 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
       el('div', { class: 'rank-aciklama', text: rm.aciklama })
     )
   );
+
+  /**
+   * NE ÖĞRENDİN? — PEDAGOJİK GERİ BİLDİRİM
+   *
+   * ÖNCE: Sonuç ekranı yalnızca ödül gösteriyordu (yıldız, jeton, trofe).
+   * NEDEN EKLENDİ: Erken çocuklukta öğrenmeyi kalıcı kılan şey
+   * "ne kazandım" değil "ne öğrendim"dir. Çocuk kendi gelişimini
+   * görürse çaba ile sonuç arasındaki bağı kurar (öz-düzenleme).
+   * Bu yüzden somut kazanım cümlesi eklenir.
+   */
+  const ogrenmeSatiri = (() => {
+    const t = level.type;
+    const nm = level.cfg?.tables || level.cfg?.shapes || [];
+    if (t === 'multiply' && nm.length) {
+      const ad = nm.map((x) => x + "'ler").join(', ');
+      return `Bu bölümde ${ad} çalıştın. ${result.correct} tanesini doğru bildin!`;
+    }
+    if (t === 'addsub') {
+      const ne = level.cfg?.mode === 'sub' ? 'çıkarma' : 'toplama';
+      const zor = level.cfg?.carry ? (level.cfg?.mode === 'sub' ? ' (onluk bozarak)' : ' (eldeli)') : '';
+      return `Bu bölümde ${ne}${zor} çalıştın. ${result.correct} tanesini doğru bildin!`;
+    }
+    if (t === 'draw') {
+      const ad = (level.cfg?.shapes || []).map((s) => SHAPES[s]?.name || s).join(', ');
+      return `Bu bölümde şekil çizmeyi çalıştın: ${ad}.`;
+    }
+    if (t === 'sides' || t === 'shapehunt') {
+      const ad = (level.cfg?.shapes || []).map((s) => SHAPES[s]?.name || s).join(', ');
+      return `Şekillerin kenar ve köşelerini çalıştın: ${ad}.`;
+    }
+    return `Bu bölümde ${result.correct} soruyu doğru cevapladın!`;
+  })();
+
+  // İpucu kullanımı hakkında dürüst ama yapıcı geri bildirim
+  const ipucuNotu = (result.hintsUsed || 0) > 0
+    ? (result.hintsUsed <= 2
+      ? `💡 ${result.hintsUsed} kez ipucu aldın — kendi başına denemek de öğretir.`
+      : `💡 ${result.hintsUsed} kez ipucu aldın. İpucu kötü değil! Ama bir dahaki sefere önce kendi başına dene.`)
+    : '💡 Hiç ipucu kullanmadın — harika!';
+
+  const learnBox = el('div', { class: 'learn-box' },
+    el('div', { class: 'lb-baslik', text: '📚 Ne öğrendin?' }),
+    el('div', { class: 'lb-metin', text: ogrenmeSatiri }),
+    el('div', { class: 'lb-ipucu', text: ipucuNotu })
+  );
+
   const starLine = el('div', { class: 'result-stars' });
   for (let i = 0; i < 3; i++) {
     const s = el('span', { class: 's' + (i < stars ? ' on' : ''), text: '★' });
@@ -1131,6 +1241,7 @@ function renderResult({ world, level, result, stars, rank, score, coins, improve
       el('p', { class: 'small', text: `${world.name} · ${level.title}` }),
       starLine,
       rankBox,
+      learnBox,
       el('h2', { text: msg }),
       el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '8px' } },
         el('span', { class: 'hint-pill', text: `✅ ${result.correct || 0} doğru` }),
@@ -1201,11 +1312,24 @@ function rewardBlock({ seri, yeniHazine, yeniCikartma }) {
 }
 
 /* ---------------- 5) SINIF TABLOSU ---------------- */
+/**
+ * SINIFIMIZ — PEDAGOJİK TASARIM KARARI
+ *
+ * ÖNCE: Çocuklar yıldıza göre SIRALANIYORDU (1., 2., 3. + madalya).
+ * NEDEN DEĞİŞTİ: 7 yaşta halka açık sıralama özgüveni zedeler. Yavaş
+ * öğrenen bir çocuk, arkadaşlarının yanında kendini "sonuncu" görür ve
+ * bu matematikten soğumaya yol açar. Erken çocuklukta öğrenme
+ * motivasyonu KARŞILAŞTIRMA değil İLERLEME üzerine kurulmalı.
+ *
+ * ŞİMDİ: Alfabetik liste — herkes kendi ilerlemesini görür. Sıralama
+ * yok, madalya yok, "en iyi" yok. Birlikte öğrenme hissi var.
+ */
 async function renderBoard() {
   const root = showScreen('board');
   const panel = el('div', { class: 'panel wide' },
-    el('h1', { text: '🏅 Sınıf Tablosu' }),
-    el('p', { text: `Sınıf kodu: ${profile.classCode} — arkadaşların aynı sınıf kodunu yazınca bu tabloda birlikte görünürsünüz.` })
+    el('h1', { text: '🏫 Sınıfımız' }),
+    el('p', { text: `Sınıf kodu: ${profile.classCode} — arkadaşların aynı kodu yazınca burada birlikte görünürsünüz.` }),
+    el('p', { class: 'muted small', text: 'Burada sıralama yok — herkes kendi yolunda ilerliyor. 🌟' })
   );
   const tableBox = el('div');
   panel.append(tableBox,
@@ -1215,38 +1339,44 @@ async function renderBoard() {
     ));
   root.append(panel);
 
-  const rows = S.readBoard().sort((a, b) => b.stars - a.stars || b.correct - a.correct);
+  // ALFABETİK sıralama — puana göre DEĞİL (karşılaştırma yaratmasın)
+  const rows = S.readBoard().slice().sort((a, b) =>
+    String(a.nick || '').localeCompare(String(b.nick || ''), 'tr'));
+
   const tbody = el('tbody');
-  rows.forEach((r, i) => {
+  rows.forEach((r) => {
     const me = r.nick === profile.nick && r.classCode === profile.classCode;
+    // Herkes aynı "yıldız" simgesini alır — derece/madalya yok
     tbody.append(el('tr', { class: me ? 'me' : '' },
-      el('td', {}, el('span', { class: 'badge rank-' + (i < 3 ? (i + 1) : 'n'), text: String(i + 1) })),
-      el('td', { html: `${avatarInline(r.avatar, 20)}${esc(r.nick)}` }),
+      el('td', {}, el('span', { class: 'badge friendly', text: '🌟' })),
+      el('td', { html: `${avatarInline(r.avatar, 20)}${esc(r.nick)}${me ? ' <b>(sen)</b>' : ''}` }),
       el('td', { text: '★ ' + r.stars }),
       el('td', { text: '● ' + (r.coins || 0) }),
-      el('td', { text: String(r.correct || 0) })
+      el('td', { text: String(r.correct || 0) + ' doğru' })
     ));
   });
-  if (!rows.length) tbody.append(el('tr', {}, el('td', { colspan: 5, text: 'Henüz kayıt yok. Bir bölüm bitir, tabloya gir!' })));
+  if (!rows.length) tbody.append(el('tr', {}, el('td', { colspan: 5, text: 'Henüz kayıt yok. Bir bölüm bitir, sınıfına katıl!' })));
+  tableBox.append(el('table', { class: 'board-table' },
+    el('thead', {}, el('tr', {},
+      el('th', { text: '' }),
+      el('th', { text: 'Oyuncu' }),
+      el('th', { text: 'Yıldız' }),
+      el('th', { text: 'Jeton' }),
+      el('th', { text: 'İlerleme' })
+    )), tbody));
 
-  tableBox.append(el('table', { class: 'table' },
-    el('thead', {}, el('tr', {}, el('th', { text: '#' }), el('th', { text: 'Oyuncu' }), el('th', { text: 'Yıldız' }), el('th', { text: 'Jeton' }), el('th', { text: 'Doğru' }))),
-    tbody
-  ));
-
-  if (online.isConfigured()) {
-    const note = el('p', { class: 'small muted', text: 'Sunucu tablosu yükleniyor...' });
-    tableBox.append(note);
-    online.safe(() => online.classBoard(profile.classCode, profile.token), null).then((data) => {
-      if (!data || !data.rows) { clear(note); return; }
-      clear(note);
-      const tb = el('tbody');
-      data.rows.slice(0, 20).forEach((r, i) => tb.append(el('tr', {}, el('td', { text: String(i + 1) }), el('td', { text: `${r.avatar || ''} ${r.nick}` }), el('td', { text: '★ ' + (r.stars || 0) }), el('td', { text: '● ' + (r.coins || 0) }), el('td', { text: String(r.correct || 0) }))));
-      tableBox.append(el('h3', { text: '🌐 Çevrimiçi sınıf' }), el('table', { class: 'table' },
-        el('thead', {}, el('tr', {}, el('th', { text: '#' }), el('th', { text: 'Oyuncu' }), el('th', { text: 'Yıldız' }), el('th', { text: 'Jeton' }), el('th', { text: 'Doğru' }))), tb));
-    });
-  } else {
-    tableBox.append(el('p', { class: 'small muted', text: 'Not: Bu tablo şimdilik cihazda saklanıyor. Sunucu bağlandığında tüm sınıf ortak tabloda yarışır (README → Aşama 2).' }));
+  // Birlikte öğrenme vurgusu: toplam emek görünür olsun
+  const toplamDogru = rows.reduce((t, r) => t + (r.correct || 0), 0);
+  const toplamYildiz = rows.reduce((t, r) => t + (r.stars || 0), 0);
+  if (rows.length) {
+    tableBox.append(el('div', { class: 'board-ozet' },
+      el('div', { class: 'bo-kart' }, el('div', { class: 'bo-sayi', text: String(rows.length) }), el('div', { class: 'bo-ad', text: 'arkadaş' })),
+      el('div', { class: 'bo-kart' }, el('div', { class: 'bo-sayi', text: String(toplamYildiz) }), el('div', { class: 'bo-ad', text: 'toplam yıldız' })),
+      el('div', { class: 'bo-kart' }, el('div', { class: 'bo-sayi', text: String(toplamDogru) }), el('div', { class: 'bo-ad', text: 'toplam doğru' }))
+    ));
+    // Olumlu kapanış — kimse "kaybetmiş" hissetmesin
+    tableBox.append(el('p', { class: 'muted small center', style: { marginTop: '10px' },
+      text: 'Birlikte öğreniyoruz! Herkesin hızı farklı, önemli olan denemek. 💪' }));
   }
 }
 
@@ -1548,6 +1678,9 @@ function renderParent() {
     adviceSection(),
 
     speechSpeedSection(),
+
+    sureSection(),
+
 
     timeModeSection(),
 

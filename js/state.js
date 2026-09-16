@@ -206,7 +206,7 @@ export function deleteProfile(nick, code) {
 }
 
 /* ---------------- Ayarlar (cihaz bazlı) ---------------- */
-export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false, timeMode: 'normal', freeMode: false, speechSpeed: 0.72, difficulty: 'normal' });
+export const defaultSettings = () => ({ sound: true, voice: true, music: false, bigText: false, timeMode: 'normal', freeMode: false, speechSpeed: 0.72, difficulty: 'kolay', gunlukSure: 30, gunlukSureKilit: false });
 
 export function loadSettings() {
   return Object.assign(defaultSettings(), read(SETTINGS_KEY, {}));
