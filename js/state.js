@@ -22,12 +22,54 @@ export function avatarSlug(emoji) {
   return AVATAR_SLUGS[emoji] || 'fox';
 }
 
+/* ============================================================
+   KAYIT SAĞLIĞI — sessiz veri kaybını önleme
+
+   BULUNAN SORUN (prism-scan + davranışsal test):
+   `write()` hatayı yakalıyor ama yalnızca console.warn ediyordu ve
+   `false` dönüşünü HİÇBİR çağıran kontrol etmiyordu. localStorage
+   kotası dolduğunda veya tarayıcı gizli modda çalıştığında
+   (QuotaExceededError) çocuk 40 dakika oynar, hiçbir uyarı görmez,
+   sekmeyi kapatınca her şey gider — ve bunu KİMSE fark etmez.
+
+   ÇÖZÜM: Yazma hatası artık kaydedilir ve veliye gösterilebilir.
+   ============================================================ */
+let sonKayitHatasi = null;      // { zaman, anahtar, mesaj } | null
+
+/** Son kayıt hatası (yoksa null). Veli paneli bunu gösterir. */
+export function kayitHatasi() { return sonKayitHatasi; }
+
+/** Kayıt çalışıyor mu? (test ve teşhis için) */
+export function kayitSagligi() {
+  return { saglikli: sonKayitHatasi === null, sonHata: sonKayitHatasi };
+}
+
+/** Hata bildirildikten sonra temizle (veli "anladım" dediğinde) */
+export function kayitHatasiniTemizle() { sonKayitHatasi = null; }
+
+/** Kayıt sorununu çözmek için gerçek bir deneme yap (kota/gizli mod testi) */
+export function kayitTesti() {
+  const anahtar = '__ada_kayit_testi__';
+  try {
+    localStorage.setItem(anahtar, '1');
+    localStorage.removeItem(anahtar);
+    sonKayitHatasi = null;
+    return true;
+  } catch (e) {
+    sonKayitHatasi = { zaman: Date.now(), anahtar, mesaj: String(e?.name || e) };
+    console.warn('kayıt testi başarısız:', e);
+    return false;
+  }
+}
+
 function read(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     return JSON.parse(raw);
   } catch (e) {
+    // Bozuk JSON = sessiz veri kaybı. Kaydet ve yedekle.
+    sonKayitHatasi = { zaman: Date.now(), anahtar: key, mesaj: 'bozuk kayıt: ' + String(e?.name || e) };
     console.warn('okuma hatası', key, e);
     return fallback;
   }
@@ -36,8 +78,11 @@ function read(key, fallback) {
 function write(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    // Başarılı yazma, önceki hatayı temizler
+    if (sonKayitHatasi && sonKayitHatasi.anahtar === key) sonKayitHatasi = null;
     return true;
   } catch (e) {
+    sonKayitHatasi = { zaman: Date.now(), anahtar: key, mesaj: String(e?.name || e) };
     console.warn('yazma hatası', key, e);
     return false;
   }
@@ -327,6 +372,15 @@ export function recordAnswer(profile, { correct, table, b, shape, usedHint = fal
     s.byShape[shape] = s.byShape[shape] || { c: 0, w: 0 };
     if (correct) s.byShape[shape].c++; else s.byShape[shape].w++;
   }
+  /* ARADA KAYDET — bölüm ortasında uygulama ölürse (tablet ısınması,
+     sekme kapanması, iOS belleği düşürmesi) bu veri kaybolmasın.
+     NEDEN ÖNEMLİ: byFact/recent/missed tam da çocuğun ZAYIF olduğu yeri
+     hatırlamak için tutuluyor. Kaybolursa adaptif zorluk ve aralıklı
+     tekrar "çocuk o soruyu hiç görmemiş" gibi davranır — yani oyun
+     öğretme yeteneğinin bir kısmını sessizce kaybeder.
+     MALİYET: profil ~2-5 KB; localStorage yazımı ~0,1 ms. Soru başına
+     bir kez, jank yok. */
+  saveProfile(profile);
   return s;
 }
 
@@ -335,6 +389,7 @@ export function markKindDone(profile, kind) {
   if (!profile?.stats) return;
   if (kind === 'draw') profile.stats.drawDone = (profile.stats.drawDone || 0) + 1;
   if (kind === 'boss') profile.stats.bossDone = (profile.stats.bossDone || 0) + 1;
+  saveProfile(profile);      // çıkartma sayacı bölüm ortasında kaybolmasın
 }
 
 /* ---------------- Yerel sınıf tablosu ---------------- */
@@ -385,6 +440,10 @@ export function gunlukGorev(profile) {
     const yeniHedef = basariyla && idx >= 0 && idx < GOREV_HEDEFLERI.length - 1
       ? GOREV_HEDEFLERI[idx + 1] : GOREV_HEDEFLERI[0];
     profile.gunluk = { tarih: t, hedef: yeniHedef, yapilan: 0, odulAlindi: false };
+    /* SIFIRLAMAYI KAYDET — önceki hâlde yalnız bellekte kalıyordu.
+       Sonuç: sekme yenilenince diskteki ESKİ hedef okunuyor ve kademeli
+       büyüme (10→12→15→18→20) temelsiz hesaplanıyordu. */
+    saveProfile(profile);
   }
   return profile.gunluk;
 }
@@ -397,8 +456,14 @@ export function gorevIlerlet(profile, adet = 1) {
   if (g.yapilan >= g.hedef) {
     g.odulAlindi = true;
     const odul = 30 + g.hedef * 5;         // 80-130 jeton
-    profile.coins = (profile.coins || 0) + odul;
+    /* ÖDÜLÜ KAYDET — önceki hâlde ödül yalnız bellekte kalıyordu; bölüm
+       ortasında kapanma olursa çocuk görevi tamamlar ama ödülü GÖREMEZDİ.
+       addCoins() kaydetmeyi ve negatif korumayı zaten yapıyor → onu kullan
+       (önceki hâl profile.coins'i doğrudan artırıp o korumayı atlıyordu). */
+    addCoins(profile, odul);
     return { hedef: g.hedef, odul, jeton: profile.coins };
   }
+  // İlerleme de kaydedilsin (kısmi ilerleme kaybolmasın)
+  saveProfile(profile);
   return null;
 }

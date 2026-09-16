@@ -1941,6 +1941,43 @@ function freeModeSection() {
   );
 }
 
+/**
+ * KAYIT HATASI UYARISI — sessiz veri kaybını görünür kılar.
+ *
+ * NEDEN: localStorage kotası dolduğunda veya tarayıcı gizli moddayken
+ * yazma başarısız oluyordu ve HİÇBİR belirti yoktu. Çocuk saatlerce
+ * oynayıp her şeyi kaybedebilirdi. Artık veli görüyor.
+ */
+function kayitUyarisi() {
+  const sag = S.kayitSagligi();
+  const hata = sag.sonHata;
+  const kutu = el('div', { class: 'advice-box kayit-uyari' },
+    el('div', { class: 'advice-head', text: '⚠️ Bu cihazda kayıt yapılamıyor' }),
+    el('p', {
+      text: 'Oyun şu an oynanabiliyor ama ilerleme KAYDEDİLMİYOR. ' +
+            'Sekme kapanınca yıldızlar, jetonlar ve istatistikler kaybolur. ' +
+            'Olası sebepler: tarayıcı gizli/özel modda, cihaz depolaması dolu, ' +
+            'ya da site verilerine izin verilmemiş.'
+    }),
+    hata ? el('p', { class: 'mini', text: 'Teknik: ' + (hata.mesaj || 'bilinmiyor') +
+                     ' · anahtar: ' + (hata.anahtar || '-') }) : el('span'),
+    el('div', { class: 'btn-row', style: { marginTop: '10px' } },
+      el('button', {
+        class: 'btn green sm', text: '🔄 Tekrar dene',
+        onClick: () => {
+          if (S.kayitTesti()) { toast('Kayıt çalışıyor ✅'); renderParent(); }
+          else { toast('Hâlâ kaydedilemiyor — gizli modu kapatın'); renderParent(); }
+        }
+      }),
+      el('button', {
+        class: 'btn ghost sm', text: 'Anladım',
+        onClick: () => { S.kayitHatasiniTemizle(); renderParent(); }
+      })
+    )
+  );
+  return kutu;
+}
+
 function renderParent() {
   const root = showScreen('parent');
   const st = profile.stats;
@@ -1960,6 +1997,10 @@ function renderParent() {
   const panel = el('div', { class: 'panel wide' },
     el('h1', { text: '👨‍👩‍👦 Veli / Öğretmen Paneli' }),
     el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
+
+    // KAYIT SAĞLIĞI — yalnız kayıt BOZUKSA gösterilir. Sessiz veri
+    // kaybını görünür kılar (kota dolu / tarayıcı gizli mod).
+    ...(S.kayitSagligi().saglikli ? [] : [kayitUyarisi()]),
 
     adviceSection(),
 
