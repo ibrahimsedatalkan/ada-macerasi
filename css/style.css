@@ -1012,3 +1012,19 @@ body { padding-left: var(--safe-l); padding-right: var(--safe-r); }
   min-height: 44px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px;
 }
 .zorluk-chip .zc-can { font-size: 11.5px; }
+
+/* Hata örüntüsü analizi (veli paneli) */
+.hata-block { border-color: #d97a00; background: linear-gradient(180deg,#fffdf7,#fff5e3); }
+.hata-oneri { font-weight: 800; line-height: 1.5; color: #6b3f00; font-size: clamp(13px,2.3vw,15.5px);
+  background: rgba(255,255,255,.75); border-left: 5px solid #d97a00; padding: 9px 12px; border-radius: 8px; }
+.hata-liste { display: grid; gap: 7px; margin-top: 10px; }
+.hata-satir { display: grid; grid-template-columns: 74px 1fr auto; gap: 10px; align-items: center; }
+.hs-soru { font-weight: 900; font-size: clamp(14px,2.6vw,17px); color: var(--ink); }
+.hs-bar { height: 12px; border-radius: 999px; background: rgba(35,50,77,.14); overflow: hidden; }
+.hs-bar i { display: block; height: 100%; background: linear-gradient(90deg,#ff6f9c,#ffd23d,#58cf6a); }
+.hs-sayi { font-size: 12.5px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+
+@media (max-width: 520px) {
+  .hata-satir { grid-template-columns: 62px 1fr; }
+  .hs-sayi { grid-column: 2; text-align: right; font-size: 11.5px; }
+}

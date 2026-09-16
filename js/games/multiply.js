@@ -77,10 +77,18 @@ export function createMultiplyGame({ root, level, api }) {
       }
     }
     if (!q) {
-      const secilenTablolar = pickAdaptiveTables(api.profile, cfg.tables, 1);
-      const temelMax = cfg.mode === 'result' ? cfg.maxB : Math.min(10, cfg.maxBHard);
-      const maxB = adaptiveMaxB(api.profile, temelMax, cfg.maxBHard);
-      q = makeMultiplyQuestion({ tables: secilenTablolar, mode: cfg.mode, maxB });
+      // HEDEFLİ ÇALIŞMA: veli panelinden "sadece takıldığı sorular" seçildiyse
+      // yalnız o çarpım soruları sorulur. Öğrenme araştırmasında en etkili
+      // müdahale budur: tüm tabloyu değil, TAKILDIĞI SORUYU çalışmak.
+      if (cfg.facts && cfg.facts.length) {
+        const f = cfg.facts[Math.floor(Math.random() * cfg.facts.length)];
+        q = makeMultiplyQuestion({ tables: [f.a], facts: [f], mode: 'result' });
+      } else {
+        const secilenTablolar = pickAdaptiveTables(api.profile, cfg.tables, 1);
+        const temelMax = cfg.mode === 'result' ? cfg.maxB : Math.min(10, cfg.maxBHard);
+        const maxB = adaptiveMaxB(api.profile, temelMax, cfg.maxBHard);
+        q = makeMultiplyQuestion({ tables: secilenTablolar, mode: cfg.mode, maxB });
+      }
     }
     state.cur = q;
     state.reask = reask;
@@ -134,7 +142,7 @@ export function createMultiplyGame({ root, level, api }) {
     state.lives--;
     pushRecent(api.profile, false);
     pushMissed(api.profile, state.cur);          // süre doldu → tekrar sorulacak
-    api.recordAnswer({ correct: false, table: state.cur?.table, usedHint: state.usedHint, kind: 'multiply' });
+    api.recordAnswer({ correct: false, table: state.cur?.table, b: state.cur?.b, usedHint: state.usedHint, kind: 'multiply' });
     api.sfx('wrong');
     livesEl.innerHTML = hearts(Math.max(0, state.lives));
     streakEl.textContent = 'Seri: 0';
@@ -163,7 +171,7 @@ export function createMultiplyGame({ root, level, api }) {
       else if (state.streak === 8) komboYazisi("8'Lİ KOMBO! MUHTEŞEM!", '#58cf6a');
       else if (state.streak === 12) komboYazisi("12'Lİ KOMBO! EFSANE!", '#ff6f9c');
       if (state.streak > 0 && state.streak % 5 === 0) { api.sfx('coin'); api.toast(`${state.streak} doğru seri! Süpersin!`); }
-      api.recordAnswer({ correct: true, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
+      api.recordAnswer({ correct: true, table: state.cur.table, b: state.cur.b, usedHint: state.usedHint, kind: 'multiply' });
       streakEl.textContent = 'Seri: ' + state.streak;
       setTimeout(nextQuestion, 620);
     } else {
@@ -172,7 +180,7 @@ export function createMultiplyGame({ root, level, api }) {
       state.lives--;
       pushMissed(api.profile, state.cur);        // yanlış → birkaç soru sonra tekrar
       streakEl.textContent = 'Seri: 0';
-      api.recordAnswer({ correct: false, table: state.cur.table, usedHint: state.usedHint, kind: 'multiply' });
+      api.recordAnswer({ correct: false, table: state.cur.table, b: state.cur.b, usedHint: state.usedHint, kind: 'multiply' });
       api.sfx('wrong');
       ekranSars(1.15);
       hitStop(110);

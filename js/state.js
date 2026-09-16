@@ -137,6 +137,7 @@ export function migrate(p) {
   p.stats.wrong = p.stats.wrong || 0;
   p.stats.byTable = p.stats.byTable || {};
   p.stats.byShape = p.stats.byShape || {};
+  p.stats.byFact = p.stats.byFact || {};      // "7x8": {c,w,son} — fact düzeyi takip
   p.stats.recent = p.stats.recent || [];      // adaptif zorluk için son cevaplar
   p.missed = p.missed || [];                  // aralıklı tekrar kuyruğu
   p.lessonsSeen = p.lessonsSeen || [];        // görülen dersler (ders ekranı)
@@ -301,7 +302,7 @@ export function maxStars(worlds) {
 }
 
 /* İstatistik kaydı — her soru sonrası çağrılır */
-export function recordAnswer(profile, { correct, table, shape, usedHint = false, kind = null }) {
+export function recordAnswer(profile, { correct, table, b, shape, usedHint = false, kind = null }) {
   const s = profile.stats;
   if (correct) s.correct++; else s.wrong++;
   if (correct && !usedHint) s.correctNoHint = (s.correctNoHint || 0) + 1;
@@ -309,6 +310,18 @@ export function recordAnswer(profile, { correct, table, shape, usedHint = false,
     const k = String(table);
     s.byTable[k] = s.byTable[k] || { c: 0, w: 0 };
     if (correct) s.byTable[k].c++; else s.byTable[k].w++;
+  }
+  /* FACT DÜZEYİ TAKİP — "7'lerde zayıf" yeterli değil; hangi SORUDA
+     takıldığını bilmek gerekir. Örnek kayıt: {"7x8": {c:1, w:4}}
+     Bu sayede veli paneli "7×8'i 4 kez kaçırdı" diyebilir ve çocuk
+     yalnız o soruyu çalışabilir. */
+  if (table != null && b != null) {
+    s.byFact = s.byFact || {};
+    const fk = Number(table) + 'x' + Number(b);
+    s.byFact[fk] = s.byFact[fk] || { c: 0, w: 0 };
+    if (correct) s.byFact[fk].c++; else s.byFact[fk].w++;
+    // Son yanlış zamanı (taze takılmaları öne çıkarmak için)
+    if (!correct) s.byFact[fk].son = Date.now();
   }
   if (shape) {
     s.byShape[shape] = s.byShape[shape] || { c: 0, w: 0 };

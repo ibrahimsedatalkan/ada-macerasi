@@ -122,10 +122,21 @@ function novel(tag, keyOf, make, tries = 30) {
   return q;
 }
 
-/* ---------------- Çarpım ---------------- */
-function buildMultiply({ tables = [2], mode = 'result', maxB = 5 } = {}) {
-  const a = tables[Math.floor(Math.random() * tables.length)];
-  const b = randInt(1, maxB);
+/* ---------------- Çarpım ----------------
+   facts: HEDEFLİ ÇALIŞMA için — kesin sorular [{a,b}, ...] verilirse
+   yalnız onlar sorulur. Veli panelindeki "takıldığı sorular" modu bunu
+   kullanır; öğrenme araştırmasında en etkili müdahale tüm tabloyu değil
+   TAKILDIĞI SORUYU çalışmaktır. */
+function buildMultiply({ tables = [2], mode = 'result', maxB = 5, facts = null } = {}) {
+  let a, b;
+  if (facts && facts.length) {
+    const f = facts[Math.floor(Math.random() * facts.length)];
+    a = Number(f.a);
+    b = Number(f.b);
+  } else {
+    a = tables[Math.floor(Math.random() * tables.length)];
+    b = randInt(1, maxB);
+  }
   const product = a * b;
   const m = mode === 'mix' ? ['result', 'missing', 'reverse'][randInt(0, 2)] : mode;
 

@@ -23,7 +23,7 @@ import { createTogetherGame } from './games/together.js';
 import { createDuelOnline } from './duel-online.js';
 import * as online from './online.js';
 import { Journey, expectedSteps } from './journey.js';
-import { buildAdvice, adviceToText } from './advice.js';
+import { buildAdvice, adviceToText, hataOnerisi, takilmaNoktalari, cozulenler } from './advice.js';
 import { SHAPE_LESSONS, GEO_INTRO, dersKey, practiceLevelFor } from './lessons.js';
 import { shapeSVG, SHAPES } from './shapes.js';
 
@@ -196,6 +196,100 @@ function sureSection() {
       ? 'Süre dolunca oyun kapanır. (Sert sınır — çocuğunuzla önceden konuşmanız önerilir.)'
       : 'Süre dolunca yalnızca hatırlatma çıkar, oyun devam eder. Önerilen budur.' })
   );
+}
+
+/**
+ * VELİ PANELİ: HATA ÖRÜNTÜSÜ
+ *
+ * "7'lerde zayıf" demek veliye yol göstermez. Burada SORU DÜZEYİNDE
+ * tespit gösterilir: hangi soruda takıldı, neyle karıştırdı, ne
+ * yapmalı. Etkili öğrenme müdahalesi soru düzeyinde olur.
+ */
+function hataOruntusuSection() {
+  const oneri = hataOnerisi(profile);
+  const takil = takilmaNoktalari(profile);
+  const cozul = cozulenler(profile);
+
+  if (!oneri && !takil.length && !cozul.length) {
+    return el('div', { class: 'advice-block' },
+      el('div', { class: 'advice-h', text: '🔍 Hata örüntüsü' }),
+      el('p', { class: 'small muted', text: 'Henüz yeterli veri yok. Birkaç bölüm oynadıktan sonra burada "hangi soruda takılıyor" tespiti görünecek.' })
+    );
+  }
+
+  const icerik = [];
+  icerik.push(el('div', { class: 'advice-h', text: '🔍 Hata örüntüsü — hangi soruda takılıyor?' }));
+
+  if (oneri) icerik.push(el('p', { class: 'hata-oneri', text: oneri }));
+
+  // Takılma noktaları tablosu (en fazla 5)
+  if (takil.length) {
+    icerik.push(el('div', { class: 'hata-liste' },
+      ...takil.map((t) => el('div', { class: 'hata-satir' },
+        el('div', { class: 'hs-soru', text: `${t.a} × ${t.b}` }),
+        el('div', { class: 'hs-bar' }, el('i', { style: { width: Math.round(t.dogruluk * 100) + '%' } })),
+        el('div', { class: 'hs-sayi', text: `${t.w} yanlış / ${t.toplam}` })
+      ))
+    ));
+  }
+
+  // Çözülenler — motivasyon
+  if (cozul.length) {
+    icerik.push(el('p', { class: 'small', style: { marginTop: '10px', color: '#16512a' },
+      text: '✅ Artık doğru yaptıkları: ' + cozul.map((c) => `${c.a}×${c.b}`).join(', ') + ' — çocuğunuza söyleyin!' }));
+  }
+
+  // Hedefli çalışma butonu: yalnız takıldığı soruları çalıştır
+  if (takil.length) {
+    icerik.push(el('div', { class: 'btn-row', style: { marginTop: '10px' } },
+      el('button', {
+        class: 'btn green sm',
+        text: `🎯 Sadece takıldığı ${takil.length} soruyu çalıştır`,
+        onClick: () => { close(); hedefliCalisma(takil); }
+      })
+    ));
+  }
+
+  return el('div', { class: 'advice-block hata-block' }, ...icerik);
+}
+
+/**
+ * HEDEFLİ ÇALIŞMA — veli panelinden başlatılır.
+ * Yalnız çocuğun TAKILDIĞI çarpım soruları sorulur. Can bol, süre yok:
+ * amaç öğrenmek, test edilmek değil. 6 soru = kısa ve odaklı bir oturum.
+ */
+function hedefliCalisma(takil) {
+  if (!profile || !takil?.length) return;
+  const stage = showScreen('game');
+  updateHud();
+  const adlar = takil.map((t) => `${t.a}×${t.b}`).join(', ');
+  currentLevel = {
+    world: { id: 'hedef', name: 'Hedefli Çalışma' },
+    level: { id: 'hedef', title: 'Takıldığın sorular', type: 'multiply', cfg: {} }
+  };
+  dialog(el('div', { class: 'center' },
+    el('div', { style: { fontSize: '48px' }, text: '🎯' }),
+    el('h2', { text: 'Hedefli Çalışma' }),
+    el('p', { class: 'hint-title', text: adlar }),
+    el('p', { class: 'muted', text: 'Yalnız bu soruları çalışacağız. Süre yok, bol can — amaç öğrenmek.' }),
+    el('p', { class: 'small muted', text: 'Çocuğunuzla birlikte yapabilirsiniz: "Nasıl buldun?" diye sorun.' }),
+    el('div', { class: 'btn-row', style: { justifyContent: 'center', marginTop: '12px' } },
+      el('button', { class: 'btn green', text: 'Başla', onClick: () => {
+        close();
+        muzikModu('play');
+        geriSayim(stage, () => {
+          currentEngine = createMultiplyGame({
+            root: stage,
+            level: { type: 'multiply', cfg: { facts: takil.map((t) => ({ a: t.a, b: t.b })), rounds: 6, lives: 5, options: 4, mode: 'result' } },
+            api
+          });
+          currentEngine.start();
+        });
+      } }),
+      el('button', { class: 'btn ghost sm', text: 'Vazgeç', onClick: () => { close(); renderParent(); } })
+    )
+  ));
+  api._stage = stage;
 }
 
 function applyFreeMode() {
@@ -1720,6 +1814,8 @@ function renderParent() {
     el('p', { html: `${avatarInline(profile.avatar, 22)}<b>${esc(profile.nick)}</b> · Sınıf ${esc(profile.classCode)} · Toplam ★ ${S.totalStars(profile)} · Doğruluk %${acc} (${st.correct} doğru / ${st.wrong} yanlış)` }),
 
     adviceSection(),
+
+    hataOruntusuSection(),
 
     speechSpeedSection(),
 

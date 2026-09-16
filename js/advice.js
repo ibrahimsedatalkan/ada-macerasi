@@ -172,3 +172,96 @@ export function adviceToText(profile, advice) {
   }
   return satir.join('\n');
 }
+
+/* ============================================================
+   HATA ÖRÜNTÜSÜ ANALİZİ
+   ------------------------------------------------------------
+   PEDAGOJİK GEREKÇE: "7'lerde zayıf" demek veliye yol göstermez.
+   Öğrenme araştırmasında etkili müdahale SORU DÜZEYİNDE olur: çocuk
+   7×8'de takılıyorsa YALNIZ o soruyu çalışmak gerekir — 7'lerin
+   tamamını baştan çalıştırmak zaman kaybı ve sıkıcıdır.
+
+   Analiz üç şey bulur:
+     1) TAKILMA NOKTASI — belirli bir soruda ısrarlı hata (7×8)
+     2) KARIŞTIRMA      — komşu iki sonucu karıştırma (7×8 ↔ 7×9)
+     3) ÇÖZÜLEN         — eskiden zayıf olup artık doğru yapılan
+   ============================================================ */
+
+/** Belirli bir çarpım sorusunda ısrarlı hata var mı? */
+export function takilmaNoktalari(profile, { enAzYanlis = 2, enAzDeneme = 3 } = {}) {
+  const bf = profile?.stats?.byFact || {};
+  const liste = [];
+  for (const [k, v] of Object.entries(bf)) {
+    const toplam = (v.c || 0) + (v.w || 0);
+    if (toplam < enAzDeneme || (v.w || 0) < enAzYanlis) continue;
+    const dogruluk = (v.c || 0) / toplam;
+    if (dogruluk > 0.5) continue;                      // yarıdan fazla doğruysa takılma sayılmaz
+    const [a, b] = k.split('x').map(Number);
+    if (!(a >= 1 && a <= 10 && b >= 1 && b <= 10)) continue;   // yalnız çarpım tablosu
+    liste.push({ fakt: k, a, b, c: v.c || 0, w: v.w || 0, toplam, dogruluk, son: v.son || 0 });
+  }
+  // En çok yanlış + en taze olan öne
+  return liste.sort((x, y) => (y.w - x.w) || (y.son - x.son)).slice(0, 5);
+}
+
+/** Komşu sonuçları karıştırma: 7×8 ile 7×9 gibi ardışık iki soruda hata */
+export function karistirmaNoktalari(profile) {
+  const bf = profile?.stats?.byFact || {};
+  const bulgular = [];
+  for (const [k, v] of Object.entries(bf)) {
+    const [a, b] = k.split('x').map(Number);
+    if (!(a >= 1 && a <= 10 && b >= 1 && b <= 10)) continue;
+    const toplam = (v.c || 0) + (v.w || 0);
+    if (toplam < 4 || (v.w || 0) < 2) continue;
+    const komsular = [];
+    if (b > 1) komsular.push(a + 'x' + (b - 1));
+    if (b < 10) komsular.push(a + 'x' + (b + 1));
+    const komsuHatali = komsular.filter((kk) => {
+      const kv = bf[kk];
+      if (!kv) return false;
+      const kt = (kv.c || 0) + (kv.w || 0);
+      return kt >= 3 && (kv.w || 0) >= 2;
+    });
+    if (komsuHatali.length) bulgular.push({ fakt: k, komsu: komsuHatali[0], a, b });
+  }
+  return bulgular.slice(0, 3);
+}
+
+/** Sonunda öğrenilmiş eski zayıf sorular — motivasyon için önemli */
+export function cozulenler(profile) {
+  const bf = profile?.stats?.byFact || {};
+  const liste = [];
+  for (const [k, v] of Object.entries(bf)) {
+    const [a, b] = k.split('x').map(Number);
+    if (!(a >= 1 && a <= 10 && b >= 1 && b <= 10)) continue;
+    const toplam = (v.c || 0) + (v.w || 0);
+    if (toplam < 4) continue;
+    if ((v.w || 0) >= 2 && v.c >= 3 && (v.c / toplam) >= 0.75) liste.push({ fakt: k, a, b });
+  }
+  return liste.slice(0, 4);
+}
+
+/** Analiz sonucunu tek, UYGULANABİLİR öneriye çevir */
+export function hataOnerisi(profile) {
+  const takil = takilmaNoktalari(profile);
+  const karis = karistirmaNoktalari(profile);
+  const cozul = cozulenler(profile);
+
+  if (takil.length) {
+    const t = takil[0];
+    const k = karis.find((x) => x.fakt === t.fakt);
+    if (k) {
+      const [ka, kb] = k.komsu.split('x');
+      return `⚠️ ${t.a}×${t.b} ile ${ka}×${kb} sonuçlarını karıştırıyor (${t.w} kez kaçırdı). `
+        + `Bu İKİ soruyu yan yana çalıştırın: "${t.a} kere ${t.b}" ve "${ka} kere ${kb}". Farkı görmek karıştırmayı çözer.`;
+    }
+    const yardim = t.a >= 6 ? `5 kere ${t.b} artı ${t.a - 5} kere ${t.b}` : `${t.a}'yi parçalara ayırıp topla`;
+    return `⚠️ ${t.a}×${t.b} sorusunda takılıyor (${t.w} kez kaçırdı, ${t.c} doğru). `
+      + `Yalnız bu soruyu çalıştırın. İpucu: "${yardim}".`;
+  }
+  if (cozul.length) {
+    return `✅ Güzel haber: ${cozul[0].fakt.replace('x', '×')} sorusunu artık doğru yapıyor! `
+      + `Eskiden zorlanıyordu — bu ilerlemeyi çocuğunuza söyleyin, çok motive eder.`;
+  }
+  return null;
+}
