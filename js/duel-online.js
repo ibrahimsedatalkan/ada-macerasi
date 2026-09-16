@@ -12,7 +12,7 @@
 import { el, clear, avatarHTML, avatarInline, esc, toast } from './ui.js';
 import { makeMultiplyQuestion, questionSpeech } from './games/questions.js';
 import { techniqueFor, techniqueSpeech } from './games/hints.js';
-import { resetSpeech } from './audio.js';
+import { resetSpeech, speak } from './audio.js';
 import * as online from './online.js';
 
 /* Oda kodundan deterministik rastgele sayı üreteci (mulberry32) */

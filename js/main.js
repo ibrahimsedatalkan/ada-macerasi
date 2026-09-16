@@ -8,7 +8,7 @@
 import { WORLDS, findWorld, findLevel, TYPE_LABEL, levelTopics } from './worlds.js';
 import * as S from './state.js';
 import { el, clear, dialog, confirmBox, toast, confetti, starsEl, mascot, mascotHTML, avatarHTML, avatarInline, esc, randInt, shuffle, canlandir, avatarSevin, avatarUzul, avatarDusun, maskotCanlandir } from './ui.js';
-import { audio, sfx, speak, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
+import { audio, sfx, speak, speakSeq, stopSpeaking, unlockAudio, toggleMusic, startMusic, stopMusic, setSpeechRate, getSpeechRate, preloadSpeech, sayGreeting } from './audio.js';
 import { createMultiplyGame } from './games/multiply.js';
 import { muzikBaslat, muzikModu, muzikYogunluk, muzikDurdur, muzikCaliyor, zaferFanfari, odulParlitisi } from './music.js';
 import { titretDogru, titretYanlis, titretKombo, titretTrofe, titretDokun, konusmaDurumu, ortamBaslat, ortamDurdur } from './his.js';
@@ -269,7 +269,10 @@ function hedefliCalisma(takil) {
   updateHud();
   const adlar = takil.map((t) => `${t.a}×${t.b}`).join(', ');
   currentLevel = {
-    world: { id: 'hedef', name: 'Hedefli Çalışma' },
+    // levels: [] — bu bağımsız bir mod, ada bölümü değil. finishLevel
+    // world.levels arar; olmazsa savunmacı kontrol devreye girer ama
+    // tutarlılık için burada da açıkça veriyoruz.
+    world: { id: 'hedef', name: 'Hedefli Çalışma', levels: [] },
     level: { id: 'hedef', title: 'Takıldığın sorular', type: 'multiply', cfg: {} }
   };
   const close = dialog(el('div', { class: 'center' },
@@ -316,7 +319,7 @@ function sonsuzBaslat() {
         close();
         const stage = showScreen('game');
         updateHud();
-        currentLevel = { world: { id: 'sonsuz', name: 'Sonsuz Macera' }, level: { id: 'sonsuz', title: 'Sonsuz', type: 'endless', cfg: {} } };
+        currentLevel = { world: { id: 'sonsuz', name: 'Sonsuz Macera', levels: [] }, level: { id: 'sonsuz', title: 'Sonsuz', type: 'endless', cfg: {} } };
         muzikModu('play');
         try { ortamDurdur(); } catch (e) {}
         geriSayim(stage, () => {
@@ -1247,7 +1250,7 @@ function birlikteBaslat(ayar = {}) {
   // Oyunu başlat
   const stage = showScreen('game');
   updateHud();
-  currentLevel = { world: { id: 'together', name: 'Birlikte Oyna' }, level: { id: 'tg', title: ayar.ad || 'Birlikte', type: 'together', cfg: ayar.cfg } };
+  currentLevel = { world: { id: 'together', name: 'Birlikte Oyna', levels: [] }, level: { id: 'tg', title: ayar.ad || 'Birlikte', type: 'together', cfg: ayar.cfg } };
   muzikModu('play');
   try { ortamDurdur(); } catch (e) {}
   geriSayim(stage, () => {
@@ -1396,8 +1399,14 @@ function finishLevel(result) {
   }
 
   // Yeni bölüm açıldı mı?
-  const idx = world.levels.indexOf(level);
-  const nextLevel = world.levels[idx + 1];
+  // SAVUNMA: bağımsız modlarda (Birlikte Oyna, Sonsuz Macera) world.levels
+  // YOKTUR — bu modlar gerçek bir ada bölümü değil. Önceden burası
+  // çöküyordu (TypeError: reading 'indexOf' of undefined) ve hata
+  // renderResult'tan ÖNCE fırladığı için sonuç ekranı hiç çizilmiyordu
+  // → oyun kilitleniyor görünüyordu.
+  const levels = Array.isArray(world?.levels) ? world.levels : [];
+  const idx = levels.indexOf(level);
+  const nextLevel = idx >= 0 ? levels[idx + 1] : undefined;
   const unlockedNew = stars > 0 && nextLevel && before.stars === 0 && S.hasStars(profile, level.id);
   if (unlockedNew) setTimeout(() => { sfx('unlock'); toast('🔓 Yeni bölüm açıldı!'); }, 900);
 
