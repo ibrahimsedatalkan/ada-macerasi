@@ -13,6 +13,9 @@ let pass = 0, fail = 0;
 const T = (n, ok, d = '') => { result(n, ok, d); ok ? pass++ : fail++; };
 
 await c.goto(`${B}/index.html`, 2000);
+// TEST İZOLASYONU: önceki testin bıraktığı durum sonucu etkilemesin
+await c.evaluate(`(() => { localStorage.clear(); return true; })()`);
+await c.goto(`${B}/index.html`, 2000);
 
 /* ---- 1) Soru tekrarı ---- */
 const dupCheck = await c.evaluate(`(async () => {
